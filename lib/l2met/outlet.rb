@@ -20,6 +20,7 @@ module L2met
     end
 
     def start
+      heartbeat
       email = Config.librato_email
       token = Config.librato_token
       opts = {interval: 60}

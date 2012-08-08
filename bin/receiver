@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+$:.unshift(File.expand_path(File.join(File.dirname($0), '../lib')))
+require 'l2met/outlet'
+require 'l2met/receiver'
+
+L2met::Outlet.start
+L2met::Receiver.start

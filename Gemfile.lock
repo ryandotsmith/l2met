@@ -1,0 +1,24 @@
+GIT
+  remote: https://github.com/asenchi/scrolls.git
+  revision: 741a206b8cee6c4ea98d32f9855e3f9deab2e25a
+  specs:
+    scrolls (0.2.1)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    atomic (1.0.1)
+    avl_tree (1.1.3)
+    hitimes (1.1.1)
+    metriks (0.9.9.1)
+      atomic (~> 1.0)
+      avl_tree (~> 1.1.2)
+      hitimes (~> 1.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  atomic
+  metriks
+  scrolls!

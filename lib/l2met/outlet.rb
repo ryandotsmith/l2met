@@ -17,8 +17,8 @@ module L2met
     end
 
     def handle(data)
-      if data["measure"]
-        if data["elapsed"] && data["at"] != "finish"
+      if data.key?("measure")
+        if data.key?("elapsed")
           name = [data["source"], data["fn"]].compact.join("-")
           Metriks.timer(name).update(data["elapsed"])
         end

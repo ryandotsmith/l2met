@@ -33,11 +33,11 @@ module L2met
     def handle(data)
       if data.key?("measure")
         if data.key?("elapsed")
-          name = [data["source"], data["fn"]].compact.join("-")
+          name = [data["app"], data["source"], data["fn"]].compact.join(".")
           Metriks.timer(name).update(data["elapsed"].to_f)
         end
         if data.key?("at") && !["start", "finish"].include?(data["at"])
-          name = [data["source"], data["at"]].compact.join("-")
+          name = [data["app"], data["source"], data["at"]].compact.join(".")
           Metriks.meter(name).mark
         end
         @measured.update {|n| n + 1}

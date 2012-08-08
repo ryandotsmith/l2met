@@ -23,7 +23,7 @@ module L2met
       heartbeat
       email = Config.librato_email
       token = Config.librato_token
-      opts = {interval: 60}
+      opts = {interval: 30}
       if email && token
         @reporter = Metriks::Reporter::LibratoMetrics.new(email, token, opts)
         @reporter.start

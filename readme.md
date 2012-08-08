@@ -6,6 +6,8 @@ Convert structured log streams into Librato metrics.
 2012-08-08T06:14:03+00:00 app[web.16]: app=shushu ns=utils measure=true fn=resources-hid-billable-events-eid elapsed=0.295
 ```
 
+![img](http://f.cl.ly/items/0U1T1G082m3T0W2U4337/Screen%20Shot%202012-08-08%20at%209.06.42%20AM.png)
+
 ### Deploy to Heroku
 
 * Create app with Ruby buildpack

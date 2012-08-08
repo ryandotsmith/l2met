@@ -34,7 +34,7 @@ module L2met
       if data.key?("measure")
         if data.key?("elapsed")
           name = [data["source"], data["fn"]].compact.join("-")
-          Metriks.timer(name).update(data["elapsed"])
+          Metriks.timer(name).update(data["elapsed"].to_f)
         end
         if data.key?("at") && !["start", "finish"].include?(data["at"])
           name = [data["source"], data["at"]].compact.join("-")

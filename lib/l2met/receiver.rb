@@ -57,7 +57,7 @@ module L2met
       log(fn: "drain", client_id: client_id) do
         while line = client.gets
           if data = parse(line.chomp)
-            Outlet.handle(data.merge(time: Time.now))
+            Outlet.handle(data)
             @received.update {|n| n + 1}
           end
         end

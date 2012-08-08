@@ -17,12 +17,14 @@ module L2met
     end
 
     def handle(data)
-      if data[:measure]
-        if data[:elapsed] && data[:at] != "finish"
-          Metriks.timer(data[:fn]).update(data[:elapsed])
+      if data["measure"]
+        if data["elapsed"] && data["at"] != "finish"
+          name = [data["source"], data["fn"]].compact.join("-")
+          Metriks.timer(name).update(data["elapsed"])
         end
-        if data.key?(:at) && !["start", "finish"].include?(data[:at])
-          Metriks.meter(data[:at]).mark
+        if data.key?("at") && !["start", "finish"].include?(data["at"])
+          name = [data["source"], data["at"]].compact.join("-")
+          Metriks.meter(name).mark
         end
       end
     end

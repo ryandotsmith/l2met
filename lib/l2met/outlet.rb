@@ -6,6 +6,19 @@ module L2met
   module Outlet
     extend self
 
+    def heartbeat
+      log(fn: "heartbeat") do
+        @measured = Atomic.new(0)
+        Thread.new do
+          loop do
+            n = @measured.swap(0)
+            log(fn: "heartbeat", at: "emit", received: n)
+            sleep(1)
+          end
+        end
+      end
+    end
+
     def start
       email = Config.librato_email
       token = Config.librato_token
@@ -26,7 +39,12 @@ module L2met
           name = [data["source"], data["at"]].compact.join("-")
           Metriks.meter(name).mark
         end
+        @measured.update {|n| n + 1}
       end
+    end
+
+    def self.log(data, &blk)
+      Scrolls.log({ns: "outlet"}.merge(data), &blk)
     end
 
   end

@@ -11,6 +11,7 @@ Convert structured log streams into Librato metrics.
 ### Deploy to Heroku
 
 * Create app with Ruby buildpack
+* Configure Librato
 * Attach route to app
 * Point emitter app's at new wcld app
 
@@ -35,7 +36,7 @@ $ heroku config:add LIBRATO_TOKEN=abc123
 
 ```bash
 $ heroku routes:create
-$ heroku routes:attach tcp://... wcld
+$ heroku routes:attach tcp://... receiver
 ```
 
 ### Start Receiver Process

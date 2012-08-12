@@ -1,32 +1,26 @@
 require 'l2met/config'
-require 'metriks'
-require 'metriks/reporter/librato_metrics'
+require 'l2met/metric'
+require 'atomic'
+require 'scrolls'
 
 module L2met
   module Outlet
     extend self
 
+    def log(data, &blk)
+      Scrolls.log({ns: "outlet"}.merge(data), &blk)
+    end
+
     def heartbeat
-      log(fn: "heartbeat") do
+      log(fn: __method__) do
         @measured = Atomic.new(0)
         Thread.new do
           loop do
             n = @measured.swap(0)
-            log(fn: "heartbeat", at: "emit", received: n)
+            log(fn: __method__, at: "emit", received: n)
             sleep(1)
           end
         end
-      end
-    end
-
-    def start
-      heartbeat
-      email = Config.librato_email
-      token = Config.librato_token
-      opts = {interval: 30}
-      if email && token
-        @reporter = Metriks::Reporter::LibratoMetrics.new(email, token, opts)
-        @reporter.start
       end
     end
 
@@ -34,18 +28,15 @@ module L2met
       if data.key?("measure")
         if data.key?("elapsed")
           name = [data["app"], data["fn"]].compact.join(".")
-          Metriks.timer(name).update(data["elapsed"].to_f)
+          Metric.histogram(name: name, source: data["source"],
+                         value: data["elapsed"].to_f)
         end
         if data.key?("at") && !["start", "finish"].include?(data["at"])
           name = [data["app"], data["at"]].compact.join(".")
-          Metriks.meter(name).mark
+          Metric.counter(name: name, source: data["source"])
         end
         @measured.update {|n| n + 1}
       end
-    end
-
-    def self.log(data, &blk)
-      Scrolls.log({ns: "outlet"}.merge(data), &blk)
     end
 
   end

@@ -1,4 +1,5 @@
 require "l2met/config"
+require "l2met/outlet"
 require "socket"
 require "securerandom"
 require "atomic"

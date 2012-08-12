@@ -8,8 +8,8 @@ module L2met
     INTERVAL = 5
     Librato::Metrics.authenticate(Config.librato_email, Config.librato_token)
 
-    def log(data)
-      Scrolls.log({ns: "met_proc"}.merge(data))
+    def log(data, &blk)
+      Scrolls.log({ns: "met_proc"}.merge(data), &blk)
     end
 
     def lm_queue
@@ -26,8 +26,11 @@ module L2met
     end
 
     def drain_queue!
-      log(fn: __method__, length: lm_queue.length) do
-        lm_queue.submit
+      ql = lm_queue.length
+      log(fn: __method__, length: ql) do
+        if ql > 0
+          lm_queue.submit
+        end
       end
     end
 

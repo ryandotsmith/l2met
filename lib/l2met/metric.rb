@@ -58,7 +58,11 @@ module L2met
     end
 
     def get(type)
-      data[type].value
+      if data.key?(type)
+        data[type].value
+      else
+        []
+      end
     end
 
     def data

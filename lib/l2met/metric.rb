@@ -50,19 +50,11 @@ module L2met
     end
 
     def flush(type)
-      if data.key?(type)
-        get(type).tap {data.delete(type)}
-      else
-        []
-      end
+      data[type].swap({})
     end
 
     def get(type)
-      if data.key?(type)
-        data[type].value
-      else
-        []
-      end
+      data[type].value
     end
 
     def data

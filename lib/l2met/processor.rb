@@ -9,7 +9,7 @@ module L2met
     Librato::Metrics.authenticate(Config.librato_email, Config.librato_token)
 
     def log(data, &blk)
-      Scrolls.log({ns: "met_proc"}.merge(data), &blk)
+      Scrolls.log({ns: "processor"}.merge(data), &blk)
     end
 
     def lm_queue

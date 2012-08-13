@@ -83,6 +83,7 @@ module L2met
           loop do
             n = @received.swap(0)
             log(fn: "heartbeat", at: "emit", received: n)
+            Metric.counter(name: 'l2met.receiver', value: n)
             sleep(1)
           end
         end

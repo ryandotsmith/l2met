@@ -36,6 +36,8 @@ module L2met
 
     def snapshot!
       cntrs, hists = Metric.counters.length, Metric.histograms.length
+      Metric.count(name: "l2met.snapshot", source: "counters", value: cntrs)
+      Metric.count(name: "l2met.snapshot", source: "histograms", value: hists)
       log(fn: __method__, counters: cntrs, histograms: hists) do
         snapshot_histogram
         snapshot_counter

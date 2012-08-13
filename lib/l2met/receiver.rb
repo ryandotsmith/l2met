@@ -59,7 +59,7 @@ module L2met
         while line = client.gets
           if data = parse(line.chomp)
             Outlet.handle(data)
-            @received.update {|n| n + 1}
+            Metric.counter(name: 'l2met.receiver', source: drain)
           end
         end
       end
@@ -76,23 +76,8 @@ module L2met
       end
     end
 
-    def self.heartbeat
-      log(fn: "heartbeat") do
-        @received = Atomic.new(0)
-        Thread.new do
-          loop do
-            n = @received.swap(0)
-            log(fn: "heartbeat", at: "emit", received: n)
-            Metric.counter(name: 'l2met.receiver', value: n)
-            sleep(1)
-          end
-        end
-      end
-    end
-
     def self.start
       trap
-      heartbeat
       bind
       await
     end

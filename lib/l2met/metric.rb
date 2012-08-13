@@ -7,7 +7,7 @@ module L2met
     HISTOGRAM_DEFAULTS = {display_units_long: "ms"}
     COUNTER_DEFAULTS = {display_units_long: "txn"}
 
-    def histogram(data)
+    def histogram(args)
       data[:histograms].update do |hash|
         k = key(args)
         hash[k] ||= args.merge(HISTOGRAM_DEFAULTS)
@@ -17,7 +17,7 @@ module L2met
       end
     end
 
-    def counter(data)
+    def counter(args)
       data[:counters].update do |hash|
         k = key(args)
         hash[k] ||= args.merge(COUNTER_DEFAULTS)

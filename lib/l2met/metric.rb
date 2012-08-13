@@ -4,8 +4,8 @@ module L2met
   module Metric
     extend self
 
-    HISTOGRAM_DEFAULTS = {display_units_long: "ms"}
-    COUNTER_DEFAULTS = {display_units_long: "txn"}
+    HISTOGRAM_DEFAULTS = {attrs: {display_units_long: "ms"}}
+    COUNTER_DEFAULTS = {attrs: {display_units_long: "txn"}}
 
     def histogram(args)
       data[:histograms].update do |hash|

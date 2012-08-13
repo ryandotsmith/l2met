@@ -5,7 +5,7 @@ require 'librato/metrics'
 module L2met
   module Processor
     extend self
-    INTERVAL = 5
+    INTERVAL = 60
     Librato::Metrics.authenticate(Config.librato_email, Config.librato_token)
 
     def log(data, &blk)

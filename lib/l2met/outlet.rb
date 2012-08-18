@@ -15,13 +15,12 @@ module L2met
       if data.key?("measure")
         if data.key?("elapsed")
           name = [data["app"], data["fn"]].compact.join(".")
-          Metric.histogram(name: name, source: data["source"],
-                         value: data["elapsed"].to_f)
-          Metric.counter(name: name, source: data["source"])
+          Metric.histogram(name, data["elapsed"].to_f, source: data["source"])
+          Metric.counter(name, 1, source: data["source"])
         end
         if data.key?("at") && !["start", "finish"].include?(data["at"])
           name = [data["app"], data["at"]].compact.join(".")
-          Metric.counter(name: name, source: data["source"])
+          Metric.counter(name, 1, source: data["source"])
         end
       end
     end

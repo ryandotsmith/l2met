@@ -11,7 +11,7 @@ module L2met
     end
 
     def env?(key)
-      env(key) || false
+      !env(key).nil?
     end
 
     def port; env!("PORT").to_i; end

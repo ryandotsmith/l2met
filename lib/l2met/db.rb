@@ -7,15 +7,37 @@ module L2met
   module DB
     extend self
 
-    def getp_item!(tname, id, args)
-      begin
-        tables[tname].items.create(args.merge(id: id), unless_exists: "id")
-      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+    def update(tname, id, value, opts)
+      if Config.dynamo?
+        log(fn: __method__, tname: tname) do
+          create(tname, id, opts).
+            attributes.
+            add(value: value)
+        end
       end
-      tables[tname].items.at(id)
+    end
+
+    def flush(tname)
+      if Config.dynamo?
+        log(fn: __method__, tname: tname) do
+          tables[tname].items.select.map do |data|
+            data.attributes.tap {|i| data.item.delete}
+          end
+        end
+      end
     end
 
     private
+
+    def create(tname, id, opts)
+      begin
+        tables[tname].items.create(opts.merge(id: id), unless_exists: "id")
+      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+        #noop
+      ensure
+        tables[tname].items.at(id)
+      end
+    end
 
     def tables
       @tables ||= dynamo.tables.

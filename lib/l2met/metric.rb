@@ -1,6 +1,5 @@
 require 'atomic'
 require 'scrolls'
-require 'l2met/config'
 require 'l2met/db'
 
 module L2met
@@ -10,32 +9,24 @@ module L2met
     HISTOGRAM_DEFAULTS = {attrs: {display_units_long: "ms"}}
     COUNTER_DEFAULTS = {attrs: {display_units_long: "txn"}}
 
-    def histogram(args)
-      if Config.dynamo?
-        DB.getp_item!('histograms', key(args), args).
-          attributes.
-          add(values: Array(args[:value]))
-      end
+    def histogram(name, val, opts)
+      k = key(name, opts[:source])
+      DB.update('histograms', k, Array(val), opts)
       data[:histograms].update do |hash|
-        k = key(args)
-        hash[k] ||= args.merge(HISTOGRAM_DEFAULTS)
+        hash[k] ||= opts.merge(HISTOGRAM_DEFAULTS)
         hash[k][:values] ||= []
-        hash[k][:values] << args[:value]
+        hash[k][:values] << val
         hash
       end
     end
 
-    def counter(args)
-      if Config.dynamo?
-        DB.getp_item!('counters', key(args), args).
-          attributes.
-          add(value: 1)
-      end
+    def counter(name, val, opts)
+      k = key(name, opts[:source])
+      DB.update('counters', k, Integer(1), opts)
       data[:counters].update do |hash|
-        k = key(args)
-        hash[k] ||= args.merge(COUNTER_DEFAULTS)
+        hash[k] ||= opts.merge(COUNTER_DEFAULTS)
         hash[k][:value] ||= 0
-        hash[k][:value] += 1
+        hash[k][:value] += val
         hash
       end
     end
@@ -58,8 +49,8 @@ module L2met
 
     private
 
-    def key(args)
-      Digest::SHA1.hexdigest([:name, :source, :lable].map {|k| args[k]}.join)
+    def key(name, source)
+      Digest::SHA1.hexdigest(name, source)
     end
 
     def flush(type)

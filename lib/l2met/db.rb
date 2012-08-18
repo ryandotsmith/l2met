@@ -30,12 +30,22 @@ module L2met
     private
 
     def create(tname, id, opts)
+      ret = nil
       begin
-        tables[tname].items.create(opts.merge(id: id), unless_exists: "id")
+        using_collection(tname) do |items|
+          items.create(opts.merge(id: id), unless_exists: "id")
+          ret = items.at(id)
+        end
       rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
         #noop
       ensure
-        tables[tname].items.at(id)
+        ret
+      end
+    end
+
+    def using_collection(tname)
+      @collection_semaphore.synchronize do
+        yield tables[tname].items
       end
     end
 

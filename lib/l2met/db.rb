@@ -36,10 +36,10 @@ module L2met
           tables[tname].items.create(opts.merge(id: id), unless_exists: "id")
         rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
           #noop
-        ensure
-          tables[tname].items.at(id)
         end
+        res = tables[tname].items.at(id)
       end
+      res
     end
 
     def tables

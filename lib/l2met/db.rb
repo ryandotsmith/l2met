@@ -10,9 +10,7 @@ module L2met
     def update(tname, id, value, opts)
       if Config.dynamo?
         log(fn: __method__, tname: tname) do
-          create(tname, id, opts).
-            attributes.
-            add(value: value)
+          create(tname, id, opts).attributes.merge!(value: value)
         end
       end
     end
@@ -33,9 +31,9 @@ module L2met
     def create(tname, id, opts)
       res = nil
       @create_semaphore.synchronize do
-        res = tables[tname].items.at(id)
+        res = tables[tname].items[id]
         if !res.exists?
-          tables[tname].items.create(opts.merge(id: id), unless_exists: "id")
+          tables[tname].items.create(opts.merge(id: id))
         end
       end
       res

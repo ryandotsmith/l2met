@@ -13,7 +13,8 @@ module L2met
       k = key(name, opts[:source])
       DB.update('histograms', k, Array(val), opts)
       data[:histograms].update do |hash|
-        hash[k] ||= opts.merge(HISTOGRAM_DEFAULTS)
+        data = {name: name}.merge(opts).merge(HISTOGRAM_DEFAULTS)
+        hash[k] ||= data
         hash[k][:values] ||= []
         hash[k][:values] << val
         hash
@@ -24,7 +25,8 @@ module L2met
       k = key(name, opts[:source])
       DB.update('counters', k, Integer(1), opts)
       data[:counters].update do |hash|
-        hash[k] ||= opts.merge(COUNTER_DEFAULTS)
+        data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)
+        hash[k] ||= data
         hash[k][:value] ||= 0
         hash[k][:value] += val
         hash

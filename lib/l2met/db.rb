@@ -43,6 +43,7 @@ module L2met
       end
     end
 
+    @collection_semaphore = Mutex.new
     def using_collection(tname)
       @collection_semaphore.synchronize do
         yield tables[tname].items
@@ -56,7 +57,6 @@ module L2met
     end
 
     @dynamo_semaphore = Mutex.new
-
     def dynamo
       @dynamo_semaphore.synchronize do
         @db ||= AWS::DynamoDB.new(access_key_id: Config.aws_id,

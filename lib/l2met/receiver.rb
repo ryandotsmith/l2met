@@ -59,7 +59,7 @@ module L2met
         while line = client.gets
           if data = parse(line.chomp)
             Outlet.handle(data)
-            Metric.counter(name: 'l2met.receiver', source: 'drain')
+            Metric.counter('l2met.receiver', 1, source: 'drain')
           end
         end
       end

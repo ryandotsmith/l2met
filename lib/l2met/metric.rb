@@ -1,7 +1,7 @@
 require 'atomic'
-require 'aws/dynamo_db'
 require 'scrolls'
 require 'l2met/config'
+require 'l2met/db'
 
 module L2met
   module Metric
@@ -12,7 +12,7 @@ module L2met
 
     def histogram(args)
       if Config.dynamo?
-        getp_item!('histograms', key(args), args).
+        DB.getp_item!('histograms', key(args), args).
           attributes.
           add(values: Array(args[:value]))
       end
@@ -27,7 +27,7 @@ module L2met
 
     def counter(args)
       if Config.dynamo?
-        getp_item!('counters', key(args), args).
+        DB.getp_item!('counters', key(args), args).
           attributes.
           add(value: 1)
       end
@@ -72,28 +72,6 @@ module L2met
 
     def data
       @data ||= {counters: Atomic.new({}), histograms: Atomic.new({})}
-    end
-
-    def getp_item!(table, id, args)
-      t = get_table(table)
-      begin
-        t.items.create(args.merge(id: id), unless_exists: "id")
-      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
-      end
-      t.items.at(id)
-    end
-
-    def get_table(name)
-      tables.find {|t| t.name == name}
-    end
-
-    def tables
-      @tables ||= dynamo.tables.map {|t| t.load_schema}
-    end
-
-    def dynamo
-      @db ||= AWS::DynamoDB.new(access_key_id: Config.aws_id,
-                                 secret_access_key: Config.aws_secret)
     end
 
     def log(data, &blk)

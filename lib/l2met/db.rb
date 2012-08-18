@@ -31,6 +31,7 @@ module L2met
 
     @create_semaphore = Mutex.new
     def create(tname, id, opts)
+      res = nil
       @create_semaphore.synchronize do
         begin
           tables[tname].items.create(opts.merge(id: id), unless_exists: "id")

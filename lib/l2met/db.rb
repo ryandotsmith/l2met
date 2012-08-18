@@ -7,24 +7,23 @@ module L2met
   module DB
     extend self
 
-    @dynamo_semaphore = Mutex.new
-
-    def getp_item!(table, id, args)
-      t = get_table(table)
+    def getp_item!(tname, id, args)
       begin
-        t.items.create(args.merge(id: id), unless_exists: "id")
+        tables[tname].items.create(args.merge(id: id), unless_exists: "id")
       rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
       end
-      t.items.at(id)
+      tables[tname].items.at(id)
     end
 
-    def get_table(name)
-      tables.find {|t| t.name == name}
-    end
+    private
 
     def tables
-      @tables ||= dynamo.tables.map {|t| t.load_schema}
+      @tables ||= dynamo.tables.
+        map {|t| t.load_schema}.
+        reduce({}) {|h, t| h[t.name] = t; h}
     end
+
+    @dynamo_semaphore = Mutex.new
 
     def dynamo
       @dynamo_semaphore.synchronize do

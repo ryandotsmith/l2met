@@ -29,24 +29,16 @@ module L2met
 
     private
 
+    @create_semaphore = Mutex.new
     def create(tname, id, opts)
-      ret = nil
-      begin
-        using_collection(tname) do |items|
-          items.create(opts.merge(id: id), unless_exists: "id")
-          ret = items.at(id)
+      @create_semaphore.synchronize do
+        begin
+          tables[tname].items.create(opts.merge(id: id), unless_exists: "id")
+        rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+          #noop
+        ensure
+          tables[tname].items.at(id)
         end
-      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
-        #noop
-      ensure
-        ret
-      end
-    end
-
-    @collection_semaphore = Mutex.new
-    def using_collection(tname)
-      @collection_semaphore.synchronize do
-        yield tables[tname].items
       end
     end
 

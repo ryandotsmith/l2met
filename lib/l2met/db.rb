@@ -13,8 +13,9 @@ module L2met
       if Config.dynamo?
         @put_lock.synchronize do
           log(fn: __method__, tname: tname) do
-            tables[tname].items.
-              put(opts.merge(id: id, mkey: mkey, value: value))
+            data = opts.merge(id: id, mkey: mkey, value: value)
+            log(fn: __method__, at: 'creation', data: data)
+            tables[tname].items.put(data)
           end
         end
       end

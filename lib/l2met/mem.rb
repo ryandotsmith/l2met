@@ -1,6 +1,5 @@
 require 'atomic'
 require 'scrolls'
-require 'l2met/db'
 
 module L2met
   module Mem
@@ -27,7 +26,6 @@ module L2met
     def histogram(name, val, opts)
       log(fn: __method__) do
         k = key(name, opts[:source])
-        DB.update('histograms', k, Array(val), opts)
         data[:histograms].update do |hash|
           data = {name: name}.merge(opts).merge(HISTOGRAM_DEFAULTS)
           hash[k] ||= data
@@ -41,7 +39,6 @@ module L2met
     def counter(name, val, opts)
       log(fn: __method__) do
         k = key(name, opts[:source])
-        DB.update('counters', k, Integer(1), opts)
         data[:counters].update do |hash|
           data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)
           hash[k] ||= data

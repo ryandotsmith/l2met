@@ -45,7 +45,6 @@ module L2met
     end
 
     def snapshot_counter
-      DB.flush("counters")
       Mem.counters!.each do |k, metric|
         name = [metric[:name], "count"].map(&:to_s).join(".")
         lm_queue.add(name => {source: metric[:source], type: "gauge",
@@ -55,7 +54,6 @@ module L2met
     end
 
     def snapshot_histogram
-      DB.flush("histograms")
       Mem.histograms!.each do |k, metric|
         values = metric[:values].sort
         data = {min: values[0], max: values[-1],

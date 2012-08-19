@@ -7,10 +7,10 @@ module L2met
   module DB
     extend self
 
-    def update(tname, id, value, opts)
+    def update(tname, id, mkey, value, opts)
       if Config.dynamo?
         log(fn: __method__, tname: tname) do
-          create(tname, id, opts).attributes.merge!(value: value)
+          create(tname, id, mkey, opts).attributes.merge!(value: value)
         end
       end
     end
@@ -28,12 +28,12 @@ module L2met
     private
 
     @create_semaphore = Mutex.new
-    def create(tname, id, opts)
+    def create(tname, id, mkey, opts)
       res = nil
       @create_semaphore.synchronize do
         res = tables[tname].items[id]
         if !res.exists?
-          tables[tname].items.create(opts.merge(id: id))
+          tables[tname].items.create(opts.merge(id: id, mkey: mkey))
         end
       end
       res

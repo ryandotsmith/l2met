@@ -1,9 +1,8 @@
-require "l2met/config"
-require "l2met/outlet"
 require "socket"
 require "securerandom"
-require "atomic"
 require "scrolls"
+require "l2met/config"
+require "l2met/mem"
 
 module L2met
   module Receiver
@@ -57,10 +56,7 @@ module L2met
       client_id = SecureRandom.uuid
       log(fn: "drain", client_id: client_id) do
         while line = client.gets
-          if data = parse(line.chomp)
-            Outlet.handle(data)
-            Metric.counter('l2met.receiver', 1, source: 'drain')
-          end
+          Mem.handle(data) if data = parse(line.chomp)
         end
       end
     end

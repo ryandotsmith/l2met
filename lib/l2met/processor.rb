@@ -1,5 +1,5 @@
 require 'l2met/config'
-require 'l2met/metric'
+require 'l2met/mem'
 require 'librato/metrics'
 
 module L2met
@@ -35,9 +35,9 @@ module L2met
     end
 
     def snapshot!
-      cntrs, hists = Metric.counters.length, Metric.histograms.length
-      Metric.counter("l2met.snapshot", cntrs, source: "counters")
-      Metric.counter("l2met.snapshot", hists, source: "histograms")
+      cntrs, hists = Mem.counters.length, Mem.histograms.length
+      Mem.counter("l2met.snapshot", cntrs, source: "counters")
+      Mem.counter("l2met.snapshot", hists, source: "histograms")
       log(fn: __method__, counters: cntrs, histograms: hists) do
         snapshot_histogram
         snapshot_counter
@@ -46,7 +46,7 @@ module L2met
 
     def snapshot_counter
       DB.flush("counters")
-      Metric.counters!.each do |k, metric|
+      Mem.counters!.each do |k, metric|
         name = [metric[:name], "count"].map(&:to_s).join(".")
         lm_queue.add(name => {source: metric[:source], type: "gauge",
                        value: metric[:value], attributes: metric[:attrs],
@@ -56,7 +56,7 @@ module L2met
 
     def snapshot_histogram
       DB.flush("histograms")
-      Metric.histograms!.each do |k, metric|
+      Mem.histograms!.each do |k, metric|
         values = metric[:values].sort
         data = {min: values[0], max: values[-1],
           mean: values.reduce(:+) / values.length.to_f,

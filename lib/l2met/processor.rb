@@ -71,7 +71,7 @@ module L2met
                          measure_time: Time.now.to_i})
 
         end
-        DB.put('histograms', SecureRandom.uuid, k, val,
+        DB.put('histograms', SecureRandom.uuid, k, 0,
               {name: name, source: metric[:source]}.merge(data))
       end
     end

@@ -1,5 +1,6 @@
 require 'l2met/config'
 require 'l2met/mem'
+require 'l2met/db'
 require 'librato/metrics'
 
 module L2met

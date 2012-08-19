@@ -48,8 +48,8 @@ module L2met
     def snapshot_counter
 
       Mem.counters!.each do |k, metric|
-        DB.update('counters', SecureRandom.uuid, k, metric[:value],
-                   name: metric[:name], source: metric[:source])
+        DB.put('counters', SecureRandom.uuid, k, metric[:value],
+                name: metric[:name], source: metric[:source])
         name = [metric[:name], "count"].map(&:to_s).join(".")
         lm_queue.add(name => {source: metric[:source], type: "gauge",
                        value: metric[:value], attributes: metric[:attrs],
@@ -60,8 +60,8 @@ module L2met
     def snapshot_histogram
       Mem.histograms!.each do |k, metric|
         values = metric[:values].sort
-        DB.update('histograms', SecureRandom.uuid, k, values,
-                   name: metric[:name], source: metric[:source])
+        DB.put('histograms', SecureRandom.uuid, k, values,
+                name: metric[:name], source: metric[:source])
         data = {min: values[0], max: values[-1],
           mean: values.reduce(:+) / values.length.to_f,
           median: values[values.length/2],

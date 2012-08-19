@@ -6,11 +6,16 @@ require 'l2met/config'
 module L2met
   module DB
     extend self
+    @put_lock = Mutex.new
+    @dynamo_lock = Mutex.new
 
-    def update(tname, id, mkey, value, opts)
+    def put(tname, id, mkey, value, opts)
       if Config.dynamo?
-        log(fn: __method__, tname: tname) do
-          create(tname, id, mkey, opts).attributes.merge!(value: value)
+        @put_lock.synchronize do
+          log(fn: __method__, tname: tname) do
+            tables[tname].items.
+              put(opts.merge(id: id, mkey: mkey, value: value))
+          end
         end
       end
     end
@@ -27,27 +32,14 @@ module L2met
 
     private
 
-    @create_semaphore = Mutex.new
-    def create(tname, id, mkey, opts)
-      res = nil
-      @create_semaphore.synchronize do
-        res = tables[tname].items[id]
-        if !res.exists?
-          tables[tname].items.create(opts.merge(id: id, mkey: mkey))
-        end
-      end
-      res
-    end
-
     def tables
       @tables ||= dynamo.tables.
         map {|t| t.load_schema}.
         reduce({}) {|h, t| h[t.name] = t; h}
     end
 
-    @dynamo_semaphore = Mutex.new
     def dynamo
-      @dynamo_semaphore.synchronize do
+      @dynamo_lock.synchronize do
         @db ||= AWS::DynamoDB.new(access_key_id: Config.aws_id,
                                    secret_access_key: Config.aws_secret)
       end

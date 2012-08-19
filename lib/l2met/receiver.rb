@@ -56,7 +56,9 @@ module L2met
       client_id = SecureRandom.uuid
       log(fn: "drain", client_id: client_id) do
         while line = client.gets
-          Mem.handle(data) if data = parse(line.chomp)
+          if data = parse(line.chomp)
+            Mem.handle(data)
+          end
         end
       end
     end

@@ -39,7 +39,7 @@ module L2met
           source: counters.sample["source"],
           value: counters.map {|c| c["value"].to_f}.reduce(:+)}
       end.each do |metric|
-        lm_queue.add(name => {source: metric[:source], type: "gauge",
+        lm_queue.add(metric[:name] => {source: metric[:source], type: "gauge",
                        value: metric[:value], measure_time: Time.now.to_i})
       end
     end

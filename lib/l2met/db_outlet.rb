@@ -7,9 +7,9 @@ module L2met
 
     def start
       loop do
-        sleep(30)
         snapshot_counters
         snapshot_histograms
+        sleep(30)
       end
     end
 
@@ -21,7 +21,7 @@ module L2met
 
     def snapshot_histograms
       DB.flush("histograms").each do |hist|
-        log(fn: __method__, counter: counter)
+        log(fn: __method__, histogram: hist)
       end
     end
 

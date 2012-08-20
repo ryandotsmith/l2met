@@ -3,7 +3,7 @@ module L2met
     extend self
 
     def mean(vals)
-      vals.reduce(:+) / vals.length.to_f,
+      vals.reduce(:+) / vals.length.to_f
     end
 
     def median(vals)
@@ -19,11 +19,11 @@ module L2met
     end
 
     def perc95(vals)
-      vals[(0.95 * vals.length).ceil - 1],
+      vals[(0.95 * vals.length).ceil - 1]
     end
 
     def perc99(vals)
-      vals[(0.99 * vals.length).ceil - 1]}
+      vals[(0.99 * vals.length).ceil - 1]
     end
   end
 end

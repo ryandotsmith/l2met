@@ -22,8 +22,10 @@ module L2met
     end
 
     def snapshot
-      snapshot_counters
-      snapshot_histograms
+      log(fn: __method__) do
+        snapshot_counters
+        snapshot_histograms
+      end
     end
 
     def snapshot_counters

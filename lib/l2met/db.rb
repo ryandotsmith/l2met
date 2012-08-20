@@ -9,11 +9,11 @@ module L2met
     @put_lock = Mutex.new
     @dynamo_lock = Mutex.new
 
-    def put(tname, id, mkey, value, opts)
+    def put(tname, mkey, uuid, value, opts)
       if Config.dynamo?
         @put_lock.synchronize do
           log(fn: __method__, tname: tname) do
-            data = opts.merge(id: id, mkey: mkey, value: value)
+            data = opts.merge(mkey: mkey, uuid: uuid, value: value)
             log(fn: __method__, at: 'creation', data: data)
             tables[tname].items.put(data)
           end

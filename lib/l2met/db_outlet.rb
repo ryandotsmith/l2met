@@ -71,8 +71,9 @@ module L2met
     end
 
     def test_client
-      @client ||= Librato::Metrics::Client.new.
-        authenticate(Config.test_librato_email, Config.test_librato_token)
+      @client ||= Librato::Metrics::Client.new.tap do |c|
+        c.authenticate(Config.test_librato_email, Config.test_librato_token)
+      end
     end
 
     def log(data, &blk)

@@ -8,7 +8,8 @@ module L2met
     def start
       loop do
         sleep(30)
-        snapshot
+        snapshot_counters
+        snapshot_histograms
       end
     end
 

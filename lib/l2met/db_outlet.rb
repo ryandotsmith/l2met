@@ -14,15 +14,11 @@ module L2met
     end
 
     def snapshot_counters
-      DB.flush("counters").each do |counter|
-        log(fn: __method__, counter: counter)
-      end
+      DB.flush("counters")
     end
 
     def snapshot_histograms
-      DB.flush("histograms").each do |hist|
-        log(fn: __method__, histogram: hist)
-      end
+      DB.flush("histograms")
     end
 
     def log(data, &blk)

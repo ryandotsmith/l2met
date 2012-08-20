@@ -59,8 +59,8 @@ module L2met
       end.each do |res|
         meta, metrics = *res
         metrics.each do |stat, val|
-          name = [metric[:name], stat].map(&:to_s).join(".")
-          lm_queue.add(name => {source: metric[:source], type: "gauge",
+          name = [meta[:name], stat].map(&:to_s).join(".")
+          lm_queue.add(name => {source: meta[:source], type: "gauge",
                          value: val, measure_time: Time.now.to_i})
         end
       end

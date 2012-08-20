@@ -1,4 +1,6 @@
+require 'l2met/config'
 require 'l2met/db'
+require 'librato/metrics'
 require 'scrolls'
 
 module L2met

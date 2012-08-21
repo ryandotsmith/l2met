@@ -9,6 +9,26 @@ require 'l2met/utils'
 module L2met
   class Web < Sinatra::Base
 
+    before do
+      @start_request = Time.now
+      content_type(:json)
+    end
+
+    after do
+      Utils.time(@instrument_action, Time.now - @start_request)
+    end
+
+    error do
+      e = env['sinatra.error']
+      log({level: "error", exception: e.message}.merge(params))
+      [500, Utils.enc_j(msg: "un-handled error")]
+    end
+
+    not_found do
+      Utils.count("web-not-found")
+      [404, Utils.enc_j(msg: "endpoint not found")]
+    end
+
     head "/" do
       200
     end
@@ -56,25 +76,6 @@ module L2met
       super
     end
 
-    before do
-      @start_request = Time.now
-      content_type(:json)
-    end
-
-    after do
-      Utils.time(@instrument_action, Time.now - @start_request)
-    end
-
-    error do
-      e = env['sinatra.error']
-      log({level: "error", exception: e.message}.merge(params))
-      [500, Utils.enc_j(msg: "un-handled error")]
-    end
-
-    not_found do
-      Utils.count("web-not-found")
-      [404, Utils.enc_j(msg: "endpoint not found")]
-    end
 
   end
 end

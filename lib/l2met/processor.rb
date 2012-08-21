@@ -51,8 +51,6 @@ module L2met
         lm_queue.add(name => {source: metric[:source], type: "gauge",
                        value: metric[:value], attributes: metric[:attrs],
                        measure_time: Time.now.to_i})
-        DB.put('counters', k, SecureRandom.uuid, metric[:value],
-                name: name, source: metric[:source])
       end
     end
 
@@ -71,8 +69,6 @@ module L2met
                          measure_time: Time.now.to_i})
 
         end
-        DB.put('histograms', k, SecureRandom.uuid, 0,
-              {name: name, source: metric[:source]}.merge(data))
       end
     end
   end

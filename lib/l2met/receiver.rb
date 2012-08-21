@@ -69,7 +69,7 @@ module L2met
           log(consumer: cid, data: data)
           data.merge!(consumer_id: cid)
         end
-        Mem.handle(data.merge(consumer_id: cid))
+        Mem.handle(data)
       end
     end
 

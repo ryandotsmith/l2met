@@ -63,7 +63,10 @@ module L2met
 
     def self.handle(consumer_id, line)
       if data = parse(line.chomp)
-        data.merge!(consumer_id: consumer_id) if consumer_id
+        if consumer_id
+          log(consumer: consumer_id, data: data)
+          data.merge!(consumer_id: consumer_id)
+        end
         Mem.handle(data.merge(consumer_id: consumer_id))
       end
     end

@@ -9,6 +9,11 @@ require 'l2met/utils'
 module L2met
   class Web < Sinatra::Base
 
+    def self.route(verb, action, *)
+      condition {@instrument_action = action}
+      super
+    end
+
     before do
       @start_request = Time.now
       content_type(:json)
@@ -70,12 +75,6 @@ module L2met
     def self.log(data, &blk)
       Scrolls.log({ns: "web"}.merge(data), &blk)
     end
-
-    def self.route(verb, action, *)
-      condition {@instrument_action = action}
-      super
-    end
-
 
   end
 end

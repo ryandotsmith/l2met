@@ -7,6 +7,7 @@ require "l2met/mem"
 module L2met
   module Receiver
     LineRe = /^\d+ \<\d+\>1 \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00 d\.[a-z0-9-]+ ([a-z0-9\-\_\.]+) ([a-z0-9\-\_\.]+) \- \- (.*)$/
+    HttpLineRe = /^\d+ \<\d+\>1 \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00 [a-z0-9-]+ ([a-z0-9\-\_\.]+) ([a-z0-9\-\_\.]+) \- (.*)$/
     IgnoreMsgRe = /(^ *$)|(Processing|Parameters|Completed|\[Worker\(host)/
     TimeSubRe = / \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:\d\d/
     AttrsRe = /( *)([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|("([^\"]+)"))?/
@@ -26,8 +27,8 @@ module L2met
       end
     end
 
-    def self.parse(line)
-      if (m = line.match(LineRe))
+    def self.parse(line, r=LineRe)
+      if (m = line.match(r))
         if (data = parse_msg(m[3]))
           data["source"] = m[1]
           data["ps"] = m[2]
@@ -63,7 +64,7 @@ module L2met
 
     def self.handle(cid, line)
       log(line: line.chomp, data: parse(line.chomp)) if cid
-      if data = parse(line.chomp)
+      if data = parse(line.chomp, HttpLineRe)
         if cid
           log(consumer: cid, data: data)
           data.merge!(consumer_id: cid)

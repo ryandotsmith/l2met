@@ -19,7 +19,7 @@ module L2met
           log(fn: __method__, tname: tname) do
             data = opts.merge(mkey: mkey, uuid: uuid, value: value)
             log(fn: __method__, at: 'creation', data: data)
-            tables[tname].items.put(data)
+            DB[tname].put(data)
           end
         end
       end
@@ -28,7 +28,7 @@ module L2met
     def flush(tname)
       if Config.dynamo?
         log(fn: __method__, tname: tname) do
-          tables[tname].items.select.map do |data|
+          DB[tname].select.map do |data|
             data.attributes.tap {|i| data.item.delete}
           end
         end

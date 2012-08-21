@@ -3,6 +3,8 @@ require 'l2met/mem'
 require 'l2met/db'
 require 'librato/metrics'
 
+#TODO: deprecate this module in favor of mem_outlet
+
 module L2met
   module Processor
     extend self

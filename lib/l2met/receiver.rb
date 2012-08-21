@@ -66,7 +66,6 @@ module L2met
       #log(line: line.chomp, data: parse(line.chomp)) if cid
       if cid
         if data = parse(line.chomp, HttpLineRe)
-          data.merge!
           Mem.handle(data.merge(consumer_id: cid))
         end
       elsif data = parse(line.chomp)

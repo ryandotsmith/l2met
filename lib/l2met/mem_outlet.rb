@@ -18,11 +18,14 @@ module L2met
     end
 
     def snapshot
-      snapshot_histograms
-      snapshot_counters
+      cntrs, hists = Mem.counters.length, Mem.histograms.length
+      log(fn: __method__, counters: cntrs, histograms: hists) do
+        snapshot_histograms
+        snapshot_counters
+      end
     end
 
-    def snapshot_counter
+    def snapshot_counters
       Mem.counters!.each do |k, metric|
         name = [metric[:name], "count"].map(&:to_s).join(".")
         DB.put('counters', k, SecureRandom.uuid, metric[:value],
@@ -30,7 +33,7 @@ module L2met
       end
     end
 
-    def snapshot_histogram
+    def snapshot_histograms
       Mem.histograms!.each do |k, metric|
         values = metric[:values].sort
         data = {min: Stats.min(values),

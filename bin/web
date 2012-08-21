@@ -2,7 +2,9 @@
 $:.unshift(File.expand_path(File.join(File.dirname($0), '../lib')))
 require 'l2met/web'
 require 'l2met/mem_outlet'
+require 'l2met/heartbeat'
 $stdout.sync = true
 Thread.abort_on_exception = true
+L2met::Heartbeat.start
 L2met::MemOutlet.start
 L2met::Web.start

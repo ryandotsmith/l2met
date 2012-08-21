@@ -1,5 +1,6 @@
 require 'atomic'
 require 'scrolls'
+require 'l2met/heartbeat'
 
 module L2met
   module Mem
@@ -24,6 +25,7 @@ module L2met
     end
 
     def histogram(name, val, opts)
+      Heartbeat.pulse("mem.histograms")
       k = key(name, opts[:source])
       data[:histograms].update do |hash|
         data = {name: name}.merge(opts).merge(HISTOGRAM_DEFAULTS)
@@ -35,6 +37,7 @@ module L2met
     end
 
     def counter(name, val, opts)
+      Heartbeat.pulse("mem.counters")
       k = key(name, opts[:source])
       data[:counters].update do |hash|
         data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)

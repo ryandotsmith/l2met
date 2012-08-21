@@ -55,11 +55,10 @@ module L2met
     end
 
     def self.start
-      log(fn: __method__, at: "build")
-      Unicorn::Configurator::RACKUP[:port] = Config.port
-      Unicorn::Configurator::RACKUP[:set_listener] = true
-      @server = Unicorn::HttpServer.new(Web.new)
-      log(fn: __method__, at: "install_trap")
+      log(fn: "start", at: "build")
+      @server = Mongrel::HttpServer.new("0.0.0.0", Config.port)
+      @server.register("/", Rack::Handler::Mongrel.new(Web.new))
+      log(fn: "start", at: "install_trap")
       ["TERM", "INT"].each do |s|
         Signal.trap(s) do
           log(fn: "trap", signal: s)
@@ -68,8 +67,8 @@ module L2met
           Kernel.exit!(0)
         end
       end
-      log(fn: __method__, at: "run", port: Config.port)
-      @server.start.join
+      log(fn: "start", at: "run", port: Config.port)
+      @server.run.join
     end
 
     def self.log(data, &blk)

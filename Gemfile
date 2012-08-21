@@ -1,6 +1,6 @@
 source :rubygems
 
-gem 'unicorn'
+gem 'mongrel', '1.2.0.pre2'
 gem 'sinatra'
 gem 'yajl-ruby'
 gem 'atomic'

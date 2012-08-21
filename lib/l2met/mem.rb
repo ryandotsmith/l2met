@@ -38,7 +38,7 @@ module L2met
     end
 
     def counter(name, val, opts)
-      log(fn: __method__) do
+      log(fn: __method__, name: name) do
         k = key(name, opts[:source])
         data[:counters].update do |hash|
           data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)

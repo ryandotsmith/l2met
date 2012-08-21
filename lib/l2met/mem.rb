@@ -10,7 +10,6 @@ module L2met
     COUNTER_DEFAULTS = {attrs: {display_units_long: "txn"}}
 
     def handle(data)
-      Heartbeat.pulse("mem.handle")
       counter('l2met.receiver', 1, source: 'mem')
       if data.key?("measure")
         if data.key?("elapsed")
@@ -26,7 +25,6 @@ module L2met
     end
 
     def histogram(name, val, opts)
-      Heartbeat.pulse("mem.histograms")
       k = key(name, opts[:source])
       data[:histograms].update do |hash|
         data = {name: name}.merge(opts).merge(HISTOGRAM_DEFAULTS)
@@ -38,14 +36,15 @@ module L2met
     end
 
     def counter(name, val, opts)
-      Heartbeat.pulse("mem.counters")
-      k = key(name, opts[:source])
-      data[:counters].update do |hash|
-        data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)
-        hash[k] ||= data
-        hash[k][:value] ||= 0
-        hash[k][:value] += val
-        hash
+      log(fn: __method__) do
+        k = key(name, opts[:source])
+        data[:counters].update do |hash|
+          data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)
+          hash[k] ||= data
+          hash[k][:value] ||= 0
+          hash[k][:value] += val
+          hash
+        end
       end
     end
 

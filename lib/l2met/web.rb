@@ -49,8 +49,8 @@ module L2met
       [201, Utils.enc_j(consumer.attributes.to_h)]
     end
 
-    post "/consumers/:consumer_id/logs" do
-      Receiver.handle(params[:consumer_id], request.env["rack.input"].read)
+    post "/consumers/:cid/logs" do
+      Receiver.handle(params[:cid], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end
 

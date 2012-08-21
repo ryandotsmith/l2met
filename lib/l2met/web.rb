@@ -61,6 +61,10 @@ module L2met
       content_type(:json)
     end
 
+    after do
+      Utils.time(@instrument_action, Time.now - @start_request)
+    end
+
     error do
       e = env['sinatra.error']
       log({level: "error", exception: e.message}.merge(params))

@@ -10,6 +10,7 @@ module L2met
     COUNTER_DEFAULTS = {attrs: {display_units_long: "txn"}}
 
     def handle(data)
+      Heartbeat.pulse("mem.handle")
       counter('l2met.receiver', 1, source: 'mem')
       if data.key?("measure")
         if data.key?("elapsed")

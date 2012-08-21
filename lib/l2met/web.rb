@@ -1,5 +1,5 @@
 require 'sinatra'
-require 'unicorn'
+require 'rack/handler/mongrel'
 require 'scrolls'
 require 'l2met/config'
 require 'l2met/db'

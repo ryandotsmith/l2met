@@ -56,13 +56,14 @@ module L2met
       client_id = SecureRandom.uuid
       log(fn: "drain", client_id: client_id) do
         while line = client.gets
-          handle(line)
+          handle(nil, line)
         end
       end
     end
 
     def self.handle(consumer_id, line)
       if data = parse(line.chomp)
+        data.merge!(consumer_id: consumer_id) if consumer_id
         Mem.handle(data.merge(consumer_id: consumer_id))
       end
     end

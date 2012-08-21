@@ -16,14 +16,14 @@ module L2met
       [200, Utils.enc_j(alive: Time.now)]
     end
 
-    post "/logs" do
+    post "/consumers" do
       consumer = DB["consumers"].create(id: SecureRandom.uuid,
                                          email: params[:email],
                                          token: params[:token])
       [201, Utils.enc_j(consumer.attributes.to_h)]
     end
 
-    post "/logs/:consumer_id" do
+    post "/consumers/:consumer_id/logs" do
       Receiver.handle(params[:consumer_id], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end

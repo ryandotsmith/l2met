@@ -25,13 +25,15 @@ module L2met
     end
 
     def histogram(name, val, opts)
-      k = key(name, opts[:source])
-      data[:histograms].update do |hash|
-        data = {name: name}.merge(opts).merge(HISTOGRAM_DEFAULTS)
-        hash[k] ||= data
-        hash[k][:values] ||= []
-        hash[k][:values] << val
-        hash
+      log(fn: __method__) do
+        k = key(name, opts[:source])
+        data[:histograms].update do |hash|
+          data = {name: name}.merge(opts).merge(HISTOGRAM_DEFAULTS)
+          hash[k] ||= data
+          hash[k][:values] ||= []
+          hash[k][:values] << val
+          hash
+        end
       end
     end
 

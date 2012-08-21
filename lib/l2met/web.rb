@@ -20,7 +20,7 @@ module L2met
     end
 
     after do
-      Utils.time(@instrument_action, Time.now - @start_request)
+      Utils.time(@instrument_action, (Time.now - @start_request), ns: "web")
     end
 
     error do

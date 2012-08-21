@@ -9,14 +9,14 @@ module L2met
       Yajl::Encoder.encode(data)
     end
 
-    def time(name, t)
+    def time(name, t, opts={})
       if name
         name.
           gsub(/\/:\w+/,'').            #remove param names from path
           gsub("/","-").                #remove slash from path
           gsub(/[^A-Za-z0-9\-\_]/, ''). #only keep subset of chars
           slice(1..-1).
-          tap {|res| log(measure: true, fn: res, elapsed: t)}
+          tap {|res| log({measure: true, fn: res, elapsed: t}.merge(opts))}
       end
     end
 

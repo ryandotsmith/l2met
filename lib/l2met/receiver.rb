@@ -64,11 +64,12 @@ module L2met
 
     def self.handle(cid, line)
       #log(line: line.chomp, data: parse(line.chomp)) if cid
-      if data = parse(line.chomp, HttpLineRe)
-        if cid
-          log(consumer: cid, data: data)
-          data.merge!(consumer_id: cid)
+      if cid
+        if data = parse(line.chomp, HttpLineRe)
+          data.merge!
+          Mem.handle(data.merge(consumer_id: cid))
         end
+      elsif data = parse(line.chomp)
         Mem.handle(data)
       end
     end

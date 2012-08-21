@@ -62,7 +62,7 @@ module L2met
     end
 
     def self.handle(cid, line)
-      log(line: line) if cid
+      log(line: line.chomp, data: parse(line.chomp)) if cid
       if data = parse(line.chomp)
         if cid
           log(consumer: cid, data: data)

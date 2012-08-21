@@ -2,6 +2,7 @@ require 'sinatra'
 require 'unicorn'
 require 'scrolls'
 require 'l2met/config'
+require 'l2met/db'
 require 'l2met/receiver'
 require 'l2met/utils'
 

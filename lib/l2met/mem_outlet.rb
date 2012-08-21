@@ -2,6 +2,7 @@ require 'scrolls'
 require 'securerandom'
 require 'l2met/db'
 require 'l2met/mem'
+require 'l2met/stats'
 
 module L2met
   module MemOutlet

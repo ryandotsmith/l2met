@@ -1,3 +1,6 @@
+require 'atomic'
+require 'scrolls'
+
 module L2met
   module Heartbeat
     extend self
@@ -7,9 +10,9 @@ module L2met
         loop do
           beats.each do |source, val|
             n = val.swap(0)
-            log(fn: "heartbeat", source: name, received: n)
-            sleep(1)
+            log(fn: "heartbeat", source: source, received: n)
           end
+          sleep(1)
         end
       end
     end
@@ -21,6 +24,10 @@ module L2met
 
     def beats
       @beats ||= {}
+    end
+
+    def log(data, &blk)
+      Scrolls.log({ns: "heartbeat"}.merge(data), &blk)
     end
   end
 end

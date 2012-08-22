@@ -1,3 +1,4 @@
+require 'zlib'
 require 'atomic'
 require 'scrolls'
 require 'l2met/heartbeat'
@@ -65,7 +66,7 @@ module L2met
     private
 
     def key(name, source)
-      Digest::SHA1.hexdigest(name, source)
+      Zlib.crc32([name,source].join)
     end
 
     def flush(type)

@@ -45,6 +45,17 @@ module L2met
       end
     end
 
+    def snapshot_last_vals!(q, mkey)
+      counters = DB.flush("last_vals", mkey)
+      if counters.length > 0
+        sample = counters.last
+        q.add(sample["name"] => {source: sample["source"],
+                type: "gauge",
+                value: sample["value"].to_i,
+                measure_time: Time.now.to_i})
+      end
+    end
+
     def snapshot_counters!(q, mkey)
       counters = DB.flush("counters", mkey)
       if counters.length > 0

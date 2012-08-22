@@ -26,6 +26,15 @@ module L2met
       end
     end
 
+    def snapshot_last_vals
+      Mem.last_vals!.each do |k, metric|
+        name = [metric[:name], "last"].map(&:to_s).join(".")
+        DB.put('last_vals', k, SecureRandom.uuid, metric[:last_value],
+                name: name, source: metric[:source],
+                consumer: metric[:consumer])
+      end
+    end
+
     def snapshot_counters
       Mem.counters!.each do |k, metric|
         name = [metric[:name], "count"].map(&:to_s).join(".")

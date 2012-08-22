@@ -20,7 +20,12 @@ module L2met
         end
         if data.key?("at") && !["start", "finish"].include?(data["at"])
           name = [data["app"], data["at"]].compact.join(".")
-          counter(name, 1, source: data["source"], consumer: data["consumer"])
+          if data.key?("last")
+            last(name, data["last"].to_i,
+                  source: data["source"], consumer: data["consumer"])
+          else
+            counter(name, 1, source: data["source"], consumer: data["consumer"])
+          end
         end
       end
     end
@@ -47,6 +52,16 @@ module L2met
       end
     end
 
+    def last_vals(name, val, opts)
+      k = key(name, opts[:source])
+      data[:last_vals].update do |hash|
+        data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)
+        hash[k] ||= data
+        hash[k][:last_value] = val
+        hash
+      end
+    end
+
     def histograms
       get(:histograms)
     end
@@ -61,6 +76,14 @@ module L2met
 
     def counters!
       flush(:counters)
+    end
+
+    def last_vals
+      get(:last_vals)
+    end
+
+    def last_vals!
+      flush(:last_vals)
     end
 
     private
@@ -78,7 +101,9 @@ module L2met
     end
 
     def data
-      @data ||= {counters: Atomic.new({}), histograms: Atomic.new({})}
+      @data ||= {counters: Atomic.new({}),
+        histograms: Atomic.new({}),
+        last_vals: Atmoc.new({})}
     end
 
     def log(data)

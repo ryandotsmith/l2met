@@ -21,10 +21,8 @@ module L2met
             log(fn: __method__, at: 'creation', data: data)
             DB[tname].put(data)
             log(opts: opts)
-            if opts[:consumer]
-              DB["active-stats"].put(mkey: mkey, consumer: opts[:consumer],
-                                      time: Time.now.to_s)
-            end
+            DB["active-stats"].put(mkey: mkey, consumer: opts[:consumer],
+                                    time: Time.now.to_s)
           end
         end
       end

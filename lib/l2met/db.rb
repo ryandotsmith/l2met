@@ -9,10 +9,6 @@ module L2met
     @put_lock = Mutex.new
     @dynamo_lock = Mutex.new
 
-    def [](table)
-      tables[table].items
-    end
-
     def put(tname, mkey, uuid, value, opts)
       if Config.dynamo?
         @put_lock.synchronize do
@@ -36,6 +32,10 @@ module L2met
           end
         end
       end
+    end
+
+    def [](table)
+      tables[table].items
     end
 
     private

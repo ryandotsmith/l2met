@@ -38,6 +38,7 @@ module L2met
           queue =  Librato::Metrics::Queue.new(client: client)
           snapshot_counters!(queue, sa["mkey"].to_i)
           snapshot_histograms!(queue, sa["mkey"].to_i)
+          snapshot_last_vals!(queue, sa["mkey"].to_i)
           if queue.length > 0
             queue.submit
           end

@@ -23,6 +23,7 @@ module L2met
       log(fn: __method__, counters: cntrs, histograms: hists) do
         snapshot_histograms
         snapshot_counters
+        snapshot_last_vals
       end
     end
 

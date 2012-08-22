@@ -24,13 +24,41 @@ module L2met
       end
     end
 
-    def flush(tname)
+    def flush(tname, mkey)
       if Config.dynamo?
         log(fn: __method__, tname: tname) do
-          DB[tname].select.map do |data|
+          DB[tname].query(hash_value: mkey, :select => :all).map do |data|
             data.attributes.tap {|i| data.item.delete}
           end
         end
+      end
+    end
+
+    def active_stats(partition)
+      DB["active-stats"].select.select do |item|
+        item.attributes["mkey"] % Config.num_dboutlets == partition
+      end.sort_by do |item|
+        item.attributes["last_report"]
+      end
+    end
+
+    def lock(name)
+      log(fn: __method__, name: name) do
+        begin
+          DB["locks"].put({name: name, locked_at: Time.now.to_i},
+                           unless_exists: "locked_at")
+          log(at: "lock-success")
+          true
+        rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+          log(at: "lock-failed")
+          false
+        end
+      end
+    end
+
+    def unlock(name)
+      log(fn: __method__, name: name) do
+        DB["locks"].at(name).delete
       end
     end
 

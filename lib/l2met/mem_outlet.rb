@@ -30,7 +30,8 @@ module L2met
       Mem.counters!.each do |k, metric|
         name = [metric[:name], "count"].map(&:to_s).join(".")
         DB.put('counters', k, SecureRandom.uuid, metric[:value],
-                name: name, source: metric[:source])
+                name: name, source: metric[:source],
+                consumer: metric[:consumer])
       end
     end
 
@@ -44,7 +45,8 @@ module L2met
           perc95: Stats.perc95(values),
           perc99: Stats.perc99(values)}
         DB.put('histograms', k, SecureRandom.uuid, 0,
-              {name: name, source: metric[:source]}.merge(data))
+              {name: name, source: metric[:source],
+                 consumer: metric[:consuemer]}.merge(data))
       end
     end
 

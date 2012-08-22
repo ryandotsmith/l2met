@@ -66,7 +66,7 @@ module L2met
       if cid
         if data = parse(line.chomp, HttpLineRe)
           Mem.counter("l2met.receiver", 1, source: "http")
-          Mem.handle(data.merge(consumer_id: cid))
+          Mem.handle(data.merge("consumer" => cid))
         end
       elsif data = parse(line.chomp)
         Mem.counter("l2met.receiver", 1, source: "tcp")

@@ -21,7 +21,7 @@ module L2met
         if data.key?("at") && !["start", "finish"].include?(data["at"])
           name = [data["app"], data["at"]].compact.join(".")
           if data.key?("last")
-            last(name, data["last"].to_i,
+            last(name, data["last"].to_f,
                   source: data["source"], consumer: data["consumer"])
           else
             counter(name, 1, source: data["source"], consumer: data["consumer"])

@@ -20,9 +20,10 @@ module L2met
             data = opts.merge(mkey: mkey, uuid: uuid, value: value)
             log(fn: __method__, at: 'creation', data: data)
             DB[tname].put(data)
-            log(opts: opts)
-            DB["active-stats"].put(mkey: mkey, consumer: opts[:consumer],
-                                    time: Time.now.to_s)
+            if opts[:consumer]
+              DB["active-stats"].put(mkey: mkey, consumer: opts[:consumer],
+                                      time: Time.now.to_s)
+            end
           end
         end
       end

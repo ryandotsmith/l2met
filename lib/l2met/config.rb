@@ -17,8 +17,6 @@ module L2met
     def port; env!("PORT").to_i; end
     def librato_email; env!("LIBRATO_EMAIL"); end
     def librato_token; env!("LIBRATO_TOKEN"); end
-    def test_librato_email; env!("TEST_LIBRATO_EMAIL"); end
-    def test_librato_token; env!("TEST_LIBRATO_TOKEN"); end
     def dynamo?; env?("DYNAMO"); end
     def aws_id; env!("AWS_ID"); end
     def aws_secret; env!("AWS_SECRET"); end

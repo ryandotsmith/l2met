@@ -22,7 +22,7 @@ module L2met
             DB[tname].put(data)
             log(opts: opts)
             DB["active-stats"].put(mkey: mkey, consumer: opts[:consumer],
-                                    time: Time.now)
+                                    time: Time.now.to_s)
           end
         end
       end

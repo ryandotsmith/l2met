@@ -1,5 +1,16 @@
 ## l2met
 
+### Using L2met
+
+```bash
+$ curl -X POST https://l2met.herokuapp.com/consumers \
+  -d "email=ryan@heroku.com" \
+  -d "token=my-librato-token"
+l2met-secure-id
+
+$ heroku drains:add https://l2met.herokuapp.com/consumers/l2met-secure-id/logs
+```
+
 Convert structured log streams into Librato metrics.
 
 ```
@@ -10,12 +21,7 @@ Convert structured log streams into Librato metrics.
 
 ### Deploy to Heroku
 
-* Create app with Ruby buildpack
-* Configure Librato
-* Attach route to app
-* Point emitter app's at new wcld app
-
-### Create App
+Be sure and set config variables defined in lib/l2met/config.rb.
 
 ```bash
 $ git clone git://github.com/ryandotsmith/l2met.git
@@ -23,30 +29,5 @@ $ cd l2met
 $ heroku create
 $ git add . ; git commit -am "init"
 $ git push heroku master
-```
-
-### Configure Librato
-
-```bash
-$ heroku config:add LIBRATO_EMAIL=you@domain.com
-$ heroku config:add LIBRATO_TOKEN=abc123
-```
-
-### Attach Route
-
-```bash
-$ heroku routes:create
-$ heroku routes:attach tcp://... receiver
-```
-
-### Start Receiver Process
-
-```bash
-$ heroku scale receiver=1 #singleton process
-```
-
-### Use it to drain an emitter app:
-
-```bash
-$ heroku drains:add syslog://... -a other-app
+$ heroku scale web=2 dboutlet=2
 ```

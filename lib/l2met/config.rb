@@ -15,6 +15,7 @@ module L2met
     end
 
     def port; env!("PORT").to_i; end
+    def l2met_consumer; env!("L2MET_CONSUMER"); end
     def librato_email; env!("LIBRATO_EMAIL"); end
     def librato_token; env!("LIBRATO_TOKEN"); end
     def dynamo?; env?("DYNAMO"); end

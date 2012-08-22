@@ -52,7 +52,7 @@ module L2met
       end
     end
 
-    def last_vals(name, val, opts)
+    def last(name, val, opts)
       k = key(name, opts[:source])
       data[:last_vals].update do |hash|
         data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)

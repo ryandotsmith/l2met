@@ -103,7 +103,7 @@ module L2met
     def data
       @data ||= {counters: Atomic.new({}),
         histograms: Atomic.new({}),
-        last_vals: Atmoc.new({})}
+        last_vals: Atomic.new({})}
     end
 
     def log(data)

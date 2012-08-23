@@ -43,9 +43,10 @@ module L2met
     end
 
     post "/consumers" do
-      consumer = DB["consumers"].create(id: SecureRandom.uuid,
-                                         email: params[:email],
-                                         token: params[:token])
+      d = {id: SecureRandom.uuid,
+        email: params[:email],
+        token: params[:token]}
+      consumer = DB["consumers"].create(d)
       [201, Utils.enc_j(consumer.attributes.to_h)]
     end
 

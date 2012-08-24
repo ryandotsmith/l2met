@@ -55,7 +55,7 @@ module L2met
           perc95: Stats.perc95(values),
           perc99: Stats.perc99(values)}
         DB.put('histograms', k, SecureRandom.uuid, 0,
-              {name: name, source: metric[:source],
+              {name: metric[:name], source: metric[:source],
                  consumer: metric[:consumer]}.merge(data))
       end
     end

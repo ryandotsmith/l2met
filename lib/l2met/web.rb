@@ -10,6 +10,7 @@ require 'l2met/consumer'
 
 module L2met
   class Web < Sinatra::Base
+    use Rack::SslEnforcer
     register Sinatra::GoogleAuth
     set :public_folder, "./public"
     set :views, "./templates"

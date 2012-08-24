@@ -1,6 +1,7 @@
 require 'sinatra/base'
 require 'sinatra/google-auth'
 require 'rack/handler/mongrel'
+require 'rack/ssl-enforcer'
 require 'scrolls'
 require 'l2met/config'
 require 'l2met/db'

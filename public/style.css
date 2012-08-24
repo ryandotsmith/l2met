@@ -49,6 +49,10 @@ a {
     width: 600px;
 }
 
+#new-consumer {
+    color: limegreen;
+}
+
 #consumer-list {
     margin:5px 0 10px 23px;
     padding:0;

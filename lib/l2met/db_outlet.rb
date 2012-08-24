@@ -44,7 +44,7 @@ module L2met
               queue.submit
             end
           rescue => e
-            log(at: "error", error: e.essage)
+            log(at: "error", error: e.message)
             next
           end
         end

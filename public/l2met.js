@@ -26,6 +26,8 @@ $(document).ready(function() {
 		    var k = "consumer-link-" + String(d["id"]);
 		    if ($("#" + k).length == 0) {
 			$.tmpl("consumer-list", d).appendTo("#consumer-list")
+		    } else {
+			$("#" + k).html($.tmpl("consumer-list", d));
 		    }
 		});
 	    }

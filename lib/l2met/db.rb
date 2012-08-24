@@ -8,6 +8,7 @@ module L2met
     extend self
     @put_lock = Mutex.new
     @dynamo_lock = Mutex.new
+    @table_lock = Mutex.new
 
     def put(tname, mkey, uuid, value, opts)
       if Config.dynamo?
@@ -63,7 +64,9 @@ module L2met
     end
 
     def [](table)
-      tables[table].items
+      @table_lock.synchronize do
+        tables[table].items
+      end
     end
 
     private

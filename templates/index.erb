@@ -1,0 +1,42 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>L2met</title>
+  <meta name="author" content="ryandotsmith, ♠ ace hacker">
+  <meta name="description" content="HA metrics for Heroku apps." />
+  <link href="/style.css" rel="stylesheet" />
+  <script type="text/javascript" src="/jquery.js"></script>
+  <script type="text/javascript" src="/jquery.tmpl.js"></script>
+  <script type="text/javascript" src="/l2met.js"></script>
+</head>
+<body>
+
+  <div id="session"><span><%= @current_user %></span></div>
+
+  <!-- JQuery Templates -->
+  <script id="consumer-input-tmpl" type="text/x-jquery-tmpl">
+    <input id="id" name="id" value="${id}" type="hidden" />
+    <input id="email" name="email" value="${email}" type="text" placeholder="librato email"/>
+    <br />
+    <input id="token" name="token" value="${token}" type="password" placeholder="librato api token"/>
+    <br />
+    {{if drain_url}}
+    <input id="drain" name="drain" value="${drain_url}" type="text" placeholder="drain url"/>
+    <br />
+    {{/if}}
+    <button>put</button>
+  </script>
+
+  <div id="container">
+    <div id="left">
+      <a id="new-consumer" href="#">+ drain</a>
+      <ul id="consumer-list"></ul>
+      <img id="consumer-list-spin" src="/spin.gif" />
+    </div>
+    <div id="right">
+      <form id="update-consumer" name="consumer"></form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+body {
+    color:darkslategray;
+    font-size: 1.3em;
+    font-family:helvetica;
+    background-color: white;
+}
+
+input {
+    font-size:1.3em;
+    width: 500px;
+    height: 30px;
+    margin:0;
+    outline:none;
+    border:none;
+    padding:10px;
+}
+
+button {
+    text-align: right;
+    margin-left: 10px;
+}
+
+a {
+    color: darkslategray;
+    text-decoration: none;
+}
+
+.selected {
+    color: teal;
+}
+
+.hidden {
+    display:none;
+}
+
+#container {
+    width: 900px;
+    margin: 0 auto;
+}
+
+#left {
+    float: left;
+    width: 290px;
+}
+
+#right {
+    float: left;
+    margin-left:10px;
+    width: 600px;
+}
+
+#consumer-list {
+    margin:5px 0 10px 23px;
+    padding:0;
+}
+
+#consumer-list li {
+    margin:3px 0 3px 0;
+    list-style:circle;
+}
+
+#consumer-list li:hover {
+    cursor: pointer;
+}
+
+#consumer-list-spin {
+    margin: 0 0 0 25px;
+}
+
+#session span {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: lightBlue;
+    font-size: 0.6em;
+    font-family: monospace;
+}

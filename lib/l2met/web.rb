@@ -1,13 +1,18 @@
-require 'sinatra'
+require 'sinatra/base'
+require 'sinatra/google-auth'
 require 'rack/handler/mongrel'
 require 'scrolls'
 require 'l2met/config'
 require 'l2met/db'
 require 'l2met/receiver'
 require 'l2met/utils'
+require 'l2met/consumer'
 
 module L2met
   class Web < Sinatra::Base
+    register Sinatra::GoogleAuth
+    set :public_folder, "./public"
+    set :views, "./templates"
 
     def self.route(verb, action, *)
       condition {@instrument_action = action}
@@ -16,7 +21,7 @@ module L2met
 
     before do
       @start_request = Time.now
-      content_type(:json)
+      @current_user = session[:user]
     end
 
     after do
@@ -38,19 +43,34 @@ module L2met
       200
     end
 
+    get "/" do
+      authenticate
+      erb(:index)
+    end
+
     get "/heartbeat" do
       [200, Utils.enc_j(alive: Time.now)]
     end
 
-    post "/consumers" do
-      d = {id: SecureRandom.uuid,
-        email: params[:email],
-        token: params[:token]}
-      consumer = DB["consumers"].create(d)
-      [201, Utils.enc_j(consumer.attributes.to_h)]
+    put "/consumers" do
+      content_type(:json)
+      authenticate
+      [201, Utils.enc_j(Consumer.put(session[:user], params))]
+    end
+
+    get "/consumers" do
+      content_type(:json)
+      authenticate
+      [200, Utils.enc_j(Consumer.all(session[:user]))]
+    end
+
+    get "/consumers/:id" do
+      content_type(:json)
+      [200, Utils.enc_j(Consumer.get(params[:id]))]
     end
 
     post "/consumers/:cid/logs" do
+      content_type(:json)
       Receiver.handle(params[:cid], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end

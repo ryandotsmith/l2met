@@ -51,6 +51,7 @@ module L2met
     end
 
     get "/" do
+      content_type(:html)
       authenticate
       erb(:index)
     end

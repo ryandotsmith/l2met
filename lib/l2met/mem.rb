@@ -31,7 +31,7 @@ module L2met
     end
 
     def histogram(name, val, opts)
-      k = key(name, opts[:source])
+      k = key(name, opts[:source], opts[:consumer])
       data[:histograms].update do |hash|
         data = {name: name}.merge(opts).merge(HISTOGRAM_DEFAULTS)
         hash[k] ||= data
@@ -42,7 +42,7 @@ module L2met
     end
 
     def counter(name, val, opts)
-      k = key(name, opts[:source])
+      k = key(name, opts[:source], opts[:consumer])
       data[:counters].update do |hash|
         data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)
         hash[k] ||= data
@@ -53,7 +53,7 @@ module L2met
     end
 
     def last(name, val, opts)
-      k = key(name, opts[:source])
+      k = key(name, opts[:source], opts[:consumer])
       data[:last_vals].update do |hash|
         data = {name: name}.merge(opts).merge(COUNTER_DEFAULTS)
         hash[k] ||= data
@@ -88,8 +88,8 @@ module L2met
 
     private
 
-    def key(name, source)
-      Zlib.crc32([name,source].join)
+    def key(consumer, name, source)
+      Zlib.crc32([consumer, name,source].join)
     end
 
     def flush(type)

@@ -22,6 +22,7 @@ module L2met
     end
 
     before do
+      content_type(:json)
       @start_request = Time.now
       @current_user = session[:user]
     end
@@ -45,34 +46,31 @@ module L2met
       200
     end
 
+    get "/heartbeat" do
+      [200, Utils.enc_j(alive: Time.now)]
+    end
+
     get "/" do
       authenticate
       erb(:index)
     end
 
-    get "/heartbeat" do
-      [200, Utils.enc_j(alive: Time.now)]
-    end
-
     put "/consumers" do
-      content_type(:json)
       authenticate
       [201, Utils.enc_j(Consumer.put(session[:user], params))]
     end
 
     get "/consumers" do
-      content_type(:json)
       authenticate
       [200, Utils.enc_j(Consumer.all(session[:user]))]
     end
 
     get "/consumers/:id" do
-      content_type(:json)
+      authenticate
       [200, Utils.enc_j(Consumer.get(params[:id]))]
     end
 
     post "/consumers/:cid/logs" do
-      content_type(:json)
       Receiver.handle(params[:cid], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end

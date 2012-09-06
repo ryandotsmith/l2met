@@ -5,13 +5,22 @@ body {
     background-color: white;
 }
 
+form {
+    border: 1px solid #CCC;
+    background-color: #F8F8F8;
+}
+
 input {
+    background-color: #f8f8f8;
     font-size:1.3em;
     width: 500px;
     height: 30px;
     margin:0;
     outline:none;
-    border:none;
+    border-top-style:none;
+    border-left-style: none;
+    border-right-style: none;
+    border-bottom-style: 0.5px dotted gray;
     padding:10px;
 }
 

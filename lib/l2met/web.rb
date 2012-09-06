@@ -28,7 +28,7 @@ module L2met
     end
 
     after do
-      Utils.time(@instrument_action, (Time.now - @start_request), ns: "web")
+      Heartbeat.pulse(@instrument_action)
     end
 
     error do

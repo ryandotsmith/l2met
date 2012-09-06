@@ -13,13 +13,11 @@ module L2met
     def put(tname, mkey, uuid, value, opts)
       if Config.dynamo?
         @put_lock.synchronize do
-          log(fn: __method__, tname: tname) do
-            data = opts.merge(mkey: mkey, uuid: uuid, value: value)
-            log(fn: __method__, at: 'creation', data: data)
-            DB[tname].put(data)
-            DB["active-stats"].put(mkey: mkey, consumer: opts[:consumer],
-                                    time: Time.now.to_s)
-          end
+          Heartbeat.pulse("db-put")
+          data = opts.merge(mkey: mkey, uuid: uuid, value: value)
+          DB[tname].put(data)
+          DB["active-stats"].
+            put(mkey: mkey, consumer: opts[:consumer], time: Time.now.to_s)
         end
       end
     end

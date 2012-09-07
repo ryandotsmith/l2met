@@ -24,6 +24,7 @@ module L2met
 
     def flush(tname, mkey)
       if Config.dynamo?
+        Heartbeat.pulse("db-flush")
         DB[tname].query(hash_value: mkey, :select => :all).map do |data|
           data.attributes.tap {|i| data.item.delete}
         end

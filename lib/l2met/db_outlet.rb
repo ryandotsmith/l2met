@@ -55,7 +55,7 @@ module L2met
       counters = DB.flush("last_vals", mkey)
       if counters.length > 0
         sample = counters.last
-        q.add(sample["name"] => {source: sample["source"],
+        q.add(sample["name"] => {source: sample["app"],
                 type: "gauge",
                 value: sample["value"].to_i,
                 measure_time: Time.now.to_i})
@@ -66,7 +66,7 @@ module L2met
       counters = DB.flush("counters", mkey)
       if counters.length > 0
         sample = counters.sample
-        q.add(sample["name"] => {source: sample["source"],
+        q.add(sample["name"] => {source: sample["app"],
                 type: "gauge",
                 value: counters.map {|c| c["value"].to_f}.reduce(:+),
                 measure_time: Time.now.to_i})
@@ -76,7 +76,7 @@ module L2met
     def snapshot_histograms!(q, mkey)
       hists = DB.flush("histograms", mkey)
       if hists.length > 0
-        meta = {name: hists.sample["name"], source: hists.sample["source"]}
+        meta = {name: hists.sample["name"], source: hists.sample["app"]}
         data = {mean: Stats.mean(hists.map {|h| h["mean"]}),
           median: Stats.median(hists.map {|h| h["median"]}),
           min: Stats.min(hists.map {|h| h["min"]}),

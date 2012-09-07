@@ -44,10 +44,8 @@ module L2met
       begin
         DB["locks"].put({name: name, locked_at: Time.now.to_i},
                          unless_exists: "locked_at")
-        log(at: "lock-success")
         true
       rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
-        log(at: "lock-failed")
         false
       end
     end

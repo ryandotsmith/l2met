@@ -2,6 +2,7 @@ require 'thread'
 require 'aws/dynamo_db'
 require 'scrolls'
 require 'l2met/config'
+require 'l2met/heartbeat'
 
 module L2met
   module DB

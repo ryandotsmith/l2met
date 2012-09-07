@@ -14,17 +14,23 @@ module L2met
       if data.key?("measure")
         if data.key?("elapsed")
           name = [data["app"], data["fn"]].compact.join(".")
-          histogram(name, data["elapsed"].to_f, source: data["source"],
+          histogram(name, data["elapsed"].to_f,
+                     source: data["app"],
                      consumer: data["consumer"])
-          counter(name, 1, source: data["source"], consumer: data["consumer"])
+          counter(name, 1,
+                   source: data["app"],
+                   consumer: data["consumer"])
         end
         if data.key?("at") && !["start", "finish"].include?(data["at"])
           name = [data["app"], data["at"]].compact.join(".")
           if data.key?("last")
             last(name, data["last"].to_f,
-                  source: data["source"], consumer: data["consumer"])
+                  source: data["app"],
+                  consumer: data["consumer"])
           else
-            counter(name, 1, source: data["source"], consumer: data["consumer"])
+            counter(name, 1,
+                     source: data["app"],
+                     consumer: data["consumer"])
           end
         end
       end

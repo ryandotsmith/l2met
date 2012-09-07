@@ -24,10 +24,8 @@ module L2met
 
     def flush(tname, mkey)
       if Config.dynamo?
-        log(fn: __method__, tname: tname) do
-          DB[tname].query(hash_value: mkey, :select => :all).map do |data|
-            data.attributes.tap {|i| data.item.delete}
-          end
+        DB[tname].query(hash_value: mkey, :select => :all).map do |data|
+          data.attributes.tap {|i| data.item.delete}
         end
       end
     end

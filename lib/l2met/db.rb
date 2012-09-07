@@ -41,23 +41,19 @@ module L2met
     end
 
     def lock(name)
-      log(fn: __method__, name: name) do
-        begin
-          DB["locks"].put({name: name, locked_at: Time.now.to_i},
-                           unless_exists: "locked_at")
-          log(at: "lock-success")
-          true
-        rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
-          log(at: "lock-failed")
-          false
-        end
+      begin
+        DB["locks"].put({name: name, locked_at: Time.now.to_i},
+                         unless_exists: "locked_at")
+        log(at: "lock-success")
+        true
+      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
+        log(at: "lock-failed")
+        false
       end
     end
 
     def unlock(name)
-      log(fn: __method__, name: name) do
-        DB["locks"].at(name).delete
-      end
+      DB["locks"].at(name).delete
     end
 
     def [](table)

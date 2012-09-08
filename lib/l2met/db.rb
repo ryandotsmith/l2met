@@ -26,6 +26,8 @@ module L2met
       DB[tname].query(hash_value: mkey, :select => :all).select do |data|
         t = data.attributes[:time].to_i
         from <= t && t <= to
+      end.tap do |col|
+        log(at: __method__, last: col.length)
       end.map do |data|
         data.attributes.tap {|i| data.item.delete}
       end

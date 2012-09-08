@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+$:.unshift(File.expand_path(File.join(File.dirname($0), '../lib')))
+require 'l2met/heartbeat'
+require 'l2met/gc'
+$stdout.sync = true
+Thread.abort_on_exception = true
+L2met::Heartbeat.start
+L2met::GC.start

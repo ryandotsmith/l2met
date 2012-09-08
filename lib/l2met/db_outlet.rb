@@ -58,7 +58,7 @@ module L2met
         q.add(sample["name"] => {source: sample["source"],
                 type: "gauge",
                 value: sample["value"].to_i,
-                measure_time: Time.now.to_i})
+                measure_time: sample["time"]})
       end
     end
 
@@ -69,7 +69,7 @@ module L2met
         q.add(sample["name"] => {source: sample["source"],
                 type: "gauge",
                 value: counters.map {|c| c["value"].to_f}.reduce(:+),
-                measure_time: Time.now.to_i})
+                measure_time: sample["time"]})
       end
     end
 
@@ -85,8 +85,10 @@ module L2met
           perc99: Stats.perc99(hists.map {|h| h["perc99"]})}
         data.each do |stat, val|
           name = [meta[:name], stat].map(&:to_s).join(".")
-          q.add(name => {source: meta[:source], type: "gauge",
-                  value: val, measure_time: Time.now.to_i})
+          q.add(name => {source: meta[:source],
+                  type: "gauge",
+                  value: val,
+                  measure_time: sample["time"]})
         end
       end
     end

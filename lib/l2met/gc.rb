@@ -10,14 +10,13 @@ module L2met
     def start
       loop do
         t = Time.now.to_i
-        #Thread.new {collect(t - (60*60))}
-        collect(t - (60*60))
+        Thread.new {collect(t - (60*60))}
         sleep(INTERVAL)
       end
     end
 
     def collect(t)
-      log(fn: __method__, time: Time.at(t)) do
+      log(fn: __method__, time: t) do
         DB["active-stats"].each do |item|
           mkey = item.attributes["mkey"]
           %w(counters histograms last_vals).each do |tname|

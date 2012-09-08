@@ -67,8 +67,8 @@ module L2met
         if m = s.match(/^(\d+) /)
           num_bytes = m[1].to_i
           msg = s[m[0].length..(m[0].length + num_bytes)]
-          if data = parse([m[0], msg.chomp].join)
-            handle(cid, data)
+          if data = parse([m[0], msg.chomp].join, HttpLineRe)
+            Mem.handle(data.merge("consumer" => cid))
           end
           s = s[(m[0].length + num_bytes)..(s.length)]
         elsif m = s.match(/\n/)

@@ -20,32 +20,38 @@ module L2met
 
     def snapshot
       cntrs, hists = Mem.counters.length, Mem.histograms.length
+      t = Time.now
+      t = (t.to_i / t.min) * t.min
       log(fn: __method__, counters: cntrs, histograms: hists) do
-        snapshot_histograms
-        snapshot_counters
-        snapshot_last_vals
+        snapshot_histograms(t)
+        snapshot_counters(t)
+        snapshot_last_vals(t)
       end
     end
 
-    def snapshot_last_vals
+    def snapshot_last_vals(t)
       Mem.last_vals!.each do |k, metric|
         name = [metric[:name], "last"].map(&:to_s).join(".")
         DB.put('last_vals', k, SecureRandom.uuid, metric[:last_value],
-                name: name, source: metric[:source],
-                consumer: metric[:consumer])
+                name: name,
+                source: metric[:source],
+                consumer: metric[:consumer],
+                time: t)
       end
     end
 
-    def snapshot_counters
+    def snapshot_counters(t)
       Mem.counters!.each do |k, metric|
         name = [metric[:name], "count"].map(&:to_s).join(".")
         DB.put('counters', k, SecureRandom.uuid, metric[:value],
-                name: name, source: metric[:source],
-                consumer: metric[:consumer])
+                name: name,
+                source: metric[:source],
+                consumer: metric[:consumer],
+                time: t)
       end
     end
 
-    def snapshot_histograms
+    def snapshot_histograms(t)
       Mem.histograms!.each do |k, metric|
         values = metric[:values].sort
         data = {min: Stats.min(values),
@@ -55,8 +61,10 @@ module L2met
           perc95: Stats.perc95(values),
           perc99: Stats.perc99(values)}
         DB.put('histograms', k, SecureRandom.uuid, 0,
-              {name: metric[:name], source: metric[:source],
-                 consumer: metric[:consumer]}.merge(data))
+              {name: metric[:name],
+                 source: metric[:source],
+                 consumer: metric[:consumer],
+                 time: t}.merge(data))
       end
     end
 

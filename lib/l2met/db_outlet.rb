@@ -7,7 +7,7 @@ require 'scrolls'
 module L2met
   module DBOutlet
     extend self
-    INTERVAL = 60
+    INTERVAL = 30
 
     def start
       loop do
@@ -17,7 +17,6 @@ module L2met
           from = (to - 60)
           Thread.new {snapshot(p, from, to)}
         end
-
       end
     end
 

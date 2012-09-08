@@ -10,7 +10,7 @@ module L2met
         loop do
           beats.each do |source, val|
             n = val.swap(0)
-            log(fn: "heartbeat", source: source, received: n)
+            log(at: source, received: n)
           end
           sleep(1)
         end

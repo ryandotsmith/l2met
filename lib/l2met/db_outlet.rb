@@ -43,7 +43,6 @@ module L2met
             snapshot_counters!(queue, sa["mkey"].to_i, from, to)
             snapshot_histograms!(queue, sa["mkey"].to_i, from, to)
             snapshot_last_vals!(queue, sa["mkey"].to_i, from, to)
-            log(queue_length: queue.length)
             if queue.length > 0
               queue.submit
             end

@@ -9,7 +9,7 @@ module L2met
 
     def start
       loop do
-        t = Time.now.to_i - (60*60)
+        t = (Time.now - (60*5)).to_i
         Thread.new {metrics(t); active_stats(t)}
         sleep(INTERVAL)
       end
@@ -18,7 +18,8 @@ module L2met
     def metrics(t)
       log(fn: __method__, time: t) do
         DB["active-stats"].each do |item|
-          flush_mkey(item.attributes["mkey"])
+          flush_mkey(item.attributes["mkey"],
+                      -> {item.attributes["time"].to_i , t})
         end
       end
     end
@@ -32,10 +33,14 @@ module L2met
       end
     end
 
-    def flush_mkey(mkey)
+    def flush_mkey(mkey, pred=nil)
       %w(counters histograms last_vals).each do |tname|
         DB[tname].query(hash_value: mkey).each do |i|
-          i.delete
+          if pred
+            i.delete if pred.call
+          else
+            i.delete
+          end
           Heartbeat.pulse("gc-collect-#{tname}")
         end
       end

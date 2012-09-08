@@ -20,7 +20,6 @@ module L2met
         DB["active-stats"].each do |item|
           mkey = item.attributes["mkey"]
           %w(counters histograms last_vals).each do |tname|
-            log(at: tname)
             DB[tname].query(hash_value: mkey).each do |i|
               if i.attributes["time"].to_i < t
                 i.delete

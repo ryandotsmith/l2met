@@ -7,7 +7,7 @@ require 'scrolls'
 module L2met
   module DBOutlet
     extend self
-    INTERVAL = 30
+    INTERVAL = 10
 
     def start
       loop do

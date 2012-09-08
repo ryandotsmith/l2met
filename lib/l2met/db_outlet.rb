@@ -58,7 +58,7 @@ module L2met
         q.add(sample["name"] => {source: sample["source"],
                 type: "gauge",
                 value: sample["value"].to_i,
-                measure_time: sample["time"].to_i})
+                measure_time: sample["time"]})
       end
     end
 
@@ -69,7 +69,7 @@ module L2met
         q.add(sample["name"] => {source: sample["source"],
                 type: "gauge",
                 value: counters.map {|c| c["value"].to_f}.reduce(:+),
-                measure_time: sample["time"].to_i})
+                measure_time: sample["time"]})
       end
     end
 
@@ -88,7 +88,7 @@ module L2met
           q.add(name => {source: meta[:source],
                   type: "gauge",
                   value: val,
-                  measure_time: meta["time"].to_i})
+                  measure_time: meta["time"]})
         end
       end
     end

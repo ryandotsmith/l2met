@@ -9,13 +9,13 @@ module L2met
 
     def start
       loop do
-        t = Time.now.to_i
-        Thread.new {collect(t - (60*60))}
+        t = Time.now.to_i - (60*60)
+        Thread.new {metrics(t); active_stats(t)}
         sleep(INTERVAL)
       end
     end
 
-    def collect(t)
+    def metrics(t)
       log(fn: __method__, time: t) do
         DB["active-stats"].each do |item|
           mkey = item.attributes["mkey"]
@@ -27,6 +27,15 @@ module L2met
               end
             end
           end
+        end
+      end
+    end
+
+    def active_stats(t)
+      DB["active-stats"].each do |item|
+        if item.attributes["time"].to_i < t
+          item.delete
+          Heartbeat.pulse("gc-collect-active-stats")
         end
       end
     end

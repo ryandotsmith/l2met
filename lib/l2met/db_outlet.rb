@@ -35,20 +35,22 @@ module L2met
     def snapshot(partition, from, to)
       log(fn: __method__, from: from, to: to, partition: partition) do
         DB.active_stats(partition).each do |stat|
-          begin
-            sa = stat.attributes
-            consumer = DB["consumers"].at(sa["consumer"]).attributes.to_h
-            client = build_client(consumer["email"], consumer["token"])
-            queue =  Librato::Metrics::Queue.new(client: client)
-            snapshot_counters!(queue, sa["mkey"].to_i, from, to)
-            snapshot_histograms!(queue, sa["mkey"].to_i, from, to)
-            snapshot_last_vals!(queue, sa["mkey"].to_i, from, to)
-            if queue.length > 0
-              queue.submit
+          Thread.new do
+            begin
+              sa = stat.attributes
+              consumer = DB["consumers"].at(sa["consumer"]).attributes.to_h
+              client = build_client(consumer["email"], consumer["token"])
+              queue =  Librato::Metrics::Queue.new(client: client)
+              snapshot_counters!(queue, sa["mkey"].to_i, from, to)
+              snapshot_histograms!(queue, sa["mkey"].to_i, from, to)
+              snapshot_last_vals!(queue, sa["mkey"].to_i, from, to)
+              if queue.length > 0
+                queue.submit
+              end
+            rescue => e
+              log(at: "error", error: e.message)
+              next
             end
-          rescue => e
-            log(at: "error", error: e.message)
-            next
           end
         end
       end

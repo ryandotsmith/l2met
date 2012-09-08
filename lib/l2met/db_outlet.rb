@@ -14,7 +14,7 @@ module L2met
         sleep(INTERVAL)
         lock_partition("db-outlet") do |p|
           to = Time.now.to_i - 10
-          from = (t - 60)
+          from = (to - 60)
           Thread.new {snapshot(p, from, to)}
         end
 

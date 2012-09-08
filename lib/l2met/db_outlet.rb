@@ -69,7 +69,7 @@ module L2met
         q.add(sample["name"] => {source: sample["source"],
                 type: "gauge",
                 value: counters.map {|c| c["value"].to_f}.reduce(:+),
-                measure_time: sample["time"]})
+                measure_time: sample["time"].to_i})
       end
     end
 

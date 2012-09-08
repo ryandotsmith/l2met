@@ -19,7 +19,7 @@ module L2met
       log(fn: __method__, time: t) do
         DB["active-stats"].each do |item|
           flush_mkey(item.attributes["mkey"],
-                      -> {item.attributes["time"].to_i , t})
+                      -> {item.attributes["time"].to_i < t})
         end
       end
     end

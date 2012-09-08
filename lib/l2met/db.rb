@@ -16,8 +16,8 @@ module L2met
         Heartbeat.pulse("db-put")
         data = opts.merge(mkey: mkey, uuid: uuid, value: value)
         DB[tname].put(data)
-        DB["active-stats"].
-          put(mkey: mkey, consumer: opts[:consumer], time: Time.now.to_s)
+        data = {mkey: mkey, consumer: opts[:consumer], time: Time.now.to_i}
+        DB["active-stats"].put(data)
       end
     end
 

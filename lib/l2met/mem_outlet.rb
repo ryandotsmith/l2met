@@ -7,7 +7,7 @@ require 'l2met/stats'
 module L2met
   module MemOutlet
     extend self
-    INTERVAL = 30
+    INTERVAL = 10
 
     def start
       Thread.new do
@@ -20,9 +20,7 @@ module L2met
 
     def snapshot
       cntrs, hists = Mem.counters.length, Mem.histograms.length
-      t = Time.now
-      # we only care about the minute in which we snapshot
-      t = (t.to_i / t.min) * t.min
+      t = Time.now.to_i
       log(fn: __method__, counters: cntrs, histograms: hists) do
         snapshot_histograms(t)
         snapshot_counters(t)

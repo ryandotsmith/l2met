@@ -12,23 +12,22 @@ module L2met
     @table_lock = Mutex.new
 
     def put(tname, mkey, uuid, value, opts)
-      if Config.dynamo?
-        @put_lock.synchronize do
-          Heartbeat.pulse("db-put")
-          data = opts.merge(mkey: mkey, uuid: uuid, value: value)
-          DB[tname].put(data)
-          DB["active-stats"].
-            put(mkey: mkey, consumer: opts[:consumer], time: Time.now.to_s)
-        end
+      @put_lock.synchronize do
+        Heartbeat.pulse("db-put")
+        data = opts.merge(mkey: mkey, uuid: uuid, value: value)
+        DB[tname].put(data)
+        DB["active-stats"].
+          put(mkey: mkey, consumer: opts[:consumer], time: Time.now.to_s)
       end
     end
 
-    def flush(tname, mkey)
-      if Config.dynamo?
-        Heartbeat.pulse("db-flush")
-        DB[tname].query(hash_value: mkey, :select => :all).map do |data|
-          data.attributes.tap {|i| data.item.delete}
-        end
+    def flush(tname, mkey, from, to)
+      Heartbeat.pulse("db-flush")
+      DB[tname].query(hash_value: mkey, :select => :all).select do |data|
+        t = data.attributes[:time].to_i
+        from <= t && t <= to
+      end.map do |data|
+        data.attributes.tap {|i| data.item.delete}
       end
     end
 

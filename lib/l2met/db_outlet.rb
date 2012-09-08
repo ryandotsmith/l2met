@@ -88,7 +88,7 @@ module L2met
           q.add(name => {source: meta[:source],
                   type: "gauge",
                   value: val,
-                  measure_time: sample["time"]})
+                  measure_time: meta["time"]})
         end
       end
     end

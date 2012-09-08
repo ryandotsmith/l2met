@@ -62,6 +62,23 @@ module L2met
       end
     end
 
+    def self.unpack(cid, s)
+      while s && s.length > 0
+        if m = s.match(/^(\d+) /)
+          num_bytes = m[1].to_i
+          msg = s[m[0].length..(m[0].length + num_bytes)]
+          if data = parse([m[0], msg.chomp].join)
+            handle(cid, data)
+          end
+          s = s[(m[0].length + num_bytes)..(s.length)]
+        elsif m = s.match(/\n/)
+          s = m.post_match
+        else
+          log(error: "unable to parse: #{s}")
+        end
+      end
+    end
+
     def self.handle(cid, line)
       if cid
         if data = parse(line.chomp, HttpLineRe)

@@ -34,7 +34,7 @@ module L2met
     end
 
     def snapshot(partition, from, to)
-      log(fn: __method__, partition: partition) do
+      log(fn: __method__, from: from, to: to, partition: partition) do
         DB.active_stats(partition).each do |stat|
           begin
             sa = stat.attributes

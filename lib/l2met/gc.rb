@@ -46,6 +46,15 @@ module L2met
       end
     end
 
+    def flush_all
+      %w(counters histograms last_vals).each do |tname|
+        DB[tname].select.each do |i|
+          i.delete
+          Heartbeat.pulse("gc-collect-#{tname}")
+        end
+      end
+    end
+
     def log(data, &blk)
       Scrolls.log({ns: "gc"}.merge(data), &blk)
     end

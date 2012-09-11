@@ -4,7 +4,7 @@
 
 ### Log Data Conventions
 
-L2met uses certain heuristics to create metrics from log data.
+L2met uses heuristics to create metrics from log data.
 
 #### Histogram
 

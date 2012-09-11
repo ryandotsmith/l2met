@@ -1,4 +1,6 @@
-## l2met
+# l2met
+
+## Usage
 
 ### Log Data Conventions
 
@@ -23,7 +25,7 @@ L2met uses certain heuristics to create metrics from log data.
 {measure: true, app: "myapp", at: "your-code", last: 99}
 ```
 
-### Deploy to Heroku
+## Deploy to Heroku
 
 Be sure and set config variables defined in lib/l2met/config.rb.
 

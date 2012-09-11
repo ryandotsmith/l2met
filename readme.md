@@ -1,23 +1,27 @@
 ## l2met
 
-### Using L2met
+### Log Data Conventions
 
-```bash
-$ curl -X POST https://l2met.herokuapp.com/consumers \
-  -d "email=ryan@heroku.com" \
-  -d "token=my-librato-token"
-l2met-secure-id
+L2met uses certain heuristics to create metrics from log data.
 
-$ heroku drains:add https://l2met.herokuapp.com/consumers/l2met-secure-id/logs
-```
-
-Convert structured log streams into Librato metrics.
+#### Histogram
 
 ```
-2012-08-08T06:14:03+00:00 app[web.16]: app=shushu ns=utils measure=true fn=resources-hid-billable-events-eid elapsed=0.295
+{measure: true, app: "myapp", fn: "your-fn-name", elapsed: 1.23}
 ```
 
-![img](http://f.cl.ly/items/0U1T1G082m3T0W2U4337/Screen%20Shot%202012-08-08%20at%209.06.42%20AM.png)
+#### Counter
+
+```
+{measure: true, app: "myapp", at: "your-code"}
+```
+
+
+#### Last Value
+
+```
+{measure: true, app: "myapp", at: "your-code", last: 99}
+```
 
 ### Deploy to Heroku
 

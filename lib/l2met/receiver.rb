@@ -63,7 +63,7 @@ module L2met
     def parse_msg(msg)
       if !msg.match(IgnoreMsgRe)
         data = {}
-        msg = msg.sub(TimeSubRe, "")
+        #msg = msg.sub(TimeSubRe, "")
         msg.scan(AttrsRe) do |_, key, _, val1, _, val2|
           if (((key == "service") || (key == "wait")) && val1)
             data[key] = val1.sub("ms", "")

@@ -10,7 +10,7 @@ module L2met
     def start(interval=1)
       Thread.new do
         loop do
-          mem[Utils.trunc_time(Time.now)] ||= {}
+          mem[Utils.trunc_time(Time.now)] ||= Atomic.new({})
           mem.delete_if {|k,v| k < (Time.now.to_i - TTL)}
           sleep(interval)
         end
@@ -18,23 +18,20 @@ module L2met
     end
 
     def accept(name, val, meta)
-      puts meta
-      key = Utils.enc_key(name, meta[:source], meta[:consumer])
-      k = Utils.trunc_time(meta[:time])
-      type = meta[:type]
-      if mem.key?(k)
-        mem[k][type] ||= Atomic.new({})
-        mem[k][type].update do |h|
-          h[key] ||= {name: name}.merge(meta)
-          case type
+      mkey = Utils.enc_key(name, meta[:source], meta[:consumer])
+      bucket = Utils.trunc_time(meta[:time])
+      if mem.key?(bucket)
+        mem[bucket].update do |h|
+          h[mkey] ||= {name: name}.merge(meta)
+          case meta[:type]
           when 'list'
-            h[key][:value] ||= []
-            h[key][:value] << val
+            h[mkey][:value] ||= []
+            h[mkey][:value] << val
           when 'counter'
-            h[key][:value] ||= 0
-            h[key][:value] += val
+            h[mkey][:value] ||= 0
+            h[mkey][:value] += val
           when 'last'
-            h[key][:value] = val
+            h[mkey][:value] = val
           end
           h
         end
@@ -43,14 +40,12 @@ module L2met
       end
     end
 
-    def snapshot!(m)
-      if mem.key?(m)
-        mem[m].map do |type, ref|
-          {type => ref.swap({})}
-        end
+    def snapshot!(bucket)
+      if mem.key?(bucket)
+        mem[bucket].swap({})
       else
         log(at: "empty-snapshot", time: m, data: mem)
-        []
+        {}
       end
     end
 

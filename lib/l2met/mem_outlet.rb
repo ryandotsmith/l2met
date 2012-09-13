@@ -23,11 +23,7 @@ module L2met
 
     def snapshot(m)
       log(fn: __method__, time: Time.at(m)) do
-        Register.snapshot!(m).each do |record|
-          puts "records=#{record}"
-          type = record.keys.first
-          metric = record[type]
-          puts "metric=#{metric}"
+        Register.snapshot!(m).each do |mkey, metric|
           if metric[:value].respond_to?(:sort)
             vals = metric[:value].sort
             data = {
@@ -37,13 +33,15 @@ module L2met
               median: Stats.median(vals),
               perc95: Stats.perc95(vals),
               perc99: Stats.perc99(vals)}
-            DB.put('metrics', metric[:mkey], SecureRandom.uuid, 0, {
+            DB.put('metrics', mkey, SecureRandom.uuid, 0, {
               name: metric[:name],
+              type: metrics[:type],
               source: metric[:source],
               consumer: metric[:consumer]}.merge(data))
           else
-            DB.put('metrics', metric[:mkey], SecureRandom.uuid, metric[:value],
+            DB.put('metrics', mkey, SecureRandom.uuid, metric[:value],
               name: metric[:name],
+              type: metrics[:type],
               source: metric[:source],
               consumer: metric[:consumer])
           end

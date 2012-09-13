@@ -7,7 +7,7 @@ module L2met
   module Receiver
     extend self
 
-    LineRe = /^\d+ \<\d+\>1 \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00 [a-z0-9-]+ ([a-z0-9\-\_\.]+) ([a-z0-9\-\_\.]+) \- (.*)$/
+    LineRe = /^\d+ \<\d+\>1 (\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00) [a-z0-9-]+ ([a-z0-9\-\_\.]+) ([a-z0-9\-\_\.]+) \- (.*)$/
     IgnoreMsgRe = /(^ *$)|(Processing|Parameters|Completed|\[Worker\(host)/
     TimeSubRe = / \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:\d\d/
     AttrsRe = /( *)([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|("([^\"]+)"))?/
@@ -50,9 +50,10 @@ module L2met
 
     def parse(line)
       if m = line.match(LineRe)
-        if data = parse_msg(m[3])
-          data["source"] = m[1]
-          data["ps"] = m[2]
+        if data = parse_msg(m[4])
+          data["time"] = Time.parse(m[1])
+          data["source"] = m[2]
+          data["ps"] = m[3]
           data
         end
       end
@@ -61,9 +62,6 @@ module L2met
     def parse_msg(msg)
       if !msg.match(IgnoreMsgRe)
         data = {}
-        if time = msg.match(TimeSubRe)
-          data["time"] = Time.parse(time[0])
-        end
         msg = msg.sub(TimeSubRe, "")
         msg.scan(AttrsRe) do |_, key, _, val1, _, val2|
           if (((key == "service") || (key == "wait")) && val1)

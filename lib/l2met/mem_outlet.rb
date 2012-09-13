@@ -34,12 +34,14 @@ module L2met
               perc95: Stats.perc95(vals),
               perc99: Stats.perc99(vals)}
             DB.put('metrics', mkey, SecureRandom.uuid, 0, {
+              time: m,
               name: metric[:name],
               type: metric[:type],
               source: metric[:source],
               consumer: metric[:consumer]}.merge(data))
           else
             DB.put('metrics', mkey, SecureRandom.uuid, metric[:value],
+              time: m,
               name: metric[:name],
               type: metric[:type],
               source: metric[:source],

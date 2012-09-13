@@ -18,6 +18,7 @@ module L2met
     end
 
     def accept(name, val, meta)
+      puts meta
       key = Utils.enc_key(name, meta[:source], meta[:consumer])
       k = Utils.trunc_time(meta["time"])
       type = meta[:type]

@@ -49,6 +49,7 @@ module L2met
           {type => ref.swap({})}
         end
       else
+        log(at: "empty-snapshot", time: m, data: mem)
         []
       end
     end

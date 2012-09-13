@@ -19,7 +19,7 @@ module L2met
 
     def accept(name, val, meta)
       key = Utils.enc_key(name, meta[:source], meta[:consumer])
-      k = Utils.trunc_time(meta[:time])
+      k = Utils.trunc_time(meta["time"])
       type = meta[:type]
       if mem.key?(k)
         mem[k][type] ||= Atomic.new({})

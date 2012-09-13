@@ -1,8 +1,10 @@
 require 'scrolls'
 require 'securerandom'
+
 require 'l2met/db'
-require 'l2met/mem'
+require 'l2met/register'
 require 'l2met/stats'
+require 'l2met/utils'
 
 module L2met
   module MemOutlet
@@ -12,58 +14,36 @@ module L2met
     def start
       Thread.new do
         loop do
+          m = Utils.trunc_minute(Time.now)
+          Thread.new {snapshot(m)}
           sleep(INTERVAL)
-          Thread.new {snapshot}
         end
       end
     end
 
-    def snapshot
-      cntrs, hists = Mem.counters.length, Mem.histograms.length
-      t = Time.now.to_i
-      log(fn: __method__, counters: cntrs, histograms: hists) do
-        snapshot_histograms(t)
-        snapshot_counters(t)
-        snapshot_last_vals(t)
-      end
-    end
-
-    def snapshot_last_vals(t)
-      Mem.last_vals!.each do |k, metric|
-        name = [metric[:name], "last"].map(&:to_s).join(".")
-        DB.put('last_vals', k, SecureRandom.uuid, metric[:last_value],
-                name: name,
-                source: metric[:source],
-                consumer: metric[:consumer],
-                time: t)
-      end
-    end
-
-    def snapshot_counters(t)
-      Mem.counters!.each do |k, metric|
-        name = [metric[:name], "count"].map(&:to_s).join(".")
-        DB.put('counters', k, SecureRandom.uuid, metric[:value],
-                name: name,
-                source: metric[:source],
-                consumer: metric[:consumer],
-                time: t)
-      end
-    end
-
-    def snapshot_histograms(t)
-      Mem.histograms!.each do |k, metric|
-        values = metric[:values].sort
-        data = {min: Stats.min(values),
-          max: Stats.max(values),
-          mean: Stats.mean(values),
-          median: Stats.median(values),
-          perc95: Stats.perc95(values),
-          perc99: Stats.perc99(values)}
-        DB.put('histograms', k, SecureRandom.uuid, 0,
-              {name: metric[:name],
-                 source: metric[:source],
-                 consumer: metric[:consumer],
-                 time: t}.merge(data))
+    def snapshot(m)
+      log(fn: __method__, time: Time.at(m)) do
+        Register.snapshot!(m).each do |type, metric|
+          if metric[:value].respond_to?(:sort)
+            vals = metric[:value].sort
+            data = {
+              min: Stats.min(vals),
+              max: Stats.max(vals),
+              mean: Stats.mean(vals),
+              median: Stats.median(vals),
+              perc95: Stats.perc95(vals),
+              perc99: Stats.perc99(vals)}
+            DB.put('metrics', metric[:mkey], SecureRandom.uuid, 0, {
+              name: metric[:name],
+              source: metric[:source],
+              consumer: metric[:consumer]}.merge(data))
+          else
+            DB.put('metrics', metric[:mkey], SecureRandom.uuid, metric[:value],
+              name: metric[:name],
+              source: metric[:source],
+              consumer: metric[:consumer])
+          end
+        end
       end
     end
 

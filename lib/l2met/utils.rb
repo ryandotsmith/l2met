@@ -1,9 +1,18 @@
+require 'zlib'
 require 'yajl'
 require 'scrolls'
 
 module L2met
   module Utils
     extend self
+
+    def trunc_time(t, offset=60)
+      (t.to_i / offset) * offset
+    end
+
+    def enc_key(name, consumer, source)
+      Zlib.crc32([name, consumer, source].join)
+    end
 
     def enc_j(data)
       Yajl::Encoder.encode(data)

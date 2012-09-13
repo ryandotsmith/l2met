@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-$:.unshift(File.expand_path(File.join(File.dirname($0), '../lib')))
-require 'l2met/processor'
-require 'l2met/receiver'
-$stdout.sync = true
-Thread.abort_on_exception = true
-L2met::Processor.start
-L2met::Receiver.start

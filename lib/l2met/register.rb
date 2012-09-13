@@ -17,6 +17,7 @@ module L2met
       mkey = Utils.enc_key(name, meta[:source], meta[:consumer])
       bucket = Utils.trunc_time(meta[:time])
       if mem.key?(bucket)
+        Heartbeat.pulse("accept")
         mem[bucket].update do |h|
           h[mkey] ||= {name: name}.merge(meta)
           case meta[:type]

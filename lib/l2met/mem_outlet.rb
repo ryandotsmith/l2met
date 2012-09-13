@@ -24,6 +24,7 @@ module L2met
     def snapshot(m)
       log(fn: __method__, time: Time.at(m)) do
         Register.snapshot!(m).each do |record|
+          puts "records=#{record}"
           type = record.keys.first
           metric = record[type]
           puts "metric=#{metric}"

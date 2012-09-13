@@ -26,6 +26,7 @@ module L2met
         Register.snapshot!(m).each do |record|
           type = record.keys.first
           metric = record[type]
+          puts "metric=#{metric}"
           if metric[:value].respond_to?(:sort)
             vals = metric[:value].sort
             data = {

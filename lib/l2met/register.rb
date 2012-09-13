@@ -49,7 +49,7 @@ module L2met
           {type => ref.swap({})}
         end
       else
-        {}
+        []
       end
     end
 

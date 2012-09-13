@@ -43,8 +43,12 @@ module L2met
     end
 
     def snapshot!(m)
-      mem[m].map do |type, ref|
-        {type => ref.swap({})}
+      if mem.key?(m)
+        mem[m].map do |type, ref|
+          {type => ref.swap({})}
+        end
+      else
+        []
       end
     end
 

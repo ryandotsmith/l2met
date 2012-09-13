@@ -36,6 +36,7 @@ module L2met
           when 'last'
             h[key][:value] = val
           end
+          puts h
           h
         end
       else

@@ -23,9 +23,9 @@ module L2met
       k = Utils.trunc_time(meta[:time])
       type = meta[:type]
       if mem.key?(k)
-        mem[k][type] ||= Atomic.new({name: name})
+        mem[k][type] ||= Atomic.new({})
         mem[k][type].update do |h|
-          h[key] ||= meta
+          h[key] ||= {name: name}.merge(meta)
           case type
           when 'list'
             h[key][:value] ||= []

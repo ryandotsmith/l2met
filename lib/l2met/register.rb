@@ -44,7 +44,7 @@ module L2met
       if mem.key?(bucket)
         mem[bucket].swap({})
       else
-        log(at: "empty-snapshot", time: m, data: mem)
+        log(at: "empty-snapshot", bucket: bucket, data: mem)
         {}
       end
     end

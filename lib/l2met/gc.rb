@@ -34,24 +34,20 @@ module L2met
     end
 
     def flush_mkey(mkey, pred=nil)
-      %w(counters histograms last_vals).each do |tname|
-        DB[tname].query(hash_value: mkey).each do |i|
-          if pred
-            i.delete if pred.call
-          else
-            i.delete
-          end
-          Heartbeat.pulse("gc-collect-#{tname}")
+      DB["metrics"].query(hash_value: mkey).each do |i|
+        if pred
+          i.delete if pred.call
+        else
+          i.delete
         end
+        Heartbeat.pulse("gc-collect")
       end
     end
 
     def flush_all
-      %w(counters histograms last_vals).each do |tname|
-        DB[tname].select.each do |i|
-          i.delete
-          Heartbeat.pulse("gc-collect-#{tname}")
-        end
+      DB["metrics"].select.each do |i|
+        i.delete
+        Heartbeat.pulse("gc-collect")
       end
     end
 

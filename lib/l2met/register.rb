@@ -5,15 +5,11 @@ require 'l2met/utils'
 module L2met
   module Register
     extend self
-    TTL = 60
+    TTL = 60 * 3
 
     def start(interval=1)
       Thread.new do
-        loop do
-          mem[Utils.trunc_time(Time.now)] ||= Atomic.new({})
-          mem.delete_if {|k,v| k < (Time.now.to_i - TTL)}
-          sleep(interval)
-        end
+        loop {grow; shrink; sleep(interval)}
       end
     end
 
@@ -47,6 +43,21 @@ module L2met
         log(at: "empty-snapshot", bucket: bucket, data: mem)
         {}
       end
+    end
+
+    def print
+      log(mem: mem)
+    end
+
+    private
+
+    def grow
+      t = Utils.trunc_time(Time.now.to_i - TTL)
+      6.times {|i| mem[t + (60 * i)] ||= Atomic.new({})}
+    end
+
+    def shrink
+      mem.delete_if {|k,v| k < (Time.now.to_i - TTL)}
     end
 
     def mem

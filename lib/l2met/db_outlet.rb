@@ -16,7 +16,7 @@ module L2met
         Thread.new do
           (0..max).to_a.shuffle.each do |p|
             Locksmith::Dynamodb.lock("dboutlet.#{p}") do
-              t = Time.now.to_i
+              t = Time.now.to_i - 60
               snapshot(p, max, t - INTERVAL, t)
             end
           end

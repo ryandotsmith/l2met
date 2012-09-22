@@ -45,7 +45,7 @@ module L2met
     end
 
     def flush_all
-      DB["metrics"].select.each do |i|
+      DB["metrics"].each do |i|
         i.delete
         Heartbeat.pulse("gc-collect")
       end

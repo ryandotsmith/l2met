@@ -22,7 +22,7 @@ module L2met
     end
 
     def snapshot(m)
-      log(fn: __method__, time: Time.at(m)) do
+      log(fn: __method__, time: m) do
         Register.snapshot!(m).each do |mkey, metric|
           if metric[:value].respond_to?(:sort)
             vals = metric[:value].sort

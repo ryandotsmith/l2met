@@ -19,7 +19,7 @@ module L2met
         Thread.new do
           max.times.each do |p|
             Locksmith::Dynamodb.lock("dboutlet.#{p}") do
-              snapshot(p, max, t - INTERVAL, t)
+              snapshot(p, max, t - 60, t)
             end
           end
         end

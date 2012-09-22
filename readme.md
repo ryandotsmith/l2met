@@ -1,5 +1,8 @@
 # l2met
 
+Convert your log stream into charts and actionable alerts in less than 1 minute
+with 0 software installation.
+
 ## Usage
 
 ### Log Data Conventions

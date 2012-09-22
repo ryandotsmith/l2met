@@ -8,12 +8,12 @@ require 'locksmith/dynamodb'
 module L2met
   module DBOutlet
     extend self
-    INTERVAL = 60
+    INTERVAL = 10
 
     def start
       max = Config.num_dboutlets
       loop do
-        t = Time.now.to_i - 60
+        t = Utils.trunc_time(Time.now.to_i) - 60
         Thread.new do
           (0..max).to_a.shuffle.each do |p|
             Locksmith::Dynamodb.lock("dboutlet.#{p}") do

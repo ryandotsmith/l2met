@@ -1,9 +1,11 @@
-require 'l2met/config'
-require 'l2met/db'
-require 'l2met/stats'
 require 'librato/metrics'
 require 'scrolls'
 require 'locksmith/dynamodb'
+
+require 'l2met/utils'
+require 'l2met/config'
+require 'l2met/db'
+require 'l2met/stats'
 
 module L2met
   module DBOutlet

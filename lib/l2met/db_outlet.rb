@@ -13,7 +13,7 @@ module L2met
     INTERVAL = 10
 
     def start
-      max = Config.num_dboutlets
+      max = Config.num_dboutlets - 1
       loop do
         t = Utils.trunc_time(Time.now.to_i) - 60
         Thread.new do

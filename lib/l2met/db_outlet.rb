@@ -35,7 +35,9 @@ module L2met
             consumer = DB["consumers"].at(sa["consumer"]).attributes.to_h
             client = build_client(consumer["email"], consumer["token"])
             queue =  Librato::Metrics::Queue.new(client: client)
-            flush(sa["mkey"].to_i, from, to).each {|m| queue.add(m)}
+            flush(sa["mkey"].to_i, from, to).tap do |col|
+              log(fn: __method__, at: "flush", last: col.length)
+            end.each {|m| queue.add(m)}
             queue.submit if queue.length > 0
           rescue => e
             log(at: "error", error: e.message)

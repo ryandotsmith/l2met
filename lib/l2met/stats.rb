@@ -2,6 +2,15 @@ module L2met
   module Stats
     extend self
 
+    def aggregate(vals)
+      {mean: mean(vals.map {|h| h["mean"]}),
+        median: median(vals.map {|h| h["median"]}),
+        min: min(vals.map {|h| h["min"]}),
+        max: max(vals.map {|h| h["max"]}),
+        perc95: perc95(vals.map {|h| h["perc95"]}),
+        perc99: perc99(vals.map {|h| h["perc99"]})}
+    end
+
     def mean(vals)
       vals.reduce(:+) / vals.length.to_f
     end
@@ -25,5 +34,6 @@ module L2met
     def perc99(vals)
       vals[(0.99 * vals.length).ceil - 1]
     end
+
   end
 end

@@ -1,8 +1,14 @@
 GIT
   remote: https://github.com/asenchi/scrolls.git
-  revision: 741a206b8cee6c4ea98d32f9855e3f9deab2e25a
+  revision: a6d34562cea4f3b4f3374d572461d0a4837b147f
   specs:
-    scrolls (0.2.1)
+    scrolls (0.2.4.pre)
+
+GIT
+  remote: https://github.com/ryandotsmith/lock-smith.git
+  revision: a10d9a4da34f1c9bd1aab47fd45b5c6d7fc5bbd4
+  specs:
+    lock-smith (0.0.4)
 
 GEM
   remote: http://rubygems.org/
@@ -10,7 +16,7 @@ GEM
     aggregate (0.2.2)
     ansi (1.4.3)
     atomic (1.0.1)
-    aws-sdk (1.6.3)
+    aws-sdk (1.6.6)
       httparty (~> 0.7)
       json (~> 1.4)
       nokogiri (>= 1.4.4)
@@ -20,7 +26,7 @@ GEM
       multipart-post (~> 1.1)
     gem_plugin (0.2.3)
     hashie (1.2.0)
-    httparty (0.8.3)
+    httparty (0.9.0)
       multi_json (~> 1.0)
       multi_xml
     json (1.7.5)
@@ -28,7 +34,7 @@ GEM
       aggregate (~> 0.2.2)
       faraday (~> 0.7)
       multi_json (~> 1.3)
-    minitest (3.3.0)
+    minitest (3.5.0)
     mongrel (1.2.0.pre2)
       daemons (~> 1.0.10)
       gem_plugin (~> 0.2.3)
@@ -36,7 +42,7 @@ GEM
     multi_xml (0.5.1)
     multipart-post (1.1.5)
     nokogiri (1.5.5)
-    omniauth (1.1.0)
+    omniauth (1.1.1)
       hashie (~> 1.2)
       rack
     omniauth-openid (1.0.1)
@@ -69,6 +75,7 @@ DEPENDENCIES
   atomic
   aws-sdk
   librato-metrics
+  lock-smith!
   minitest
   mongrel (= 1.2.0.pre2)
   rack-ssl-enforcer

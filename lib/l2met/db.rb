@@ -30,26 +30,12 @@ module L2met
       end
     end
 
-    def active_stats(partition)
+    def active_stats(partition, max)
       DB["active-stats"].select.select do |item|
-        item.attributes["mkey"] % Config.num_dboutlets == partition
+        Integer(item.attributes["mkey"]) % max == partition
       end.sort_by do |item|
         item.attributes["last_report"]
       end
-    end
-
-    def lock(name)
-      begin
-        DB["locks"].put({name: name, locked_at: Time.now.to_i},
-                         unless_exists: "locked_at")
-        true
-      rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
-        false
-      end
-    end
-
-    def unlock(name)
-      DB["locks"].at(name).delete
     end
 
     def [](table)

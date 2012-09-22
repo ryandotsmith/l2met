@@ -21,7 +21,6 @@ L2met uses heuristics to create metrics from log data.
 {measure: true, app: "myapp", at: "your-code"}
 ```
 
-
 #### Last Value
 
 ```

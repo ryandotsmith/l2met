@@ -55,7 +55,7 @@ module L2met
 
     def grow
       t = Utils.trunc_time(Time.now)
-      mem[t] ||= Atomic.new({})
+      3.times {|i| mem[t + (60 * i)] ||= Atomic.new({})}
     end
 
     def shrink

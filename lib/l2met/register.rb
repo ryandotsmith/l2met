@@ -9,7 +9,7 @@ module L2met
 
     def start(interval=1)
       Thread.new do
-        loop {report; grow; shrink; sleep(interval)}
+        loop {grow; shrink; sleep(interval)}
       end
     end
 
@@ -60,14 +60,6 @@ module L2met
 
     def shrink
       mem.delete_if {|k,v| k < (Time.now.to_i - TTL)}
-    end
-
-    def report
-      mem.each do |k,v|
-        if k < Time.now.to_i - TTL
-          log(at: "report-usage", mem: v.value)
-        end
-      end
     end
 
     def mem

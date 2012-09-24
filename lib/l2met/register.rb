@@ -10,7 +10,7 @@ module L2met
     extend self
     TTL = 60 * 3
 
-    def start(interval=1)
+    def start(interval=10)
       Thread.new do
         loop {flush; grow; shrink; sleep(interval)}
       end

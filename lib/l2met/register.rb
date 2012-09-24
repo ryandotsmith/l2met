@@ -33,7 +33,7 @@ module L2met
           h
         end
       else
-        log(fn: __method__, at: "drop")
+        log(fn: __method__, at: "drop", name: name, val: val, meta: meta, bucket: bucket, mem: mem)
       end
     end
 

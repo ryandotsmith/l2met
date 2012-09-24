@@ -57,7 +57,7 @@ module L2met
         when "counter"
           val = metrics.map {|m| m["value"]}.reduce(:+).to_f
           {s["name"] => opts.merge(value: val)}
-        when "last-val"
+        when "last"
           val = metrics.last["value"].to_i
           {s["name"] => opts.merge(value: val)}
         when "list"

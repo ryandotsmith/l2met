@@ -52,7 +52,7 @@ module L2met
         metric["type"]
       end.map do |type, metrics|
         s = metrics.sample
-        opts = {source: s["source"],type: "gauge",measure_time: s["time"].to_i}
+        opts = {source: s["source"], type: "gauge", measure_time: s["time"].to_i}
         case type
         when "counter"
           val = metrics.map {|m| m["value"]}.reduce(:+).to_f
@@ -60,7 +60,7 @@ module L2met
         when "last-val"
           val = metrics.last["value"].to_i
           {s["name"] => opts.merge(value: val)}
-        when "histogram"
+        when "list"
           Stats.aggregate(metrics).map do |stat, val|
             name = [s["name"], stat].map(&:to_s).join(".")
             {name => opts.merge(value: val)}

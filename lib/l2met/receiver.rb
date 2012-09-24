@@ -13,6 +13,7 @@ module L2met
     AttrsRe = /( *)([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|("([^\"]+)"))?/
 
     def unpack(cid, s)
+      puts("log=#{s}")
       while s && s.length > 0
         if m = s.match(/^(\d+) /)
           num_bytes = m[1].to_i

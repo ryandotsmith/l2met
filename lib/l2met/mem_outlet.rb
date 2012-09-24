@@ -14,8 +14,8 @@ module L2met
     def start
       Thread.new do
         loop do
-          m = Utils.trunc_time(Time.now) - 60
-          Thread.new {snapshot(m)}
+          m = Utils.trunc_time(Time.now)
+          Thread.new {snapshot(m - 60); snapshot(m)}
           sleep(INTERVAL)
         end
       end

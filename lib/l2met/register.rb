@@ -1,6 +1,9 @@
 require 'atomic'
 require 'scrolls'
+
 require 'l2met/utils'
+require 'l2met/db'
+require 'l2met/stats'
 
 module L2met
   module Register
@@ -9,7 +12,7 @@ module L2met
 
     def start(interval=1)
       Thread.new do
-        loop {grow; shrink; sleep(interval)}
+        loop {flush; grow; shrink; sleep(interval)}
       end
     end
 
@@ -38,17 +41,28 @@ module L2met
       end
     end
 
-    def snapshot!(bucket)
-      if mem.key?(bucket)
-        mem[bucket].swap({})
-      else
-        log(at: "empty-snapshot", bucket: bucket, data: mem)
-        {}
+    def flush
+      mem.each do |bucket, ref|
+        metrics = ref.swap({})
+        metrics.each do |mkey, metric|
+          if metric[:value].respond_to?(:sort)
+            vals = metric[:value].sort
+            DB.put('metrics', mkey, SecureRandom.uuid, 0, {
+              time: bucket,
+              name: metric[:name],
+              type: metric[:type],
+              source: metric[:source],
+              consumer: metric[:consumer]}.merge(Stats.all(vals)))
+          else
+            DB.put('metrics', mkey, SecureRandom.uuid, metric[:value],
+              time: bucket,
+              name: metric[:name],
+              type: metric[:type],
+              source: metric[:source],
+              consumer: metric[:consumer])
+          end
+        end
       end
-    end
-
-    def print
-      log(mem: mem)
     end
 
     private

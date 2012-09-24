@@ -11,6 +11,15 @@ module L2met
         perc99: perc99(vals.map {|h| h["perc99"]})}
     end
 
+    def all(vals)
+      {min: min(vals),
+        max: max(vals),
+        mean: mean(vals),
+        median: median(vals),
+        perc95: perc95(vals),
+        perc99: perc99(vals)}
+    end
+
     def mean(vals)
       vals.reduce(:+) / vals.length.to_f
     end

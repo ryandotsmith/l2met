@@ -17,7 +17,6 @@ module L2met
     end
 
     def accept(name, val, meta)
-      puts name
       mkey = Utils.enc_key(name, meta[:source], meta[:consumer])
       bucket = Utils.trunc_time(meta[:time])
       if mem.key?(bucket)

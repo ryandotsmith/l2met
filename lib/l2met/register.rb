@@ -17,7 +17,7 @@ module L2met
     end
 
     def accept(name, val, meta)
-      mkey = Utils.enc_key(name, meta[:source], meta[:consumer])
+      mkey = Utils.enc_key(name, meta[:source], meta[:consumer], meta[:type])
       bucket = Utils.trunc_time(meta[:time])
       if mem.key?(bucket)
         Heartbeat.pulse("accept")

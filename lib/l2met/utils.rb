@@ -10,8 +10,8 @@ module L2met
       (t.to_i / offset) * offset
     end
 
-    def enc_key(name, consumer, source)
-      Zlib.crc32([name, consumer, source].join)
+    def enc_key(*things)
+      Zlib.crc32(things.join)
     end
 
     def enc_j(data)

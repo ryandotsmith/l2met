@@ -72,7 +72,6 @@ module L2met
     end
 
     post "/consumers/:cid/logs" do
-      puts("log=#{request.env["rack.input"].read}")
       Receiver.unpack(params[:cid], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end

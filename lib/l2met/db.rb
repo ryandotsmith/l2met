@@ -21,12 +21,12 @@ module L2met
       end
     end
 
-    def flush(tname, mkey, from, to)
+    def flush(tname, mkey, bucket)
       Heartbeat.pulse("db-flush")
       DB[tname].query(hash_value: mkey, :select => :all).map do |data|
         data.attributes
       end.select do |data|
-        from <= data["time"].to_i && data["time"].to_i < to
+        data["time"].to_i == bucket
       end
     end
 

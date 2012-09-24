@@ -15,11 +15,11 @@ module L2met
     def start
       max = Config.num_dboutlets
       loop do
-        t = Utils.trunc_time(Time.now.to_i) - 60
+        bucket = Utils.trunc_time(Time.now.to_i) - 60
         Thread.new do
           max.times.each do |p|
             Locksmith::Dynamodb.lock("dboutlet.#{p}") do
-              snapshot(p, max, t - 60, t)
+              snapshot(p, max, bucket)
             end
           end
         end
@@ -27,15 +27,15 @@ module L2met
       end
     end
 
-    def snapshot(partition, max, from, to)
-      log(fn: __method__, from: from, to: to, partition: partition) do
+    def snapshot(partition, max, bucket)
+      log(fn: __method__, bucket: bucket, partition: partition) do
         DB.active_stats(partition, max).each do |stat|
           begin
             sa = stat.attributes
             consumer = DB["consumers"].at(sa["consumer"]).attributes.to_h
             client = build_client(consumer["email"], consumer["token"])
             queue =  Librato::Metrics::Queue.new(client: client)
-            flush(sa["mkey"].to_i, from, to).tap do |col|
+            flush(sa["mkey"].to_i, bucket).tap do |col|
               log(fn: __method__, at: "flush", last: col.length)
             end.each {|m| queue.add(m)}
             queue.submit if queue.length > 0
@@ -47,8 +47,8 @@ module L2met
       end
     end
 
-    def flush(mkey, from, to)
-      DB.flush("metrics", mkey, from, to).group_by do |metric|
+    def flush(mkey, bucket)
+      DB.flush("metrics", mkey, bucket).group_by do |metric|
         metric["type"]
       end.map do |type, metrics|
         s = metrics.sample

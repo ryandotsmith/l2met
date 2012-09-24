@@ -66,7 +66,7 @@ module L2met
             {name => opts.merge(value: val)}
           end
         end
-      end.flatten
+      end.flatten.compact
     end
 
     def build_client(email, token)

@@ -40,7 +40,7 @@ module L2met
     def snapshot!(bucket)
       if mem.key?(bucket)
         #mem[bucket].swap({})
-        mem.delete(bucket)
+        mem.delete(bucket).value
       else
         log(at: "empty-snapshot", bucket: bucket, data: mem)
         {}

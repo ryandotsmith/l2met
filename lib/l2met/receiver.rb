@@ -30,9 +30,9 @@ module L2met
     end
 
     def store_data(d)
-      if d.key?("measure")
+      if d.key?("measure") && d.key?("app")
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
-        if d.key?("elapsed")
+        if d.key?("fn") && d.key?("elapsed")
           name = [d["app"], d["fn"]].compact.join(".")
           Register.accept(name, Float(d["elapsed"]), opts.merge(type: 'list'))
           Register.accept(name, 1, opts.merge(type: 'counter'))

@@ -15,7 +15,7 @@ module L2met
     def start
       max = Config.num_dboutlets
       loop do
-        bucket = Utils.trunc_time(Time.now.to_i) - 60
+        bucket = Utils.trunc_time(Time.now) - 120
         Thread.new do
           max.times.each do |p|
             Locksmith::Dynamodb.lock("dboutlet.#{p}") do

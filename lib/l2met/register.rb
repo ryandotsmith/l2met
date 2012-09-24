@@ -64,7 +64,7 @@ module L2met
     def report
       mem.each do |k,v|
         if k < Time.now.to_i - TTL
-          log(at: "report-usage", mem: v)
+          log(at: "report-usage", mem: v.value)
         end
       end
     end

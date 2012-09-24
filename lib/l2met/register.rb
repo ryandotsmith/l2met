@@ -39,8 +39,7 @@ module L2met
 
     def snapshot!(bucket)
       if mem.key?(bucket)
-        #mem[bucket].swap({})
-        mem.delete(bucket).value
+        mem[bucket].swap({})
       else
         log(at: "empty-snapshot", bucket: bucket, data: mem)
         {}
@@ -54,8 +53,8 @@ module L2met
     private
 
     def grow
-      t = Utils.trunc_time(Time.now.to_i - TTL)
-      6.times {|i| mem[t + (60 * i)] ||= Atomic.new({})}
+      t = Utils.trunc_time(Time.now)
+      mem[t] ||= Atomic.new({})
     end
 
     def shrink

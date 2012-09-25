@@ -54,6 +54,7 @@ module L2met
         end.map do |type, metrics|
           s = metrics.sample
           opts = {source: s["source"], type: "gauge", measure_time: s["time"].to_i}
+          log(fn: __method__, at: "process-#{s["name"]}")
           case type
           when "counter"
             val = metrics.map {|m| m["value"]}.reduce(:+).to_f

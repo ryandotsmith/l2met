@@ -48,7 +48,7 @@ module L2met
     end
 
     def flush(mkey, bucket)
-      log(fn: __method__, mkey: mkey, time: Time.at(bucket)) do
+      log(fn: __method__, mkey: mkey, bucket: bucket, time: Time.at(bucket)) do
         DB.flush("metrics", mkey, bucket).group_by do |metric|
           metric["type"]
         end.map do |type, metrics|

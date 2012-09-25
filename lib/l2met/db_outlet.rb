@@ -48,25 +48,27 @@ module L2met
     end
 
     def flush(mkey, bucket)
-      DB.flush("metrics", mkey, bucket).group_by do |metric|
-        metric["type"]
-      end.map do |type, metrics|
-        s = metrics.sample
-        opts = {source: s["source"], type: "gauge", measure_time: s["time"].to_i}
-        case type
-        when "counter"
-          val = metrics.map {|m| m["value"]}.reduce(:+).to_f
-          {s["name"] => opts.merge(value: val)}
-        when "last"
-          val = metrics.last["value"].to_i
-          {s["name"] => opts.merge(value: val)}
-        when "list"
-          Stats.aggregate(metrics).map do |stat, val|
-            name = [s["name"], stat].map(&:to_s).join(".")
-            {name => opts.merge(value: val)}
+      log(fn: __method__, mkey: mkey, time: Time.at(bucket)) do
+        DB.flush("metrics", mkey, bucket).group_by do |metric|
+          metric["type"]
+        end.map do |type, metrics|
+          s = metrics.sample
+          opts = {source: s["source"], type: "gauge", measure_time: s["time"].to_i}
+          case type
+          when "counter"
+            val = metrics.map {|m| m["value"]}.reduce(:+).to_f
+            {s["name"] => opts.merge(value: val)}
+          when "last"
+            val = metrics.last["value"].to_i
+            {s["name"] => opts.merge(value: val)}
+          when "list"
+            Stats.aggregate(metrics).map do |stat, val|
+              name = [s["name"], stat].map(&:to_s).join(".")
+              {name => opts.merge(value: val)}
+            end
           end
-        end
-      end.flatten.compact
+        end.flatten.compact
+      end
     end
 
     def build_client(email, token)

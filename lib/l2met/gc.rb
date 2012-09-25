@@ -10,7 +10,7 @@ module L2met
     def start
       loop do
         t = (Time.now - (60*5)).to_i
-        Thread.new {metrics(t); active_stats(t)}
+        metrics(t); active_stats(t)
         sleep(INTERVAL)
       end
     end

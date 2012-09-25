@@ -24,7 +24,7 @@ module L2met
     def flush(tname, mkey, bucket)
       Heartbeat.pulse("db-flush")
       DB[tname].query(hash_value: mkey, :select => :all).map do |data|
-        data.attributes
+        data.attributes.tap {data.delete}
       end.select do |data|
         data["time"].to_i == bucket
       end

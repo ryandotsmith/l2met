@@ -19,7 +19,7 @@ module L2met
     end
 
     def count(data)
-      name = [data[:ns], data[:fn]].join(".")
+      name = [Config.app_name, data[:ns], data[:fn]].join(".")
       Register.accept(name, 1,
         type: "counter",
         source: Config.app_name,

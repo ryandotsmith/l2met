@@ -34,7 +34,7 @@ module L2met
       DB["active-stats"].select.select do |item|
         Integer(item.attributes["mkey"]) % max == partition
       end.sort_by do |item|
-        item.attributes["last_report"]
+        item.attributes["time"].to_i
       end
     end
 

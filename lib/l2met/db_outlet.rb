@@ -29,6 +29,7 @@ module L2met
 
     def snapshot(partition, max, bucket)
       log(fn: __method__, bucket: bucket, time: Time.at(bucket), partition: partition) do
+        t0 = Time.now
         DB.active_stats(partition, max).each do |stat|
           begin
             sa = stat.attributes
@@ -36,7 +37,7 @@ module L2met
             client = build_client(consumer["email"], consumer["token"])
             queue =  Librato::Metrics::Queue.new(client: client)
             flush(sa["mkey"].to_i, bucket).tap do |col|
-              Utils.count(col.length, ns: "db-outlet", fn: __method__)
+              Utils.count(col.length, ns: "db-outlet", at: "flush")
               log(fn: __method__, at: "flush", last: col.length)
             end.each {|m| queue.add(m)}
             queue.submit if queue.length > 0
@@ -45,6 +46,7 @@ module L2met
             next
           end
         end
+        Utils.time(Time.now - t0, ns: "db-outlet", fn: __method__)
       end
     end
 

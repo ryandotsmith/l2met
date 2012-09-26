@@ -19,7 +19,7 @@ module L2met
     end
 
     def count(val, data)
-      name = [Config.app_name, data[:ns], data[:fn]].join(".")
+      name = [Config.app_name, data[:ns], data[:at]].join(".")
       Register.accept(name, val,
         type: "counter",
         source: Config.app_name,
@@ -27,15 +27,13 @@ module L2met
         time: Time.now)
     end
 
-    def time(name, t, opts={})
-      if name
-        name.
-          gsub(/\/:\w+/,'').            #remove param names from path
-          gsub("/","-").                #remove slash from path
-          gsub(/[^A-Za-z0-9\-\_]/, ''). #only keep subset of chars
-          slice(1..-1).
-          tap {|res| log({measure: true, fn: res, elapsed: t}.merge(opts))}
-      end
+    def time(elapsed, data)
+      name = [Config.app_name, data[:ns], data[:fn]].join(".")
+      Register.accept(name, Float(elapsed),
+        type: "list",
+        source: Config.app_name,
+        consumer: Config.l2met_consumer,
+        time: Time.now)
     end
 
     def log(data, &blk)

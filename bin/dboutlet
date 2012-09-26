@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 $:.unshift(File.expand_path(File.join(File.dirname($0), '../lib')))
+require 'l2met/register'
 require 'l2met/db_outlet'
 $stdout.sync = true
 Thread.abort_on_exception = true
+L2met::Register.start
 L2met::DBOutlet.start

@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/ryandotsmith/lock-smith.git
-  revision: a1f91a053d59f2553cb701321593810ceed50dda
+  revision: 3d6d12ec59df60e8a0ae6cc927fda59320718a1f
   specs:
     lock-smith (0.0.4)
 

@@ -36,9 +36,18 @@ module L2met
           end
           h
         end
-      else
+      elsif !meta.key?(:halt)
+        name = [Config.app_name, "l2met.register.drop"].join(".")
+        accept(name, 1,
+          halt: true,
+          source: Config.app_name,
+          consumer: Config.l2met_consumer,
+          type: "counter",
+          time: Time.now)
         log(fn: __method__, at: "drop", name: name, val: val, meta: meta,
           bucket: bucket, buckets: mem.keys)
+      else
+        raise("Register caught in accept loop")
       end
     end
 

@@ -31,6 +31,7 @@ module L2met
 
     def store_data(d)
       if d.key?("measure") && d.key?("app")
+        Utils.count(ns: "receiver", fn: "accept-measurement")
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
         if d.key?("fn") && d.key?("elapsed")
           name = [d["app"], d["fn"]].compact.join(".")

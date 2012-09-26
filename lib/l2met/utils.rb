@@ -18,6 +18,15 @@ module L2met
       Yajl::Encoder.encode(data)
     end
 
+    def count(data)
+      name = [data[:ns], data[:fn]].join(".")
+      Register.accept(name, 1,
+        type: "counter",
+        source: Config.app_name,
+        consumer: Config.l2met_consumer,
+        time: Time.now)
+    end
+
     def time(name, t, opts={})
       if name
         name.

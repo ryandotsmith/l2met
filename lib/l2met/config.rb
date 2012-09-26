@@ -14,6 +14,7 @@ module L2met
       !env(key).nil?
     end
 
+    def app_name; env!("APP_NAME"); end
     def app_url; env!("APP_URL"); end
     def port; env!("PORT").to_i; end
     def l2met_consumer; env!("L2MET_CONSUMER"); end

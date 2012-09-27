@@ -55,21 +55,17 @@ module L2met
       mem.each do |bucket, ref|
         metrics = ref.swap({})
         metrics.each do |mkey, metric|
+          data = {mkey: mkey,
+            uuid: SecureRandom.uuid,
+            time: bucket,
+            name: metric[:name],
+            type: metric[:type],
+            source: metric[:source],
+            consumer: metric[:consumer]}
           if metric[:value].respond_to?(:sort)
-            vals = metric[:value].sort
-            DB.put('metrics', mkey, SecureRandom.uuid, 0, {
-              time: bucket,
-              name: metric[:name],
-              type: metric[:type],
-              source: metric[:source],
-              consumer: metric[:consumer]}.merge(Stats.all(vals)))
+            DB.put(data.merge(Stats.all(metric[:value])))
           else
-            DB.put('metrics', mkey, SecureRandom.uuid, metric[:value],
-              time: bucket,
-              name: metric[:name],
-              type: metric[:type],
-              source: metric[:source],
-              consumer: metric[:consumer])
+            DB.put(data.merge(value: metric[:value]))
           end
         end
       end

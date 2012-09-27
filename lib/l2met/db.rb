@@ -11,19 +11,19 @@ module L2met
     @dynamo_lock = Mutex.new
     @table_lock = Mutex.new
 
-    def put(tname, mkey, uuid, value, opts)
+    def put(data)
       @put_lock.synchronize do
         Heartbeat.pulse("db-put")
-        data = opts.merge(mkey: mkey, uuid: uuid, value: value)
-        DB[tname].put(data)
-        data = {mkey: mkey, consumer: opts[:consumer], time: Time.now.to_i}
-        DB["active-stats"].put(data)
+        self["metrics"].put(data)
+        self["active-stats"].put(mkey: data[:mkey],
+          consumer: data[:consumer],
+          time: Time.now.to_i)
       end
     end
 
     def flush(tname, mkey, bucket)
       Heartbeat.pulse("db-flush")
-      DB[tname].query(hash_value: mkey, :select => :all).select do |data|
+      self[tname].query(hash_value: mkey, :select => :all).select do |data|
         data.attributes["time"].to_i == bucket
       end.map do |data|
         data.attributes.tap {data.item.delete}
@@ -31,7 +31,7 @@ module L2met
     end
 
     def active_stats(partition, max)
-      DB["active-stats"].select.select do |item|
+      self["active-stats"].select.select do |item|
         Integer(item.attributes["mkey"]) % max == partition
       end.sort_by do |item|
         item.attributes["time"].to_i

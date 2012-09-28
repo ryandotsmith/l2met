@@ -12,19 +12,33 @@ L2met uses heuristics to create metrics from log data.
 #### Histogram
 
 ```
-{measure: true, app: "myapp", fn: "your-fn-name", elapsed: 1.23}
+measure=true app=myapp fn="your-fn-name" elapsed=1.23
 ```
 
 #### Counter
 
 ```
-{measure: true, app: "myapp", at: "your-code"}
+measure=true app=myapp at="something-important"
 ```
 
 #### Last Value
 
 ```
-{measure: true, app: "myapp", at: "your-code", last: 99}
+measure=true app=myapp at="something-important" last=99
+```
+
+### Ruby
+
+If you are using Ruby, you can use the scrolls gem to get structured log output.
+
+```ruby
+Scrolls.default_context(app: "myapp")
+
+def test
+  Scrolls.log(measure: true, fn: __method__) do
+    sleep(1)
+  end
+end
 ```
 
 ## Deploy to Heroku

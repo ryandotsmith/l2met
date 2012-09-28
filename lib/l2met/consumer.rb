@@ -30,7 +30,7 @@ module L2met
 
     def api_vals(data)
       {id: data['id'],
-        drain_url: [Config.app_url, data['id'], 'logs'].join('/'),
+        drain_url: [Config.app_url, 'consumers', data['id'], 'logs'].join('/'),
         email: data["email"],
         token: data["token"]}
     end

@@ -72,6 +72,7 @@ module L2met
     end
 
     post "/consumers/:cid/logs" do
+      Utils.count(1, ns: "web", at: "post")
       Receiver.unpack(params[:cid], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end

@@ -67,3 +67,16 @@ Inside of l2met:
 ```
 l2met/web -> l2met/receiver -> l2met/register -> aws/dynamodb <- l2met/db-outlet -> librato/metrics
 ```
+
+## Credits
+
+Previos attempts at solving the problem: 
+
+* [pulse](https://github.com/heroku/pulse)
+* [wcld](https://github.com/ryandotsmith/wcld)
+* [exprd](https://github.com/heroku/exprd)
+
+l2met is an ongoing quest for platform visibility inspired by:
+
+* [mmcgrana](https://github.com/mmcgrana)
+* [mfine](https://github.com/mfine)

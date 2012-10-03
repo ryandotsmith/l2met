@@ -28,11 +28,14 @@ module L2met
           when 'list'
             h[mkey][:value] ||= []
             h[mkey][:value] << val
+            h[mkey][:label] ||= 'time'
           when 'counter'
             h[mkey][:value] ||= 0
             h[mkey][:value] += val
+            h[mkey][:label] ||= 'count'
           when 'last'
             h[mkey][:value] = val
+            h[mkey][:label] ||= 'last'
           end
           h
         end

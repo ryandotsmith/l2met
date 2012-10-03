@@ -35,15 +35,19 @@ module L2met
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
         if d.key?("fn") && d.key?("elapsed")
           name = [d["app"], d["fn"]].compact.join(".")
-          Register.accept(name, Float(d["elapsed"]), opts.merge(type: 'list'))
-          Register.accept(name, 1, opts.merge(type: 'counter'))
+          Register.accept(name, Float(d["elapsed"]),
+            opts.merge(type: 'list', label: 'time'))
+          Register.accept(name, 1,
+            opts.merge(type: 'counter', label: 'count'))
         end
         if d.key?("at") && !["start", "finish"].include?(d["at"])
           name = [d["app"], d["at"]].compact.join(".")
           if d.key?("last")
-            Register.accept(name, Float(d["last"]), opts.merge(type: 'last'))
+            Register.accept(name, Float(d["last"]),
+              opts.merge(type: 'last', label: 'last'))
           else
-            Register.accept(name, 1, opts.merge(type: 'counter'))
+            Register.accept(name, 1,
+              opts.merge(type: 'counter', label: 'count'))
           end
         end
       end

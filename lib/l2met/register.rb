@@ -61,7 +61,8 @@ module L2met
             name: metric[:name],
             type: metric[:type],
             source: metric[:source],
-            consumer: metric[:consumer]}
+            consumer: metric[:consumer],
+            label: metric[:label]}
           if metric[:value].respond_to?(:sort)
             DB.put(data.merge(Stats.all(metric[:value])))
           else

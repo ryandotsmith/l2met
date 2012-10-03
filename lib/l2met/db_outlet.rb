@@ -64,10 +64,12 @@ module L2met
           case type
           when "counter"
             val = metrics.map {|m| m["value"]}.reduce(:+).to_f
-            {s["name"] => opts.merge(value: val)}
+            name = [s["name"], 'count'].join(".")
+            {name => opts.merge(value: val)}
           when "last"
             val = Float(metrics.last["value"])
-            {s["name"] => opts.merge(value: val)}
+            name = [s["name"], 'last'].join(".")
+            {name => opts.merge(value: val)}
           when "list"
             Stats.aggregate(metrics).map do |stat, val|
               name = [s["name"], stat].map(&:to_s).join(".")

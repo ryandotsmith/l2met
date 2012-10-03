@@ -58,7 +58,7 @@ module L2met
           s = metrics.sample
           opts = {source: s["source"],
             type: "gauge",
-            display_units_long: s["label"],
+            attributes: {display_units_long: s["label"]},
             measure_time: s["time"].to_i}
           log(fn: __method__, at: "process-#{s["name"]}")
           case type

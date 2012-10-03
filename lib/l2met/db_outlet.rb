@@ -66,7 +66,7 @@ module L2met
             val = metrics.map {|m| m["value"]}.reduce(:+).to_f
             {s["name"] => opts.merge(value: val)}
           when "last"
-            val = metrics.last["value"].to_i
+            val = Float(metrics.last["value"])
             {s["name"] => opts.merge(value: val)}
           when "list"
             Stats.aggregate(metrics).map do |stat, val|

@@ -9,49 +9,33 @@ with 0 software installation.
 
 L2met uses heuristics to create metrics from log data. Ensure that you have the following style of logs:
 
-#### Histogram
+#### Time Based Metrics
+
+Including the keys (measure, app, fn, elapsed) will produce:
+
+* counter
+* min/max
+* mean/median
+* perc95/perc99
 
 ```
 measure=true app=myapp fn="your-fn-name" elapsed=1.23
 ```
 
-#### Counter
+#### Counters
+
+Including the keys (measure, app, at) will count the number of occurences. For example:
 
 ```
-measure=true app=myapp at="something-important"
+measure=true app=myapp at="error"
 ```
 
 #### Last Value
 
+Including the keys (measure, app, at, last) will track the last value of a metric. For instance, tracking the length of a collection over time.
+
 ```
-measure=true app=myapp at="something-important" last=99
-```
-
-### Ruby
-
-If you are using Ruby, you can use the scrolls gem to get structured log output.
-
-```ruby
-Scrolls.default_context(app: "myapp")
-
-def test
-  Scrolls.log(measure: true, fn: __method__) do
-    sleep(1)
-  end
-end
-```
-
-## Deploy to Heroku
-
-Be sure and set config variables defined in lib/l2met/config.rb.
-
-```bash
-$ git clone git://github.com/ryandotsmith/l2met.git
-$ cd l2met
-$ heroku create
-$ git add . ; git commit -am "init"
-$ git push heroku master
-$ heroku scale web=2 dboutlet=2
+measure=true app=myapp at="queue-backlog" last=99
 ```
 
 ## Arch
@@ -70,7 +54,7 @@ l2met/web -> l2met/receiver -> l2met/register -> aws/dynamodb <- l2met/db-outlet
 
 ## Credits
 
-Previos attempts at solving the problem: 
+Previos attempts at solving the problem:
 
 * [pulse](https://github.com/heroku/pulse)
 * [wcld](https://github.com/ryandotsmith/wcld)

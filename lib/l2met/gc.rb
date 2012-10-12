@@ -9,9 +9,14 @@ module L2met
 
     def start
       loop do
-        t = (Time.now - (60*5)).to_i
-        metrics(t); active_stats(t)
-        sleep(INTERVAL)
+        begin
+          t = (Time.now - (60*5)).to_i
+          metrics(t); active_stats(t)
+          sleep(INTERVAL)
+        rescue => e
+          log(at: "error", error: e.message)
+          next
+        end
       end
     end
 

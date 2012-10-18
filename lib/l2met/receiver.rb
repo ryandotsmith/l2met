@@ -12,13 +12,13 @@ module L2met
     TimeSubRe = / \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:\d\d/
     AttrsRe = /( *)([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|("([^\"]+)"))?/
 
-    def unpack(cid, s)
+    def unpack(cid, s, beta=false)
       while s && s.length > 0
         if m = s.match(/^(\d+) /)
           num_bytes = m[1].to_i
           msg = s[m[0].length..(m[0].length + num_bytes)]
           if data = parse([m[0], msg.chomp].join)
-            store_data(data.merge("consumer" => cid))
+            store_data(data.merge("consumer" => cid, "beta" => beta))
           end
           s = s[(m[0].length + num_bytes)..(s.length)]
         elsif m = s.match(/\n/)
@@ -30,6 +30,8 @@ module L2met
     end
 
     def store_data(d)
+      return beta_store_data(d) if d.delete("beta")
+
       if d.key?("measure") && d.key?("app")
         Utils.count(1, ns: "receiver", at: "accept-measurement")
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
@@ -45,6 +47,21 @@ module L2met
           else
             Register.accept(name, 1, opts.merge(type: 'counter'))
           end
+        end
+      end
+    end
+
+    def beta_store_data(d)
+      if d.key?("measure") && d.key?("app")
+        Utils.count(1, ns: "receiver", at: "accept-measurement")
+        opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
+        name = d["measure"]
+        Register.accept(name, 1, opts.merge(type: 'counter'))
+        if d.key?("elapsed")
+          Register.accept(name, Float(d["elapsed"]), opts.merge(type: 'list'))
+        end
+        if d.key?("last")
+          Register.accept(name, Float(d["last"]), opts.merge(type: 'last'))
         end
       end
     end

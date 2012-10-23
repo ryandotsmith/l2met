@@ -77,6 +77,12 @@ module L2met
       [201, Utils.enc_j(msg: "OK")]
     end
 
+    post "/beta/consumers/:cid/logs" do
+      Utils.count(1, ns: "beta-web", at: "post")
+      Receiver.unpack(params[:cid], request.env["rack.input"].read, true)
+      [201, Utils.enc_j(msg: "OK")]
+    end
+
     def self.start
       log(fn: "start", at: "build")
       @server = Mongrel::HttpServer.new("0.0.0.0", Config.port)

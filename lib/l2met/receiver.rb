@@ -55,7 +55,7 @@ module L2met
       if d.key?("measure") && d.key?("app")
         Utils.count(1, ns: "receiver", at: "accept-measurement")
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
-        name = d["measure"]
+        name = [d["app"], d["measure"]].join(".")
         Register.accept(name, 1, opts.merge(type: 'counter'))
         if d.key?("elapsed")
           Register.accept(name, Float(d["elapsed"]), opts.merge(type: 'list'))

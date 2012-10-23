@@ -57,11 +57,8 @@ module L2met
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
         name = [d["app"], d["measure"]].join(".")
         Register.accept(name, 1, opts.merge(type: 'counter'))
-        if d.key?("elapsed")
-          Register.accept(name, Float(d["elapsed"]), opts.merge(type: 'list'))
-        end
-        if d.key?("last")
-          Register.accept(name, Float(d["last"]), opts.merge(type: 'last'))
+        if d.key?("val")
+          Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))
         end
       end
     end

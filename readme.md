@@ -23,7 +23,7 @@ Add the URL as a drain onto your Heroku app.
 
 ```bash
 $ heroku sudo passes:add logplex-beta-program
-$ heroku drains:add https://drain.l2met.net/your-token/logs
+$ heroku drains:add https://drain.l2met.net/consumers/your-token/logs
 ```
 
 Follow the log data conventions.

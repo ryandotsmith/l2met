@@ -38,7 +38,7 @@ module L2met
     end
 
     not_found do
-      Utils.count("web-not-found")
+      Utils.count(1, ns: "web", data: "not-found")
       [404, Utils.enc_j(msg: "endpoint not found")]
     end
 
@@ -51,8 +51,8 @@ module L2met
     end
 
     get "/" do
-      content_type(:html)
       authenticate
+      content_type(:html)
       erb(:index)
     end
 

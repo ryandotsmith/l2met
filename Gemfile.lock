@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/asenchi/scrolls.git
-  revision: a6d34562cea4f3b4f3374d572461d0a4837b147f
+  revision: 4cdffb5833177d406858df2b9aecf2323347463d
   specs:
-    scrolls (0.2.4.pre)
+    scrolls (0.2.5.pre)
 
 GEM
   remote: http://rubygems.org/
@@ -10,7 +10,7 @@ GEM
     aggregate (0.2.2)
     ansi (1.4.3)
     atomic (1.0.1)
-    aws-sdk (1.6.6)
+    aws-sdk (1.7.1)
       httparty (~> 0.7)
       json (~> 1.4)
       nokogiri (>= 1.4.4)
@@ -24,22 +24,31 @@ GEM
       multi_json (~> 1.0)
       multi_xml
     json (1.7.5)
-    librato-metrics (0.7.0)
+    librato-metrics (0.7.4)
       aggregate (~> 0.2.2)
       faraday (~> 0.7)
-      multi_json (~> 1.3)
+      multi_json
     lock-smith (0.0.8)
-    minitest (3.5.0)
+    minitest (4.2.0)
     mongrel (1.2.0.pre2)
       daemons (~> 1.0.10)
       gem_plugin (~> 0.2.3)
-    multi_json (1.3.6)
+    multi_json (1.3.7)
     multi_xml (0.5.1)
     multipart-post (1.1.5)
     nokogiri (1.5.5)
+    oa-core (0.3.2)
+    oa-openid (0.3.2)
+      oa-core (= 0.3.2)
+      rack-openid (~> 1.3.1)
+      ruby-openid-apps-discovery (~> 1.2.0)
     omniauth (1.1.1)
       hashie (~> 1.2)
       rack
+    omniauth-google-apps (0.0.2)
+      omniauth (~> 1.0)
+      omniauth-openid (~> 1.0)
+      ruby-openid-apps-discovery (~> 1.2.0)
     omniauth-openid (1.0.1)
       omniauth (~> 1.0)
       rack-openid (~> 1.3.1)
@@ -51,12 +60,15 @@ GEM
       rack
     rack-ssl-enforcer (0.2.4)
     ruby-openid (2.2.2)
+    ruby-openid-apps-discovery (1.2.0)
+      ruby-openid (>= 2.1.7)
     sinatra (1.3.3)
       rack (~> 1.3, >= 1.3.6)
       rack-protection (~> 1.2)
       tilt (~> 1.3, >= 1.3.3)
-    sinatra-google-auth (0.0.8)
-      omniauth-openid
+    sinatra-google-auth (1.0.0)
+      oa-openid
+      omniauth-google-apps
     tilt (1.3.3)
     turn (0.9.6)
       ansi

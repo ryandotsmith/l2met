@@ -54,10 +54,10 @@ module L2met
     end
 
     def beta_store_data(d)
-      if d.key?("measure") && d.key?("app")
+      if d.key?("measure")
         Utils.count(1, ns: "receiver", at: "accept-measurement")
-        opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
-        name = [d["app"], d["measure"]].join(".")
+        opts = {source: (d["app"] || 'default'), consumer: d["consumer"], time: d["time"]}
+        name = [d["app"], d["measure"]].compact.join(".")
         Register.accept(name, 1, opts.merge(type: 'counter'))
         if d.key?("val")
           Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))

@@ -30,7 +30,9 @@ module L2met
     end
 
     def store_data(d)
-      return beta_store_data(d) if d.delete("beta")
+      if d.key?("measure") and d["measure"].to_s != "true"
+        return beta_store_data(d)
+      end
 
       if d.key?("measure") && d.key?("app")
         Utils.count(1, ns: "receiver", at: "accept-measurement")

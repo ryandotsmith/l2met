@@ -57,7 +57,7 @@ module L2met
       if d.key?("measure")
         Utils.count(1, ns: "receiver", at: "accept-measurement")
         opts = {source: (d["app"] || 'default'), consumer: d["consumer"], time: d["time"]}
-        name = [d["app"], d["measure"]].compact.join(".")
+        name = d["measure"]
         Register.accept(name, 1, opts.merge(type: 'counter'))
         if d.key?("val")
           Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))

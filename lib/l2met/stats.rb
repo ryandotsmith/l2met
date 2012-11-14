@@ -8,7 +8,8 @@ module L2met
         min: min(vals.map {|h| h["min"]}),
         max: max(vals.map {|h| h["max"]}),
         perc95: perc95(vals.map {|h| h["perc95"]}),
-        perc99: perc99(vals.map {|h| h["perc99"]})}
+        perc99: perc99(vals.map {|h| h["perc99"]}),
+        last: last(vals.map {|h| h["last"]})}
     end
 
     def all(vals)
@@ -17,7 +18,8 @@ module L2met
         mean: mean(vals),
         median: median(vals),
         perc95: perc95(vals),
-        perc99: perc99(vals)}
+        perc99: perc99(vals),
+        last: last(vals)}
     end
 
     def mean(vals)
@@ -42,6 +44,10 @@ module L2met
 
     def perc99(vals)
       vals[(0.99 * vals.length).ceil - 1]
+    end
+
+    def last(vals)
+      vals.last
     end
 
   end

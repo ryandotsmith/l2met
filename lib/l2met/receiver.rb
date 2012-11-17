@@ -38,12 +38,14 @@ module L2met
         Utils.count(1, "receiver.accept-measurement")
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
         if d.key?("fn") && d.key?("elapsed")
-          name = [d["app"], d["fn"]].compact.join(".")
+          name = [d["app"], d["fn"]].compact.join("."\).
+            gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
           Register.accept(name, Float(d["elapsed"]), opts.merge(type: 'list'))
           Register.accept(name, 1, opts.merge(type: 'counter'))
         end
         if d.key?("at") && !["start", "finish"].include?(d["at"])
-          name = [d["app"], d["at"]].compact.join(".")
+          name = [d["app"], d["at"]].compact.join(".").
+            gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
           if d.key?("last")
             Register.accept(name, Float(d["last"]), opts.merge(type: 'last'))
           else
@@ -57,7 +59,7 @@ module L2met
       if d.key?("measure")
         Utils.count(1, "receiver.accept-measurement")
         opts = {source: (d["app"] || 'default'), consumer: d["consumer"], time: d["time"]}
-        name = d["measure"]
+        name = d["measure"].gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
         Register.accept(name, 1, opts.merge(type: 'counter'))
         if d.key?("val")
           Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))

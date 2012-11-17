@@ -21,6 +21,6 @@ module L2met
     def aws_id; env!("AWS_ID"); end
     def aws_secret; env!("AWS_SECRET"); end
     def num_dboutlets; env!("NUM_DBOUTLETS").to_i; end
-    def redis_url; env!("REDIS_URL"); end
+    def redis_url; env!("REDISGREEN_URL"); end
   end
 end

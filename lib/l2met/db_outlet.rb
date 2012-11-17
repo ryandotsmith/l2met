@@ -18,7 +18,7 @@ module L2met
         bucket = Utils.trunc_time(Time.now) - 120
         Thread.new do
           max.times.each do |p|
-            Locksmith::Dynamodb.lock("dboutlet.#{p}", ttl: 90) do
+            Locksmith::Dynamodb.lock("dboutlet.#{p}", ttl: 180) do
               snapshot(p, max, bucket)
             end
           end

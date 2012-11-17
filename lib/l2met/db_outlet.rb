@@ -44,13 +44,20 @@ module L2met
         end.group_by do |metric|
           metric["consumer"]
         end.each do |consumer_id, metrics|
-          consumer = DB["consumers"].at(consumer_id).attributes
-          client = build_client(consumer["email"], consumer["token"])
-          queue =  Librato::Metrics::Queue.new(client: client)
-          format_metrics(metrics).each {|m| queue.add(m)}
-          if queue.length > 0
-            log(at: 'librato.submit', length: queue.length)
-            Utils.measure('librato.submit') {queue.submit}
+          begin
+            consumer = DB["consumers"].at(consumer_id).attributes
+            client = build_client(consumer["email"], consumer["token"])
+            queue =  Librato::Metrics::Queue.new(client: client)
+            format_metrics(metrics).each {|m| queue.add(m)}
+            if queue.length > 0
+              log(at: 'librato.submit', length: queue.length)
+              Utils.measure('librato.submit') {queue.submit}
+            end
+          rescue => e
+            Utils.count(1, 'outlet.metric-post-error')
+            log(fn: __method__, at: 'error', consumer: consumer_id,
+              error: e.inspect)
+            next
           end
         end
       end

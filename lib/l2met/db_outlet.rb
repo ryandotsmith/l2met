@@ -40,7 +40,9 @@ module L2met
               Utils.count(col.length, ns: "db-outlet", at: "flush")
               log(fn: __method__, at: "flush", last: col.length)
             end.each {|m| queue.add(m)}
+            librato_start = Time.now
             queue.submit if queue.length > 0
+            Utils.time(Time.now - librato_start, ns: 'db-outlet', fn: 'librato-submit')
           rescue => e
             log(at: "error", error: e.message)
             next

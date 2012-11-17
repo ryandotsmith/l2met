@@ -59,6 +59,7 @@ GEM
     rack-protection (1.2.0)
       rack
     rack-ssl-enforcer (0.2.4)
+    redis (3.0.2)
     ruby-openid (2.2.2)
     ruby-openid-apps-discovery (1.2.0)
       ruby-openid (>= 2.1.7)
@@ -86,6 +87,7 @@ DEPENDENCIES
   minitest
   mongrel (= 1.2.0.pre2)
   rack-ssl-enforcer
+  redis
   scrolls!
   sinatra
   sinatra-google-auth

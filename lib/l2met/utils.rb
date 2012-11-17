@@ -19,23 +19,24 @@ module L2met
     end
 
     def count(val, name)
+      name = Config.app_name + '.' + name
       Register.accept(name, val,
         type: "counter",
         source: Config.app_name,
         consumer: Config.l2met_consumer,
-        time: Time.now)
+        time: Time.now.to_i)
     end
 
     def time(elapsed, name)
+      name = Config.app_name + '.' + name
       Register.accept(name, Float(elapsed),
         type: "list",
         source: Config.app_name,
         consumer: Config.l2met_consumer,
-        time: Time.now)
+        time: Time.now.to_i)
     end
 
     def measure(name)
-      name = Config.app_name + name
       t0 = Time.now
       yield.tap do
         count(1, name)

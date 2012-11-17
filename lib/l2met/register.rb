@@ -1,10 +1,11 @@
 require 'securerandom'
 require 'atomic'
 require 'scrolls'
+require 'redis'
 
 require 'l2met/utils'
-require 'l2met/db'
 require 'l2met/stats'
+require 'l2met/config'
 
 module L2met
   module Register
@@ -58,18 +59,16 @@ module L2met
       mem.each do |bucket, ref|
         metrics = ref.swap({})
         metrics.each do |mkey, metric|
-          data = {mkey: mkey,
-            uuid: SecureRandom.uuid,
-            time: bucket,
+          data = {time: metric[:time],
             name: metric[:name],
             type: metric[:type],
             source: metric[:source],
             consumer: metric[:consumer],
             label: metric[:label]}
           if metric[:value].respond_to?(:sort)
-            DB.put(data.merge(Stats.all(metric[:value])))
+            set(mkey, bucket, data.merge(Stats.all(metric[:value])))
           else
-            DB.put(data.merge(value: metric[:value]))
+            set(mkey, bucket, data.merge(value: metric[:value]))
           end
         end
       end
@@ -88,6 +87,16 @@ module L2met
 
     def mem
       @mem ||= {}
+    end
+
+    def set(mkey, bucket, data)
+      i = [mkey, bucket, SecureRandom.uuid].join(':')
+      redis.mapped_hmset(i, data)
+      redis.expireat(i, bucket + (5*60))
+    end
+
+    def redis
+      @redis ||= Redis.new(url: Config.redis_url)
     end
 
     def log(data, &blk)

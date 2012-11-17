@@ -38,7 +38,7 @@ module L2met
     end
 
     not_found do
-      Utils.count(1, ns: "web", data: "not-found")
+      Utils.count(1, 'web.not-found')
       [404, Utils.enc_j(msg: "endpoint not found")]
     end
 
@@ -72,13 +72,13 @@ module L2met
     end
 
     post "/consumers/:cid/logs" do
-      Utils.count(1, ns: "web", at: "post")
+      Utils.count(1, 'web.post')
       Receiver.unpack(params[:cid], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end
 
     post "/beta/consumers/:cid/logs" do
-      Utils.count(1, ns: "beta-web", at: "post")
+      Utils.count(1, 'beta.post')
       Receiver.unpack(params[:cid], request.env["rack.input"].read, true)
       [201, Utils.enc_j(msg: "OK")]
     end

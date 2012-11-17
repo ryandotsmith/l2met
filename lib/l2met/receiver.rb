@@ -35,7 +35,7 @@ module L2met
       end
 
       if d.key?("measure") && d.key?("app")
-        Utils.count(1, ns: "receiver", at: "accept-measurement")
+        Utils.count(1, "receiver.accept-measurement")
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
         if d.key?("fn") && d.key?("elapsed")
           name = [d["app"], d["fn"]].compact.join(".")
@@ -55,7 +55,7 @@ module L2met
 
     def beta_store_data(d)
       if d.key?("measure")
-        Utils.count(1, ns: "receiver", at: "accept-measurement")
+        Utils.count(1, "receiver.accept-measurement")
         opts = {source: (d["app"] || 'default'), consumer: d["consumer"], time: d["time"]}
         name = d["measure"]
         Register.accept(name, 1, opts.merge(type: 'counter'))
@@ -68,7 +68,7 @@ module L2met
     def parse(line)
       if m = line.match(LineRe)
         if data = parse_msg(m[4])
-          data["time"] = Time.parse(m[1])
+          data["time"] = Time.parse(m[1]).to_i
           data["source"] = m[2]
           data["ps"] = m[3]
           data

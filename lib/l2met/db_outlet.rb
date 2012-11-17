@@ -1,10 +1,11 @@
 require 'librato/metrics'
 require 'scrolls'
+require 'redis'
 require 'locksmith/dynamodb'
 
+require 'l2met/db'
 require 'l2met/utils'
 require 'l2met/config'
-require 'l2met/db'
 require 'l2met/stats'
 
 module L2met
@@ -18,7 +19,8 @@ module L2met
         bucket = Utils.trunc_time(Time.now) - 120
         Thread.new do
           max.times.each do |p|
-            Locksmith::Dynamodb.lock("dboutlet.#{p}", ttl: 180) do
+            lock_name = "#{Config.app_name}.dboutlet.#{p}"
+            Locksmith::Dynamodb.lock(lock_name, ttl: 60) do
               snapshot(p, max, bucket)
             end
           end
@@ -29,61 +31,67 @@ module L2met
 
     def snapshot(partition, max, bucket)
       Utils.measure('outlet.snapshot') do
-        DB.active_stats(partition, max).each do |stat|
-          begin
-            sa = stat.attributes
-            consumer = DB["consumers"].at(sa["consumer"]).attributes.to_h
-            client = build_client(consumer["email"], consumer["token"])
-            queue =  Librato::Metrics::Queue.new(client: client)
-            flush(sa["mkey"].to_i, bucket).tap do |col|
-              Utils.count(col.length, ns: "db-outlet", at: "flush")
-              log(fn: __method__, at: "flush", last: col.length)
-            end.each {|m| queue.add(m)}
-            if queue.length > 0
-              Utils.measure('librato.submit') {queue.submit}
-            end
-          rescue => e
-            log(at: "error", error: e.message)
-            next
+        # mkey:bucket:uuid
+        Utils.measure('outlet.redis.key-scan') do
+          redis.keys("*:#{bucket}:*")
+        end.select do |key|
+          Integer(key.split(':')[0]) % max == partition
+        end.map do |key|
+          mkey = key.split(':')[0]
+          Utils.measure('outlet.redis.get') do
+            redis.hgetall(key).tap {redis.del(key)}.merge('mkey' => mkey)
+          end
+        end.group_by do |metric|
+          metric["consumer"]
+        end.each do |consumer_id, metrics|
+          consumer = DB["consumers"].at(consumer_id).attributes
+          client = build_client(consumer["email"], consumer["token"])
+          queue =  Librato::Metrics::Queue.new(client: client)
+          format_metrics(metrics).each {|m| queue.add(m)}
+          if queue.length > 0
+            log(at: 'librato.submit', length: queue.length)
+            Utils.measure('librato.submit') {queue.submit}
           end
         end
       end
     end
 
-    def flush(mkey, bucket)
-      log(fn: __method__, mkey: mkey, bucket: bucket, time: Time.at(bucket)) do
-        DB.flush("metrics", mkey, bucket).group_by do |metric|
-          metric["type"]
-        end.map do |type, metrics|
-          s = metrics.sample
-          opts = {source: s["source"],
-            type: "gauge",
-            attributes: {display_units_long: s["label"]},
-            measure_time: s["time"].to_i}
-          log(fn: __method__, at: "process-#{s["name"]}")
-          case type
-          when "counter"
-            val = metrics.map {|m| m["value"]}.reduce(:+).to_f
-            name = [s["name"], 'count'].join(".")
+    def format_metrics(metrics)
+      metrics.group_by do |metric|
+        metric['mkey']
+      end.map do |mkey, metrics|
+        s = metrics.sample
+        opts = {source: s["source"],
+          type: "gauge",
+          attributes: {display_units_long: s["label"]},
+          measure_time: s["time"].to_i}
+        log(fn: __method__, at: "process", metric: s["name"])
+        case s["type"]
+        when "counter"
+          val = metrics.map {|m| Float(m["value"])}.reduce(:+)
+          name = [s["name"], 'count'].join(".")
+          {name => opts.merge(value: val)}
+        when "last"
+          val = Float(metrics.last["value"])
+          name = [s["name"], 'last'].join(".")
+          {name => opts.merge(value: val)}
+        when "list"
+          Stats.aggregate(metrics).map do |stat, val|
+            name = [s["name"], stat].map(&:to_s).join(".")
             {name => opts.merge(value: val)}
-          when "last"
-            val = Float(metrics.last["value"])
-            name = [s["name"], 'last'].join(".")
-            {name => opts.merge(value: val)}
-          when "list"
-            Stats.aggregate(metrics).map do |stat, val|
-              name = [s["name"], stat].map(&:to_s).join(".")
-              {name => opts.merge(value: val)}
-            end
           end
-        end.flatten.compact
-      end
+        end
+      end.flatten.compact
     end
 
     def build_client(email, token)
       Librato::Metrics::Client.new.tap do |c|
         c.authenticate(email, token)
       end
+    end
+
+    def redis
+      @redis ||= Redis.new(url: Config.redis_url)
     end
 
     def log(data, &blk)

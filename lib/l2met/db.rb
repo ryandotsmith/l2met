@@ -34,11 +34,15 @@ module L2met
     end
 
     def active_stats(partition, max)
-      self["active-stats"].select.select do |item|
-        Integer(item.attributes["mkey"]) % max == partition
-      end.sort_by do |item|
-        item.attributes["time"].to_i
+      result = []
+      self["active-stats"].each_batch(table_name: 'active-stats') do |b|
+        result += b.select do |item|
+          Integer(item.attributes["mkey"]) % max == partition
+        end.sort_by do |item|
+          item.attributes["time"].to_i
+        end
       end
+      result
     end
 
     def [](table)

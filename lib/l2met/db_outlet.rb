@@ -31,7 +31,7 @@ module L2met
 
     def snapshot(partition, max, bucket)
       Utils.measure('outlet.snapshot') do
-        # mkey:bucket:uuid
+        # redis layout: mkey:bucket:uuid
         Utils.measure('outlet.redis.key-scan') do
           redis.keys("*:#{bucket}:*")
         end.select do |key|

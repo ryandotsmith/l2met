@@ -22,14 +22,12 @@ module L2met
     end
 
     def flush(tname, mkey, bucket)
-      Heartbeat.pulse("db-flush")
-      t0 = Time.now
-      self[tname].query(hash_value: mkey, :select => :all).select do |data|
-        data.attributes["time"].to_i == bucket
-      end.map do |data|
-        data.attributes.tap {data.item.delete}
-      end.tap do
-        Utils.time(Time.now - t0, ns: 'db', fn: __method__)
+      Utils.measure('db.flush') do
+        self[tname].query(hash_value: mkey, :select => :all).select do |data|
+          data.attributes["time"].to_i == bucket
+        end.map do |data|
+          data.attributes.tap {data.item.delete}
+        end
       end
     end
 

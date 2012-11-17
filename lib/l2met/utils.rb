@@ -18,8 +18,7 @@ module L2met
       Yajl::Encoder.encode(data)
     end
 
-    def count(val, data)
-      name = [Config.app_name, data[:ns], data[:at]].join(".")
+    def count(val, name)
       Register.accept(name, val,
         type: "counter",
         source: Config.app_name,
@@ -27,13 +26,21 @@ module L2met
         time: Time.now)
     end
 
-    def time(elapsed, data)
-      name = [Config.app_name, data[:ns], data[:fn]].join(".")
+    def time(elapsed, name)
       Register.accept(name, Float(elapsed),
         type: "list",
         source: Config.app_name,
         consumer: Config.l2met_consumer,
         time: Time.now)
+    end
+
+    def measure(name)
+      name = Config.app_name + name
+      t0 = Time.now
+      yield.tap do
+        count(1, name)
+        time(Time.now-t0, name)
+      end
     end
 
     def log(data, &blk)

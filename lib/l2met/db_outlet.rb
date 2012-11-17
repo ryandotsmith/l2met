@@ -28,8 +28,7 @@ module L2met
     end
 
     def snapshot(partition, max, bucket)
-      log(fn: __method__, bucket: bucket, time: Time.at(bucket), partition: partition) do
-        t0 = Time.now
+      Utils.measure('outlet.snapshot') do
         DB.active_stats(partition, max).each do |stat|
           begin
             sa = stat.attributes
@@ -40,15 +39,14 @@ module L2met
               Utils.count(col.length, ns: "db-outlet", at: "flush")
               log(fn: __method__, at: "flush", last: col.length)
             end.each {|m| queue.add(m)}
-            librato_start = Time.now
-            queue.submit if queue.length > 0
-            Utils.time(Time.now - librato_start, ns: 'db-outlet', fn: 'librato-submit')
+            if queue.length > 0
+              Utils.measure('librato.submit') {queue.submit}
+            end
           rescue => e
             log(at: "error", error: e.message)
             next
           end
         end
-        Utils.time(Time.now - t0, ns: "db-outlet", fn: __method__)
       end
     end
 

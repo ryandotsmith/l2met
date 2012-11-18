@@ -51,6 +51,7 @@ module L2met
             format_metrics(metrics).each {|m| queue.add(m)}
             if queue.length > 0
               log(at: 'librato.submit', length: queue.length)
+              Utils.count(queue.length, 'outlet.librato.metrics')
               Utils.measure('librato.submit') {queue.submit}
             end
           rescue => e

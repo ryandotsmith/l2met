@@ -38,9 +38,9 @@ Metrics Produced:
 measure="app.module.function"
 ```
 
-### Value Counter
+### Sample
 
-Value coutners are useful for building metrics around time based functions. For instance, the elapsed duration of a function call. Or you can measure the value of an in memory resource.
+Samples are useful for building metrics around time based functions. For instance, the elapsed duration of a function call. Or you can measure the value of an in memory resource.
 
 Metrics Produced:
 

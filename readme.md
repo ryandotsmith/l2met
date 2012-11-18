@@ -26,45 +26,52 @@ $ heroku sudo passes:add logplex-beta-program
 $ heroku drains:add https://drain.l2met.net/consumers/your-token/logs
 ```
 
-Follow the log data conventions.
+## Log Conventions
 
-## Usage
+### Counter
 
-### Log Data Conventions
+Metrics Produced:
 
-**Please read the [proposal](https://gist.github.com/3936604) for v2 log conventions.**
-
-L2met uses heuristics to create metrics from log data. Ensure that you have the following style of logs:
-
-#### Time Based Metrics
-
-Including the keys (measure, app, fn, elapsed) will produce:
-
-* counter
-* min/max
-* mean/median
-* perc95/perc99
+* app.module.function.count
 
 ```
-measure=true app=myapp fn="your-fn-name" elapsed=1.23
+measure="app.module.function"
 ```
 
-#### Counters
+### Value Counter
 
-Including the keys (measure, app, at) will count the number of occurences. For example:
+Value coutners are useful for building metrics around time based functions. For instance, the elapsed duration of a function call. Or you can measure the value of an in memory resource.
+
+Metrics Produced:
+
+* app.module.function.min
+* app.module.function.max
+* app.module.function.mean
+* app.module.function.median
+* app.module.function.perc95
+* app.module.function.perc99
+* app.module.function.last
+
+Protocol:
 
 ```
-measure=true app=myapp at="error"
+measure="app.module.function" val=42
 ```
 
-#### Last Value
-
-Including the keys (measure, app, at, last) will track the last value of a metric. For instance, tracking the length of a collection over time.
+Examples:
 
 ```
-measure=true app=myapp at="queue-backlog" last=99
+measure="core.apps.get" val=1.23 units=s
 ```
 
+In the previous example we have an app named **core** which has an HTTP GET endpoint named **apps** that took 1.23 seconds to execute. The *units* key/value is optional. Providing *units* will allow grouping by units on the chart UI.
+
+
+```
+measure="nile.r53-backlog" val=42 units=items
+```
+
+This example will provide us with metrics around the backlog of our Route53 queue.
 ## Arch
 
 High level:
@@ -78,16 +85,3 @@ Inside of l2met:
 ```
 l2met/web -> l2met/receiver -> l2met/register -> aws/dynamodb <- l2met/db-outlet -> librato/metrics
 ```
-
-## Credits
-
-Previos attempts at solving the problem:
-
-* [pulse](https://github.com/heroku/pulse)
-* [wcld](https://github.com/ryandotsmith/wcld)
-* [exprd](https://github.com/heroku/exprd)
-
-l2met is an ongoing quest for platform visibility inspired by:
-
-* [mmcgrana](https://github.com/mmcgrana)
-* [mfine](https://github.com/mfine)

@@ -83,5 +83,5 @@ heroku app -> http log drains -> l2met -> librato
 Inside of l2met:
 
 ```
-l2met/web -> l2met/receiver -> l2met/register -> aws/dynamodb <- l2met/db-outlet -> librato/metrics
+l2met/web -> l2met/receiver -> l2met/register -> redis <- l2met/db-outlet -> librato/metrics
 ```

@@ -52,7 +52,7 @@ module L2met
             if queue.length > 0
               log(at: 'librato.submit', length: queue.length)
               Utils.count(queue.length, 'outlet.librato.metrics')
-              Utils.measure('librato.submit') {queue.submit}
+              Utils.measure('outlet.librato.submit') {queue.submit}
             end
           rescue => e
             Utils.count(1, 'outlet.metric-post-error')

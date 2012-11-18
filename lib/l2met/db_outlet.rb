@@ -16,7 +16,7 @@ module L2met
     def start
       max = Config.num_dboutlets
       loop do
-        bucket = Utils.trunc_time(Time.now) - 60
+        bucket = Utils.trunc_time(Time.now) - 120
         Thread.new do
           max.times.each do |p|
             lock_name = "#{Config.app_name}.dboutlet.#{p}"

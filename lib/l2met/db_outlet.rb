@@ -47,7 +47,7 @@ module L2met
           begin
             consumer = DB["consumers"].at(consumer_id).attributes
             client = build_client(consumer["email"], consumer["token"])
-            queue =  Librato::Metrics::Queue.new(client: client)
+            queue = Librato::Metrics::Queue.new(client: client)
             format_metrics(metrics).each {|m| queue.add(m)}
             if queue.length > 0
               log(at: 'librato.submit', length: queue.length)

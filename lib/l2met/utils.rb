@@ -20,6 +20,7 @@ module L2met
 
     def count(val, name)
       name = Config.app_name + '.' + name
+      log(measure: name, val: val)
       Register.accept(name, val,
         type: "counter",
         source: Config.app_name,
@@ -29,6 +30,7 @@ module L2met
 
     def time(elapsed, name)
       name = Config.app_name + '.' + name
+      log(measure: name, val: elapsed)
       Register.accept(name, Float(elapsed),
         type: "list",
         source: Config.app_name,

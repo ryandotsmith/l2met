@@ -48,7 +48,6 @@ module L2met
             q = Librato::Metrics::Queue.new(client: librato_client(consumer_id))
             aggregate(metrics).each {|m| q.add(m)}
             if q.length > 0
-              log(at: 'librato.submit', length: q.length)
               Utils.count(q.length, 'outlet.librato.metrics')
               Utils.measure('outlet.librato.submit') {q.submit}
             end

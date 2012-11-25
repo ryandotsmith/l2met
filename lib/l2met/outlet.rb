@@ -9,7 +9,7 @@ require 'l2met/config'
 require 'l2met/stats'
 
 module L2met
-  module DBOutlet
+  module Outlet
     extend self
     INTERVAL = 10
 
@@ -19,7 +19,7 @@ module L2met
         bucket = Utils.trunc_time(Time.now) - 120
         Thread.new do
           max.times.each do |p|
-            lock_name = "#{Config.app_name}.dboutlet.#{p}"
+            lock_name = "#{Config.app_name}.outlet.#{p}"
             Locksmith::Dynamodb.lock(lock_name, ttl: 60) do
               snapshot(p, max, bucket)
             end
@@ -101,7 +101,7 @@ module L2met
     end
 
     def log(data, &blk)
-      Scrolls.log({ns: "dboutlet"}.merge(data), &blk)
+      Scrolls.log({ns: "outlet"}.merge(data), &blk)
     end
 
   end

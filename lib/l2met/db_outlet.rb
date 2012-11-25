@@ -45,14 +45,12 @@ module L2met
           metric["consumer"]
         end.each do |consumer_id, metrics|
           begin
-            consumer = DB["consumers"].at(consumer_id).attributes
-            client = build_client(consumer["email"], consumer["token"])
-            queue = Librato::Metrics::Queue.new(client: client)
-            format_metrics(metrics).each {|m| queue.add(m)}
-            if queue.length > 0
-              log(at: 'librato.submit', length: queue.length)
-              Utils.count(queue.length, 'outlet.librato.metrics')
-              Utils.measure('outlet.librato.submit') {queue.submit}
+            q = Librato::Metrics::Queue.new(client: librato_client(consumer_id))
+            aggregate(metrics).each {|m| q.add(m)}
+            if q.length > 0
+              log(at: 'librato.submit', length: q.length)
+              Utils.count(q.length, 'outlet.librato.metrics')
+              Utils.measure('outlet.librato.submit') {q.submit}
             end
           rescue => e
             Utils.count(1, 'outlet.metric-post-error')
@@ -64,7 +62,7 @@ module L2met
       end
     end
 
-    def format_metrics(metrics)
+    def aggregate(metrics)
       metrics.group_by do |metric|
         metric['mkey']
       end.map do |mkey, metrics|
@@ -92,9 +90,10 @@ module L2met
       end.flatten.compact
     end
 
-    def build_client(email, token)
+    def librato_client(consumer_id)
+      consumer = DB["consumers"].at(consumer_id).attributes
       Librato::Metrics::Client.new.tap do |c|
-        c.authenticate(email, token)
+        c.authenticate(consumer["email"], consumer["token"])
       end
     end
 

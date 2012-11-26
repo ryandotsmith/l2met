@@ -11,7 +11,7 @@ require 'l2met/stats'
 module L2met
   module Outlet
     extend self
-    INTERVAL = 10
+    INTERVAL = 20
     DELAY = 60
 
     def start

@@ -93,7 +93,7 @@ module L2met
     def set(mkey, bucket, data)
       i = [mkey, bucket, SecureRandom.uuid].join(':')
       redis.mapped_hmset(i, data)
-      redis.expireat(i, bucket + (5*60))
+      redis.expireat(i, bucket + (3*60))
     end
 
     def redis

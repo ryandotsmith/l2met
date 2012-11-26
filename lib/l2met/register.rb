@@ -41,6 +41,7 @@ module L2met
           h
         end
       elsif !meta.key?(:halt)
+        # Use l2met to measure l2met.
         name = [Config.app_name, "register.drop"].join(".")
         accept(name, 1,
           halt: true,

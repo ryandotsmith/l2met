@@ -17,10 +17,11 @@ module L2met
     def start
       loop do
         Thread.new do
-          Config.num_dboutlets.times.each do |p|
+          Config.num_outlets.times.each do |p|
             lock_name = "#{Config.app_name}.outlet.#{p}"
+            bucket = Utils.trunc_time(Time.now - DELAY)
             Locksmith::Dynamodb.lock(lock_name, ttl: 60) do
-              snapshot(p, Config.num_dboutlets, Utils.trunc_time(Time.now - DELAY))
+              snapshot(p, Config.num_outlets, bucket)
             end
           end
         end

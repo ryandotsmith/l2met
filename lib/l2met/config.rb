@@ -20,7 +20,7 @@ module L2met
     def l2met_consumer; env!("L2MET_CONSUMER"); end
     def aws_id; env!("AWS_ID"); end
     def aws_secret; env!("AWS_SECRET"); end
-    def num_dboutlets; env!("NUM_DBOUTLETS").to_i; end
+    def num_outlets; env!("NUM_OUTLETS").to_i; end
     def redis_url; env!("REDISGREEN_URL"); end
   end
 end

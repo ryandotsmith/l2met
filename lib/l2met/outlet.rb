@@ -20,7 +20,7 @@ module L2met
           Config.num_dboutlets.times.each do |p|
             lock_name = "#{Config.app_name}.outlet.#{p}"
             Locksmith::Dynamodb.lock(lock_name, ttl: 60) do
-              snapshot(p, max, Utils.trunc_time(Time.now - DELAY))
+              snapshot(p, Config.num_dboutlets, Utils.trunc_time(Time.now - DELAY))
             end
           end
         end

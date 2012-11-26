@@ -70,7 +70,7 @@ module L2met
           type: "gauge",
           attributes: {display_units_long: s["label"]},
           measure_time: bucket}
-        log(fn: __method__, at: "process", metric: s["name"], bucket: bucket)
+        log(fn: __method__, at: "process", bucket: Time.at(bucket).min, metric: s["name"])
         case s["type"]
         when "counter"
           val = metrics.map {|m| Float(m["value"])}.reduce(:+)

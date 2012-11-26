@@ -12,16 +12,15 @@ module L2met
   module Outlet
     extend self
     INTERVAL = 10
+    DELAY = 60
 
     def start
-      max = Config.num_dboutlets
       loop do
-        bucket = Utils.trunc_time(Time.now) - 120
         Thread.new do
-          max.times.each do |p|
+          Config.num_dboutlets.times.each do |p|
             lock_name = "#{Config.app_name}.outlet.#{p}"
             Locksmith::Dynamodb.lock(lock_name, ttl: 60) do
-              snapshot(p, max, bucket)
+              snapshot(p, max, Utils.trunc_time(Time.now - DELAY))
             end
           end
         end
@@ -39,14 +38,14 @@ module L2met
         end.map do |key|
           mkey = key.split(':')[0]
           Utils.measure('outlet.redis.get') do
-            redis.hgetall(key).tap {redis.del(key)}.merge('mkey' => mkey)
+            redis.hgetall(key).merge('mkey' => mkey)
           end
         end.group_by do |metric|
           metric["consumer"]
         end.each do |consumer_id, metrics|
           begin
             q = Librato::Metrics::Queue.new(client: librato_client(consumer_id))
-            aggregate(metrics).each {|m| q.add(m)}
+            aggregate(bucket, metrics).each {|m| q.add(m)}
             if q.length > 0
               Utils.count(q.length, 'outlet.librato.metrics')
               Utils.measure('outlet.librato.submit') {q.submit}
@@ -61,7 +60,7 @@ module L2met
       end
     end
 
-    def aggregate(metrics)
+    def aggregate(bucket, metrics)
       metrics.group_by do |metric|
         metric['mkey']
       end.map do |mkey, metrics|
@@ -69,8 +68,8 @@ module L2met
         opts = {source: s["source"],
           type: "gauge",
           attributes: {display_units_long: s["label"]},
-          measure_time: s["time"].to_i}
-        log(fn: __method__, at: "process", metric: s["name"])
+          measure_time: bucket}
+        log(fn: __method__, at: "process", metric: s["name"], bucket: bucket)
         case s["type"]
         when "counter"
           val = metrics.map {|m| Float(m["value"])}.reduce(:+)

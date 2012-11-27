@@ -1,47 +1,15 @@
 require 'thread'
 require 'aws/dynamo_db'
 require 'scrolls'
+
 require 'l2met/config'
 require 'l2met/heartbeat'
 
 module L2met
   module DB
     extend self
-    @put_lock = Mutex.new
     @dynamo_lock = Mutex.new
     @table_lock = Mutex.new
-
-    def put(data)
-      @put_lock.synchronize do
-        Heartbeat.pulse("db-put")
-        self["metrics"].put(data)
-        self["active-stats"].put(mkey: data[:mkey],
-          consumer: data[:consumer],
-          time: Time.now.to_i)
-      end
-    end
-
-    def flush(tname, mkey, bucket)
-      Utils.measure('db.flush') do
-        self[tname].query(hash_value: mkey, :select => :all).select do |data|
-          data.attributes["time"].to_i == bucket
-        end.map do |data|
-          data.attributes.tap {data.item.delete}
-        end
-      end
-    end
-
-    def active_stats(partition, max)
-      result = []
-      self["active-stats"].each_batch(table_name: 'active-stats') do |b|
-        result += b.select do |item|
-          Integer(item.attributes["mkey"]) % max == partition
-        end.sort_by do |item|
-          item.attributes["time"].to_i
-        end
-      end
-      result
-    end
 
     def [](table)
       @table_lock.synchronize do

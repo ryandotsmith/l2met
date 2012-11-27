@@ -54,37 +54,14 @@ a {
 
 #right {
     float: left;
+    margin-top: 20px;
     margin-left:10px;
-    width: 600px;
+    width: auto;
 }
 
-#new-consumer {
-    color: limegreen;
-}
-
-#consumer-list {
-    margin:5px 0 10px 23px;
-    padding:0;
-}
-
-#consumer-list li {
-    margin:3px 0 3px 0;
-    list-style:circle;
-}
-
-#consumer-list li:hover {
-    cursor: pointer;
-}
-
-#consumer-list-spin {
-    margin: 0 0 0 25px;
-}
-
-#session span {
-    position: absolute;
-    top: 0;
-    right: 0;
-    color: lightBlue;
-    font-size: 0.6em;
-    font-family: monospace;
+.chart-item {
+  border: 1px dotted rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
+  margin-left: 20px;
+  float: left;
 }

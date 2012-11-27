@@ -35,6 +35,7 @@ module L2met
         type: "list",
         source: Config.app_name,
         consumer: Config.l2met_consumer,
+        charting: true,
         time: Time.now.to_i)
     end
 

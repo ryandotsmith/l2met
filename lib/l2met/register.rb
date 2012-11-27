@@ -65,6 +65,7 @@ module L2met
             type: metric[:type],
             source: metric[:source],
             consumer: metric[:consumer],
+            charting: metric[:charting],
             label: metric[:label]}
           if metric[:value].respond_to?(:sort)
             set(mkey, bucket, data.merge(Stats.all(metric[:value])))

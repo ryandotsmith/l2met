@@ -1,4 +1,3 @@
-require 'librato/metrics'
 require 'scrolls'
 require 'redis'
 require 'locksmith/dynamodb'
@@ -7,6 +6,9 @@ require 'l2met/db'
 require 'l2met/utils'
 require 'l2met/config'
 require 'l2met/stats'
+require 'l2met/outlets/librato'
+require 'l2met/outlets/dynamodb'
+require 'l2met/outlets/postgres'
 
 module L2met
   module Outlet
@@ -40,12 +42,10 @@ module L2met
           metric["consumer"]
         end.each do |consumer_id, metrics|
           begin
-            q = Librato::Metrics::Queue.new(client: librato_client(consumer_id))
-            aggregate(bucket, metrics).each {|m| q.add(m)}
-            if q.length > 0
-              Utils.count(q.length, 'outlet.librato.metrics')
-              Utils.measure('outlet.librato.submit') {q.submit}
-            end
+            metrics = metrics.group_by {|m| m['mkey']}
+            Postgres.publish(bucket, metrics)
+            Dynamodb.publish(bucket, metrics)
+            Librato.publish(consumer_id, bucket, metrics)
           rescue => e
             Utils.count(1, 'outlet.metric-post-error')
             log(fn: __method__, at: 'error', consumer: consumer_id,
@@ -53,41 +53,6 @@ module L2met
             next
           end
         end
-      end
-    end
-
-    def aggregate(bucket, metrics)
-      metrics.group_by do |metric|
-        metric['mkey']
-      end.map do |mkey, metrics|
-        s = metrics.sample
-        opts = {source: s["source"],
-          type: "gauge",
-          attributes: {display_units_long: s["label"]},
-          measure_time: bucket}
-        log(fn: __method__, at: "process", bucket: Time.at(bucket).min, metric: s["name"])
-        case s["type"]
-        when "counter"
-          val = metrics.map {|m| Float(m["value"])}.reduce(:+)
-          name = [s["name"], 'count'].join(".")
-          {name => opts.merge(value: val)}
-        when "last"
-          val = Float(metrics.last["value"])
-          name = [s["name"], 'last'].join(".")
-          {name => opts.merge(value: val)}
-        when "list"
-          Stats.aggregate(metrics).map do |stat, val|
-            name = [s["name"], stat].map(&:to_s).join(".")
-            {name => opts.merge(value: val)}
-          end
-        end
-      end.flatten.compact
-    end
-
-    def librato_client(consumer_id)
-      consumer = DB["consumers"].at(consumer_id).attributes
-      Librato::Metrics::Client.new.tap do |c|
-        c.authenticate(consumer["email"], consumer["token"])
       end
     end
 

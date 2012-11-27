@@ -52,6 +52,7 @@ GEM
     omniauth-openid (1.0.1)
       omniauth (~> 1.0)
       rack-openid (~> 1.3.1)
+    pg (0.14.1)
     rack (1.4.1)
     rack-openid (1.3.1)
       rack (>= 1.1.0)
@@ -63,10 +64,12 @@ GEM
     ruby-openid (2.2.2)
     ruby-openid-apps-discovery (1.2.0)
       ruby-openid (>= 2.1.7)
+    sequel (3.41.0)
     sinatra (1.3.3)
       rack (~> 1.3, >= 1.3.6)
       rack-protection (~> 1.2)
       tilt (~> 1.3, >= 1.3.3)
+    sinatra-cross_origin (0.2.0)
     sinatra-google-auth (1.0.0)
       oa-openid
       omniauth-google-apps
@@ -86,10 +89,13 @@ DEPENDENCIES
   lock-smith (= 0.0.8)
   minitest
   mongrel (= 1.2.0.pre2)
+  pg
   rack-ssl-enforcer
   redis
   scrolls!
+  sequel
   sinatra
+  sinatra-cross_origin
   sinatra-google-auth
   turn
   yajl-ruby

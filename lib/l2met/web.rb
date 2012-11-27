@@ -1,18 +1,21 @@
 require 'sinatra/base'
 require 'sinatra/google-auth'
+require 'sinatra/cross_origin'
 require 'rack/handler/mongrel'
 require 'rack/ssl-enforcer'
 require 'scrolls'
 require 'l2met/config'
 require 'l2met/db'
 require 'l2met/parser'
+require 'l2met/outlets/postgres'
 require 'l2met/utils'
 require 'l2met/consumer'
 
 module L2met
   class Web < Sinatra::Base
-    use Rack::SslEnforcer
+    #use Rack::SslEnforcer
     register Sinatra::GoogleAuth
+    register Sinatra::CrossOrigin
     set :public_folder, "./public"
     set :views, "./templates"
 
@@ -81,6 +84,18 @@ module L2met
       Utils.count(1, 'beta.post')
       Parser.unpack(params[:cid], request.env["rack.input"].read, true)
       [201, Utils.enc_j(msg: "OK")]
+    end
+
+    get "/dashboard" do
+      content_type(:html)
+      erb(:dashboard)
+    end
+
+    get "/metrics" do
+      cross_origin
+      res = Outlet::Postgres.get(params[:name],
+        Time.parse(params[:from]), Time.parse(params[:to]), params[:resolution], params[:limit])
+      [200, Utils.enc_j(res)]
     end
 
     def self.start

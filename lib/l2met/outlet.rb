@@ -11,21 +11,16 @@ require 'l2met/stats'
 module L2met
   module Outlet
     extend self
-    INTERVAL = 20
     DELAY = 60
 
     def start
       loop do
-        Thread.new do
-          Config.num_outlets.times.each do |p|
-            lock_name = "#{Config.app_name}.outlet.#{p}"
+        Config.num_outlets.times.each do |p|
+          locker.lock("#{Config.app_name}.outlet.#{p}", ttl: 60) do
             bucket = Utils.trunc_time(Time.now) - DELAY
-            Locksmith::Dynamodb.lock(lock_name, ttl: 60) do
-              snapshot(p, Config.num_outlets, bucket)
-            end
+            snapshot(p, Config.num_outlets, bucket)
           end
         end
-        sleep(INTERVAL)
       end
     end
 
@@ -98,6 +93,10 @@ module L2met
 
     def redis
       @redis ||= Redis.new(url: Config.redis_url)
+    end
+
+    def locker
+      @locker ||= Locksmith::Dynamodb
     end
 
     def log(data, &blk)

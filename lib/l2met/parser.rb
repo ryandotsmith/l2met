@@ -4,7 +4,7 @@ require 'l2met/config'
 require 'l2met/register'
 
 module L2met
-  module Receiver
+  module Parser
     extend self
 
     LineRe = /^\d+ \<\d+\>1 (\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00) [a-z0-9-]+ ([a-z0-9\-\_\.]+) ([a-z0-9\-\_\.]+) \- (.*)$/
@@ -35,7 +35,7 @@ module L2met
       end
 
       if d.key?("measure") && d.key?("app")
-        Utils.count(1, "receiver.accept-measurement")
+        Utils.count(1, "parser.accept-measurement")
         opts = {source: d["app"], consumer: d["consumer"], time: d["time"]}
         if d.key?("fn") && d.key?("elapsed")
           name = [d["app"], d["fn"]].compact.join(".").gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
@@ -55,8 +55,13 @@ module L2met
 
     def beta_store_data(d)
       if d.key?("measure")
+<<<<<<< HEAD:lib/l2met/receiver.rb
         Utils.count(1, "receiver.accept-measurement")
         opts = {source: (d['source'] || 'default'), consumer: d["consumer"], time: d["time"]}
+=======
+        Utils.count(1, "parser.accept-measurement")
+        opts = {source: (d["app"] || 'default'), consumer: d["consumer"], time: d["time"]}
+>>>>>>> c585a5b... rename receiver to parser since the parser will parse:lib/l2met/parser.rb
         name = d["measure"].gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
         Register.accept(name, 1, opts.merge(type: 'counter'))
         if d.key?("val")
@@ -91,7 +96,7 @@ module L2met
     end
 
     def log(data, &blk)
-      Scrolls.log({ns: "receiver"}.merge(data), &blk)
+      Scrolls.log({ns: "parser"}.merge(data), &blk)
     end
 
   end

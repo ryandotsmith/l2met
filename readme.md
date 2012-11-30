@@ -72,16 +72,17 @@ measure="nile.r53-backlog" val=42 units=items
 ```
 
 This example will provide us with metrics around the backlog of our Route53 queue.
+
 ## Arch
 
 High level:
 
 ```
-heroku app -> http log drains -> l2met -> librato
+heroku app -> http log drains -> l2met -> (librato | l2met-charting)
 ```
 
 Inside of l2met:
 
 ```
-l2met/web -> l2met/receiver -> l2met/register -> redis <- l2met/db-outlet -> librato/metrics
+l2met/web -> l2met/parser-> l2met/register -> redis <- l2met/outlet -> (librato/metrics | l2met-charting)
 ```

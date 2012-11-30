@@ -5,7 +5,7 @@ require 'rack/ssl-enforcer'
 require 'scrolls'
 require 'l2met/config'
 require 'l2met/db'
-require 'l2met/receiver'
+require 'l2met/parser'
 require 'l2met/utils'
 require 'l2met/consumer'
 
@@ -73,13 +73,13 @@ module L2met
 
     post "/consumers/:cid/logs" do
       Utils.count(1, 'web.post')
-      Receiver.unpack(params[:cid], request.env["rack.input"].read)
+      Parser.unpack(params[:cid], request.env["rack.input"].read)
       [201, Utils.enc_j(msg: "OK")]
     end
 
     post "/beta/consumers/:cid/logs" do
       Utils.count(1, 'beta.post')
-      Receiver.unpack(params[:cid], request.env["rack.input"].read, true)
+      Parser.unpack(params[:cid], request.env["rack.input"].read, true)
       [201, Utils.enc_j(msg: "OK")]
     end
 

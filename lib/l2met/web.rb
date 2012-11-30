@@ -8,6 +8,7 @@ require 'l2met/config'
 require 'l2met/db'
 require 'l2met/parser'
 require 'l2met/outlets/postgres'
+require 'l2met/parser'
 require 'l2met/utils'
 require 'l2met/consumer'
 

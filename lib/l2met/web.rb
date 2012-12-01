@@ -87,11 +87,6 @@ module L2met
       [201, Utils.enc_j(msg: "OK")]
     end
 
-    get "/dashboard" do
-      content_type(:html)
-      erb(:dashboard)
-    end
-
     get "/metrics" do
       cross_origin
       res = Outlet::Postgres.get(params[:name],

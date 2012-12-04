@@ -69,7 +69,6 @@ module L2met
       if m = line.match(LineRe)
         if data = parse_msg(m[4])
           data["time"] = Time.parse(m[1]).to_i
-          data["source"] = m[2]
           data["ps"] = m[3]
           data
         end

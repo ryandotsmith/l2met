@@ -56,7 +56,7 @@ module L2met
     def beta_store_data(d)
       if d.key?("measure")
         Utils.count(1, "receiver.accept-measurement")
-        opts = {source: (d["app"] || 'default'), consumer: d["consumer"], time: d["time"]}
+        opts = {source: (d['source'] || 'default'), consumer: d["consumer"], time: d["time"]}
         name = d["measure"].gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
         Register.accept(name, 1, opts.merge(type: 'counter'))
         if d.key?("val")

@@ -55,13 +55,8 @@ module L2met
 
     def beta_store_data(d)
       if d.key?("measure")
-<<<<<<< HEAD:lib/l2met/receiver.rb
-        Utils.count(1, "receiver.accept-measurement")
-        opts = {source: (d['source'] || 'default'), consumer: d["consumer"], time: d["time"]}
-=======
         Utils.count(1, "parser.accept-measurement")
-        opts = {source: (d["app"] || 'default'), consumer: d["consumer"], time: d["time"]}
->>>>>>> c585a5b... rename receiver to parser since the parser will parse:lib/l2met/parser.rb
+        opts = {source: (d['source'] || 'default'), consumer: d["consumer"], time: d["time"]}
         name = d["measure"].gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
         Register.accept(name, 1, opts.merge(type: 'counter'))
         if d.key?("val")

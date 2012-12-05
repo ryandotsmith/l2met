@@ -7,7 +7,6 @@ require 'l2met/utils'
 require 'l2met/config'
 require 'l2met/stats'
 require 'l2met/outlets/librato'
-require 'l2met/outlets/dynamodb'
 require 'l2met/outlets/postgres'
 
 module L2met
@@ -44,7 +43,6 @@ module L2met
           begin
             metrics = metrics.group_by {|m| m['mkey']}
             Postgres.publish(bucket, metrics)
-            Dynamodb.publish(bucket, metrics)
             Librato.publish(consumer_id, bucket, metrics)
           rescue => e
             Utils.count(1, 'outlet.metric-post-error')

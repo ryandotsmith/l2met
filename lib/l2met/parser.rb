@@ -9,7 +9,6 @@ module L2met
 
     LineRe = /^\d+ \<\d+\>1 (\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00) [a-z0-9-]+ ([a-z0-9\-\_\.]+) ([a-z0-9\-\_\.]+) \- (.*)$/
     IgnoreMsgRe = /(^ *$)|(Processing|Parameters|Completed|\[Worker\(host)/
-    TimeSubRe = / \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d-\d\d:\d\d/
     AttrsRe = /( *)([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|("([^\"]+)"))?/
 
     def unpack(cid, s, beta=false)
@@ -78,7 +77,6 @@ module L2met
     def parse_msg(msg)
       if !msg.match(IgnoreMsgRe)
         data = {}
-        #msg = msg.sub(TimeSubRe, "")
         msg.scan(AttrsRe) do |_, key, _, val1, _, val2|
           if (((key == "service") || (key == "wait")) && val1)
             data[key] = val1.sub("ms", "")

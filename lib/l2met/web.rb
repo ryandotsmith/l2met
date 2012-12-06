@@ -1,7 +1,7 @@
 require 'sinatra/base'
 require 'sinatra/google-auth'
-require 'sinatra/cross_origin'
 require 'rack/handler/mongrel'
+require 'rack/cors'
 require 'rack/ssl-enforcer'
 require 'scrolls'
 require 'l2met/config'
@@ -14,9 +14,12 @@ require 'l2met/consumer'
 
 module L2met
   class Web < Sinatra::Base
+    use Rack::Cors do
+      origins('localhost:8000', 's3.amazonaws.com')
+      resource('/metrics', :headers => :any, :methods => :get)
+    end
     use Rack::SslEnforcer
     register Sinatra::GoogleAuth
-    register Sinatra::CrossOrigin
     set :public_folder, "./public"
     set :views, "./templates"
 
@@ -88,7 +91,6 @@ module L2met
     end
 
     get "/metrics" do
-      cross_origin
       res = Outlet::Postgres.get(params[:name],
         Time.parse(params[:from]), Time.parse(params[:to]), params[:resolution], params[:limit])
       [200, Utils.enc_j(res)]

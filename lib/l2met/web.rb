@@ -15,8 +15,10 @@ require 'l2met/consumer'
 module L2met
   class Web < Sinatra::Base
     use Rack::Cors do
-      origins('localhost:8000', 's3.amazonaws.com')
-      resource('/metrics', :headers => :any, :methods => :get)
+      allow do
+        origins('localhost:8000', 's3.amazonaws.com')
+        resource('/metrics', :headers => :any, :methods => :get)
+      end
     end
     use Rack::SslEnforcer
     register Sinatra::GoogleAuth

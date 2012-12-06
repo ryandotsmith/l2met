@@ -38,7 +38,7 @@ module L2met
       private
 
       def query(name, from, to, resolution)
-        valid_resolutions = %w( minute hour day week month)
+        valid_resolutions = %w(minute hour day week month)
         if !valid_resolutions.include?(resolution)
           raise(ArgumentError, "Resolution must be one of: #{valid_resolutions.join(', ')}.")
         end

@@ -31,7 +31,9 @@ module L2met
           name = measurements.sample['name']
           log(fn: __method__, bucket: Time.at(bucket).min, metric: name)
           s = Stats.aggregate(measurements).merge(count: measurements.length)
-          metrics_table.insert(s.merge(bucket: Time.at(bucket).utc, name: name))
+          Utils.measure('postgres.insert') do
+            metrics_table.insert(s.merge(bucket: Time.at(bucket).utc, name: name))
+          end
         end
       end
 

@@ -42,7 +42,7 @@ module L2met
         end.each do |consumer_id, metrics|
           begin
             metrics = metrics.group_by {|m| m['mkey']}
-            Postgres.publish(bucket, metrics)
+            Postgres.publish(bucket, metrics) if Config.enable_pg?
             Librato.publish(consumer_id, bucket, metrics)
           rescue => e
             Utils.count(1, 'outlet.metric-post-error')

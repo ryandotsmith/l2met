@@ -24,5 +24,6 @@ module L2met
     def redis_url; env!("REDISGREEN_URL"); end
     def database_url; env("DATABASE_URL"); end
     def read_database_url; database_url; end
+    def enable_pg?; env("ENABLE_PG") || false; end
   end
 end

@@ -16,7 +16,7 @@ module L2met
   class Web < Sinatra::Base
     use Rack::Cors do
       allow do
-        origins('localhost:8000', 's3.amazonaws.com')
+        origins('*')
         resource('/metrics', :headers => :any, :methods => :get)
       end
     end

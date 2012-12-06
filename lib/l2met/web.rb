@@ -14,7 +14,7 @@ require 'l2met/consumer'
 
 module L2met
   class Web < Sinatra::Base
-    #use Rack::SslEnforcer
+    use Rack::SslEnforcer
     register Sinatra::GoogleAuth
     register Sinatra::CrossOrigin
     set :public_folder, "./public"

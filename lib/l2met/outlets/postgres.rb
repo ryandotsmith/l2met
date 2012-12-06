@@ -7,9 +7,9 @@ module L2met
     module Postgres
       extend self
 
-      def get(name, from, to, resolution, limit)
+      def get(name, from, to, resolution)
         result = {}
-        query(name, from, to, (resolution || 'minute'), limit).each do |metric|
+        query(name, from, to, (resolution || 'minute')).each do |metric|
           n, t = metric.delete(:name), metric.delete(:bucket)
           metric.each do |stat, val|
             result[[n, stat].join('.')] ||= []
@@ -37,7 +37,7 @@ module L2met
 
       private
 
-      def query(name, from, to, resolution, limit)
+      def query(name, from, to, resolution)
         valid_resolutions = %w( minute hour day week month)
         if !valid_resolutions.include?(resolution)
           raise(ArgumentError, "Resolution must be one of: #{valid_resolutions.join(', ')}.")
@@ -56,7 +56,6 @@ module L2met
             bucket < '#{Time.at(Utils.trunc_time(to.utc))}'::timestamptz
           group by name, date_trunc('#{resolution}', bucket)
           order by date_trunc('#{resolution}', bucket) asc
-          limit #{limit}
         EOD
       end
 

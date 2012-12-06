@@ -94,7 +94,7 @@ module L2met
 
     get "/metrics" do
       res = Outlet::Postgres.get(params[:name],
-        Time.parse(params[:from]), Time.parse(params[:to]), params[:resolution], params[:limit])
+        Time.parse(params[:from]), Time.parse(params[:to]), params[:resolution])
       [200, Utils.enc_j(res)]
     end
 

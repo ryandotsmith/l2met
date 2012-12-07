@@ -23,8 +23,6 @@ module L2met
 
       def publish(bucket, metrics)
         metrics.each do |mkey, measurements|
-          # Set the charting flag on all metrics to use this service.
-          next unless measurements.all? {|m| m.key?('charting')}
           # Only support lists for now.
           # We can get the counter from the list length.
           next if measurements.any? {|m| m['type'] == 'counter'}

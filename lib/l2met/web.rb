@@ -37,7 +37,7 @@ module L2met
     end
 
     after do
-      Utils.time(Time.now - @start_request, Utils.trim(@instrument_action))
+      Utils.time(Time.now - @start_request, 'web.request')
     end
 
     error do

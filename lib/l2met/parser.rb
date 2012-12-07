@@ -54,12 +54,13 @@ module L2met
 
     def beta_store_data(d)
       if d.key?("measure")
-        Utils.count(1, "parser.accept-measurement")
-        opts = {source: (d['source'] || 'default'), consumer: d["consumer"], time: d["time"]}
-        name = d["measure"].gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
-        Register.accept(name, 1, opts.merge(type: 'counter'))
-        if d.key?("val")
-          Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))
+        Utils.measure('parser.accept-measurement') do
+          opts = {source: (d['source'] || 'default'), consumer: d["consumer"], time: d["time"]}
+          name = d["measure"].gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
+          Register.accept(name, 1, opts.merge(type: 'counter'))
+          if d.key?("val")
+            Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))
+          end
         end
       end
     end

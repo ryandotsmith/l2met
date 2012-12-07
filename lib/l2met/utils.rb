@@ -47,6 +47,15 @@ module L2met
       end
     end
 
+    def trim(s)
+      res = s.to_s.
+        gsub("/","-").
+        gsub(/[^A-Za-z0-9.:\-_]/, '').
+        gsub(/^-/,'').
+        downcase
+      res.empty? ? "root" : res
+    end
+
     def log(data, &blk)
       Scrolls.log({ns: "utils"}.merge(data), &blk)
     end

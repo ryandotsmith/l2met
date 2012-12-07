@@ -37,7 +37,7 @@ module L2met
     end
 
     after do
-      Heartbeat.pulse(@instrument_action)
+      Utils.time(Time.now - @start_request, Utils.trim(@instrument_action))
     end
 
     error do

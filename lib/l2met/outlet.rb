@@ -7,7 +7,7 @@ require 'l2met/utils'
 require 'l2met/config'
 require 'l2met/stats'
 require 'l2met/outlets/librato'
-require 'l2met/outlets/postgres'
+require 'l2met/outlets/m2pg'
 
 module L2met
   module Outlet
@@ -42,8 +42,8 @@ module L2met
         end.each do |consumer_id, metrics|
           begin
             metrics = metrics.group_by {|m| m['mkey']}
-            Postgres.publish(bucket, metrics) if Config.enable_pg?
-            Librato.publish(consumer_id, bucket, metrics)
+            M2pg.publish(bucket, metrics) if Config.enable_m2pg?
+            Librato.publish(consumer_id, bucket, metrics) if Config.enable_librato?
           rescue => e
             Utils.count(1, 'outlet.metric-post-error')
             log(fn: __method__, at: 'error', consumer: consumer_id,

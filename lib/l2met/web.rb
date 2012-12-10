@@ -7,7 +7,6 @@ require 'scrolls'
 require 'l2met/config'
 require 'l2met/db'
 require 'l2met/parser'
-require 'l2met/outlets/postgres'
 require 'l2met/parser'
 require 'l2met/utils'
 require 'l2met/consumer'
@@ -90,12 +89,6 @@ module L2met
       Utils.count(1, 'beta.post')
       Parser.unpack(params[:cid], request.env["rack.input"].read, true)
       [201, Utils.enc_j(msg: "OK")]
-    end
-
-    get "/metrics" do
-      res = Outlet::Postgres.get(params[:name],
-        Time.parse(params[:from]), Time.parse(params[:to]), params[:resolution])
-      [200, Utils.enc_j(res)]
     end
 
     def self.start

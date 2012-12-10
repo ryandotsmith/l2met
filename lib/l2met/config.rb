@@ -22,8 +22,8 @@ module L2met
     def aws_secret; env!("AWS_SECRET"); end
     def num_outlets; env!("NUM_OUTLETS").to_i; end
     def redis_url; env!("REDISGREEN_URL"); end
-    def database_url; env("DATABASE_URL"); end
-    def read_database_url; database_url; end
-    def enable_pg?; env("ENABLE_PG") || false; end
+    def m2pg_url; env("M2PG_URL"); end
+    def enable_m2pg?; env("ENABLE_M2PG") || false; end
+    def enable_librato?; env("ENABLE_LIBRATO") || false; end
   end
 end

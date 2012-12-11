@@ -21,6 +21,7 @@ module L2met
     def aws_id; env!("AWS_ID"); end
     def aws_secret; env!("AWS_SECRET"); end
     def num_outlets; env!("NUM_OUTLETS").to_i; end
+    def outlet_delay; env!("OUTLET_DELAY").to_i; end
     def redis_url; env!("REDISGREEN_URL"); end
     def m2pg_url; env("M2PG_URL"); end
     def enable_m2pg?; env("ENABLE_M2PG") || false; end

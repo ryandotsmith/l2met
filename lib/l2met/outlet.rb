@@ -20,6 +20,7 @@ module L2met
           locker.lock("#{Config.app_name}.outlet.#{p}", ttl: 60) do
             bucket = Utils.trunc_time(Time.now) - DELAY
             snapshot(p, Config.num_outlets, bucket)
+            sleep(Config.outlet_delay)
           end
         end
       end

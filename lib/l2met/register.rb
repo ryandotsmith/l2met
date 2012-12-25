@@ -19,40 +19,44 @@ module L2met
     end
 
     def accept(name, val, meta)
-      mkey = Utils.enc_key(name, meta[:source], meta[:consumer], meta[:type])
-      bucket = Utils.trunc_time(meta[:time])
-      if mem.key?(bucket)
-        Heartbeat.pulse("accept")
-        mem[bucket].update do |h|
-          h[mkey] ||= {name: name}.merge(meta)
-          case meta[:type]
-          when 'list'
-            h[mkey][:value] ||= []
-            h[mkey][:value] << val
-            h[mkey][:label] ||= 'time'
-          when 'counter'
-            h[mkey][:value] ||= 0
-            h[mkey][:value] += val
-            h[mkey][:label] ||= 'count'
-          when 'last'
-            h[mkey][:value] = val
-            h[mkey][:label] ||= 'last'
+      begin
+        mkey = Utils.enc_key(name, meta[:source], meta[:consumer], meta[:type])
+        bucket = Utils.trunc_time(meta[:time])
+        if mem.key?(bucket)
+          Heartbeat.pulse("accept")
+          mem[bucket].update do |h|
+            h[mkey] ||= {name: name}.merge(meta)
+            case meta[:type]
+            when 'list'
+              h[mkey][:value] ||= []
+              h[mkey][:value] << val
+              h[mkey][:label] ||= 'time'
+            when 'counter'
+              h[mkey][:value] ||= 0
+              h[mkey][:value] += val
+              h[mkey][:label] ||= 'count'
+            when 'last'
+              h[mkey][:value] = val
+              h[mkey][:label] ||= 'last'
+            end
+            h
           end
-          h
+        elsif !meta.key?(:halt)
+          # Use l2met to measure l2met.
+          name = [Config.app_name, "register.drop"].join(".")
+          accept(name, 1,
+            halt: true,
+            source: Config.app_name,
+            consumer: Config.l2met_consumer,
+            type: "counter",
+            time: Time.now)
+          log(fn: __method__, at: "drop", name: name, val: val, meta: meta,
+            bucket: bucket, buckets: mem.keys)
+        else
+          $stdout.puts("at=error error=register-caught-in-loop")
         end
-      elsif !meta.key?(:halt)
-        # Use l2met to measure l2met.
-        name = [Config.app_name, "register.drop"].join(".")
-        accept(name, 1,
-          halt: true,
-          source: Config.app_name,
-          consumer: Config.l2met_consumer,
-          type: "counter",
-          time: Time.now)
-        log(fn: __method__, at: "drop", name: name, val: val, meta: meta,
-          bucket: bucket, buckets: mem.keys)
-      else
-        raise("Register caught in accept loop")
+      rescue => e
+        $stdout.puts("at=error error=#{e.message}")
       end
     end
 

@@ -59,7 +59,11 @@ module L2met
           name = d["measure"].gsub(/[^A-Za-z0-9.:\-_]/, '') #librato has strict name requirements
           Register.accept(name, 1, opts.merge(type: 'counter'))
           if d.key?("val")
-            Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))
+            begin
+              Register.accept(name, Float(d["val"]), opts.merge(type: 'list'))
+            rescue => e
+              $stdout.puts("at=error error=#{e.message}")
+            end
           end
         end
       end

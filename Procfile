@@ -1,2 +1,2 @@
-web: bundle exec bin/web
-outlet: bundle exec bin/dboutlet
+web: l2met
+librato: librato

@@ -182,7 +182,7 @@ func (b *Bucket) Put() (int64, error) {
 		}
 	}
 
-	res, err := db.PG.Exec("update metrics set vals = vals || $1 where name = $2 and bucket = $3",
+	res, err := db.PG.Exec("update metrics set vals = vals || $1::float8 where name = $2 and bucket = $3",
 		string(encoding.EncodeArray(b.Vals)), b.Name, b.Time)
 	if err != nil {
 		fmt.Printf("at=error error=%s\n", err)

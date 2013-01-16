@@ -83,7 +83,6 @@ func getBucket(w http.ResponseWriter, r *http.Request) {
 }
 
 func recieveLogs(w http.ResponseWriter, r *http.Request, ch chan<- *store.Bucket) {
-	defer utils.MeasureT(time.Now(), token+"-http-receive")
 	defer utils.MeasureT(time.Now(), "http-receiver")
 	if r.Method != "POST" {
 		http.Error(w, "Invalid Request", 400)
@@ -96,6 +95,8 @@ func recieveLogs(w http.ResponseWriter, r *http.Request, ch chan<- *store.Bucket
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
+	defer utils.MeasureT(time.Now(), token+"-http-receive")
+
 	buckets, err := store.NewBucket(token, bufio.NewReader(r.Body))
 	if err != nil {
 		http.Error(w, "Invalid Request", 400)

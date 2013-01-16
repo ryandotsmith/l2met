@@ -3,7 +3,8 @@ create table tokens (
 	u text,
 	p text,
 	drain text
-)
+);
+
 create unique index tokens_by_id on tokens(id);
 
 create table metrics (

@@ -34,13 +34,13 @@ func main() {
 	inbox := make(chan *store.Bucket)
 	outbox := make(chan []LM)
 
-	go poll(inbox)
+	go fetch(inbox)
 	go convert(inbox, lms)
 	go batch(lms, outbox)
 	post(outbox)
 }
 
-func poll(out chan<- *store.Bucket) {
+func fetch(out chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Second * 10) {
 		startPoll := time.Now()
 		max := utils.RoundTime(time.Now(), time.Minute)
@@ -54,7 +54,7 @@ func poll(out chan<- *store.Bucket) {
 			b := store.Bucket{Id: id}
 			out <- &b
 		}
-		utils.MeasureT(startPoll, "librato.poll")
+		utils.MeasureT(startPoll, "librato.fetch")
 	}
 }
 

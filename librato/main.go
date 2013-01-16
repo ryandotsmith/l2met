@@ -61,13 +61,13 @@ func fetch(out chan<- *store.Bucket) {
 func convert(in <-chan *store.Bucket, out chan<- LM) {
 	for b := range in {
 		b.Get()
-		out <- LM{Token: b.Token, Time: b.Time.Unix(), Name: b.Name + ".min", Val: ff(b.Min())}
-		out <- LM{Token: b.Token, Time: b.Time.Unix(), Name: b.Name + ".max", Val: ff(b.Max())}
-		out <- LM{Token: b.Token, Time: b.Time.Unix(), Name: b.Name + ".mean", Val: ff(b.Mean())}
-		out <- LM{Token: b.Token, Time: b.Time.Unix(), Name: b.Name + ".median", Val: ff(b.Median())}
-		out <- LM{Token: b.Token, Time: b.Time.Unix(), Name: b.Name + ".perc95", Val: ff(b.P95())}
-		out <- LM{Token: b.Token, Time: b.Time.Unix(), Name: b.Name + ".perc99", Val: ff(b.P99())}
-		out <- LM{Token: b.Token, Time: b.Time.Unix(), Name: b.Name + ".count", Val: fi(b.Count())}
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
 	}
 }
 

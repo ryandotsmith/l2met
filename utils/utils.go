@@ -15,7 +15,7 @@ func MeasureE(n string, e error) {
 }
 
 func MeasureT(t time.Time, n string) {
-	fmt.Printf("measure=%q elapsed=%d\n", n, time.Since(t)/time.Millisecond)
+	fmt.Printf("measure=%q val=%d\n", n, time.Since(t)/time.Millisecond)
 }
 
 func WriteJsonBytes(w http.ResponseWriter, status int, b []byte) {

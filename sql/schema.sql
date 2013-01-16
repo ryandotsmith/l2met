@@ -1,7 +1,8 @@
 create table tokens (
 	id uuid,
 	u text,
-	p text
+	p text,
+	drain text
 )
 create unique index tokens_by_id on tokens(id);
 

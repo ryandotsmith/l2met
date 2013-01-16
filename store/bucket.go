@@ -252,3 +252,8 @@ func (b *Bucket) Max() float64 {
 	pos := b.Count() - 1
 	return b.Vals[pos]
 }
+
+func (b *Bucket) Last() float64 {
+	pos := b.Count() - 1
+	return b.Vals[pos]
+}

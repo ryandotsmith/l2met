@@ -61,6 +61,7 @@ func fetch(out chan<- *store.Bucket) {
 func convert(in <-chan *store.Bucket, out chan<- LM) {
 	for b := range in {
 		b.Get()
+		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}

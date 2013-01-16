@@ -129,7 +129,7 @@ func (b *Bucket) String() (res string) {
 
 func (b *Bucket) Get() {
 	db.PGRLocker.Lock()
-	rows, err := db.PGR.Query("select name, bucket, token, vals from metrics where id = $1",
+	rows, err := db.PGR.Query("select name, bucket, source, token, vals from metrics where id = $1",
 		b.Id)
 	if err != nil {
 		fmt.Printf("at=error error=%s\n", err)
@@ -137,7 +137,7 @@ func (b *Bucket) Get() {
 	}
 	rows.Next()
 	var tmp []byte
-	rows.Scan(&b.Name, &b.Time, &b.Token, &tmp)
+	rows.Scan(&b.Name, &b.Time, &b.Source, &b.Token, &tmp)
 	rows.Close()
 	db.PGRLocker.Unlock()
 

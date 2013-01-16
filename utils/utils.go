@@ -10,11 +10,25 @@ import (
 	"time"
 )
 
+var (
+	appName string
+)
+
+func init() {
+	appName = os.Getenv("APP_NAME")
+	if len(appName) == 0 {
+		fmt.Println("Must set APP_NAME.")
+		os.Exit(1)
+	}
+}
+
 func MeasureE(n string, e error) {
+	n = appName + "." + n
 	fmt.Printf("measure=%q error=%s\n", n, e)
 }
 
 func MeasureT(t time.Time, n string) {
+	n = appName + "." + n
 	fmt.Printf("measure=%q val=%d\n", n, time.Since(t)/time.Millisecond)
 }
 

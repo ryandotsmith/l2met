@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"os"
-	"errors"
 	"encoding/base64"
 	"encoding/json"
-	"strings"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -60,7 +60,7 @@ func ParseToken(r *http.Request) (string, error) {
 		return "", errors.New("Authorization header not set.")
 	}
 
-    auth := strings.SplitN(header[0], " ", 2)
+	auth := strings.SplitN(header[0], " ", 2)
 	if len(auth) != 2 {
 		return "", errors.New("Malformed header.")
 	}

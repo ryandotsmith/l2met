@@ -174,8 +174,8 @@ func (b *Bucket) Put() (int64, error) {
 	if id == 0 {
 		fmt.Printf("at=create-bucket name=%s bucket=%s\n",
 			b.Name, b.Time)
-		_, err := db.PG.Exec("insert into metrics (name, bucket, token) values($1,$2,$3)",
-			b.Name, b.Time, b.Token)
+		_, err := db.PG.Exec("insert into metrics (name, bucket, source, token) values($1,$2,$3,$4)",
+			b.Name, b.Time, b.Source, b.Token)
 		if err != nil {
 			fmt.Printf("at=error error=%s\n", err)
 			return 0, err

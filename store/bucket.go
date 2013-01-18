@@ -30,8 +30,8 @@ func (b *Bucket) Key() int64 {
 	return b.Id
 }
 
-func FindMetrics(min, max time.Time) ([]int64, error) {
-	var metrics []int64
+func FindBuckets(min, max time.Time) ([]int64, error) {
+	var buckets[]int64
 	startQuery := time.Now()
 	r, err := db.PGR.Query("select id from metrics where bucket >= $1 and bucket < $2 order by bucket desc",
 		min, max)
@@ -44,10 +44,10 @@ func FindMetrics(min, max time.Time) ([]int64, error) {
 	for r.Next() {
 		var id int64
 		r.Scan(&id)
-		metrics = append(metrics, id)
+		buckets = append(buckets, id)
 	}
 	utils.MeasureT(startParse, "metrics.vals.parse")
-	return metrics, nil
+	return buckets, nil
 }
 
 func NewBucket(token string, rdr *bufio.Reader) ([]*Bucket, error) {

@@ -45,7 +45,7 @@ func fetch(out chan<- *store.Bucket) {
 		startPoll := time.Now()
 		max := utils.RoundTime(time.Now(), time.Minute)
 		min := max.Add(-time.Minute)
-		metrics, err := store.FindMetrics(min, max)
+		metrics, err := store.FindBuckets(min, max)
 		if err != nil {
 			utils.MeasureE("find-failed", err)
 			continue

@@ -53,7 +53,7 @@ func findMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 	max := utils.RoundTime(time.Now(), time.Minute)
 	min := max.Add(-1 * time.Minute * time.Duration(limit))
-	buckets, err := store.FindMetrics(min, max)
+	buckets, err := store.FindBuckets(min, max)
 	if err != nil {
 		errmsg := map[string]string{"error": "Unable to find buckets"}
 		utils.WriteJson(w, 500, errmsg)

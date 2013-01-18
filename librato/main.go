@@ -43,9 +43,9 @@ func main() {
 	outbox := make(chan []LM)
 
 	go fetch(inbox)
-	go convert(inbox, lms)
 	go batch(lms, outbox)
 	for i := 0; i < *workers; i++ {
+		go convert(inbox, lms)
 		go post(outbox)
 	}
 	select {}

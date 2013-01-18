@@ -81,3 +81,5 @@ A **metric** is identified by: token, name, time, duration, and source. An examp
 	"mean": 45.86
 }
 ```
+
+The primary difference between a bucket and a metric is that the bucket provides all of the raw measurement data and the metric sumarizes the data. For most cases, it will be more efficient to work with metrics. However, l2met exposes the buckets for more complicated use caeses.

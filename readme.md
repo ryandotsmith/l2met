@@ -5,6 +5,7 @@ with 0 software installation.
 
 * [Log Conventions](#log-conventions)
 * [API](#api)
+* [License](#license)
 
 ## Log Conventions
 
@@ -92,7 +93,7 @@ A **metric** is identified by: token, name, time, resolution, and source. An exa
 }
 ```
 
-The primary difference between a bucket and a metric is that the bucket provides all of the raw measurement data and the metric sumarizes the data. For most cases, it will be more efficient to work with metrics. However, l2met exposes buckets for power users who want total control of the data.
+The primary difference between a bucket and a metric is that the bucket provides all of the raw measurement data and the metric summarizes the data. For most cases, it will be more efficient to work with metrics. However, l2met exposes buckets for power users who want total control of the data.
 
 
 ### Endpoints
@@ -111,4 +112,21 @@ $ curl "https://api.l2met.net/metrics?limit=1&offset=0&resolution=m" \
 $ curl "https://api.l2met.net/buckets?limit=1&offset=0&resolution=m" \
 	-X GET \
 	-u 'l2met:your-l2met-token'
+```
+
+## License
+
+```
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ```

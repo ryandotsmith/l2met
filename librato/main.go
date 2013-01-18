@@ -10,7 +10,16 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"flag"
 )
+
+var (
+	workers = flag.Int("workers", 4, "Number of routines that will post data to librato")
+)
+
+func init() {
+	flag.Parse()
+}
 
 type LM struct {
 	Name   string `json:"name"`
@@ -25,7 +34,6 @@ type LP struct {
 }
 
 var (
-	workers    = 2
 	libratoUrl = "https://metrics-api.librato.com/v1/metrics"
 )
 
@@ -37,7 +45,7 @@ func main() {
 	go fetch(inbox)
 	go convert(inbox, lms)
 	go batch(lms, outbox)
-	for i := 0; i < workers; i++ {
+	for i := 0; i < *workers; i++ {
 		go post(outbox)
 	}
 	select {}

@@ -5,7 +5,7 @@ with 0 software installation.
 
 ## Log Conventions
 
-### Counter
+### Counter Metric
 
 Metrics Produced:
 
@@ -15,7 +15,7 @@ Metrics Produced:
 measure="app.module.function"
 ```
 
-### Sample
+### Sample Metric
 
 Samples are useful for building metrics around time based functions. For instance, the elapsed duration of a function call. Or you can measure the value of an in memory resource.
 
@@ -39,14 +39,7 @@ measure="app.module.function" val=42
 Examples:
 
 ```
-measure="core.apps.get" val=1.23 units=s
+measure="core.apps.get" val=1.23
 ```
 
-In the previous example we have an app named **core** which has an HTTP GET endpoint named **apps** that took 1.23 seconds to execute. The *units* key/value is optional. Providing *units* will allow grouping by units on the chart UI.
-
-
-```
-measure="nile.r53-backlog" val=42 units=items
-```
-
-This example will provide us with metrics around the backlog of our Route53 queue.
+In the previous example we have an app named **core** which has an HTTP GET endpoint named **apps** that took 1.23 seconds to execute.

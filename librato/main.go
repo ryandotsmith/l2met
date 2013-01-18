@@ -37,7 +37,10 @@ func main() {
 	go fetch(inbox)
 	go convert(inbox, lms)
 	go batch(lms, outbox)
-	post(outbox)
+	for i := 0; i < workers; i++ {
+		go post(outbox)
+	}
+	select {}
 }
 
 func fetch(out chan<- *store.Bucket) {

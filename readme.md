@@ -97,6 +97,32 @@ The primary difference between a bucket and a metric is that the bucket provides
 
 ### Endpoints
 
+There are several read & write APIs. Systems can write logs using a syslog format. Other systems can read metrics and buckets using a json format. Authentication is required for both reading and writing. Furthermore, you can only read data that you have written. Authentication tokens are managed via [www.l2met.net](https://www.l2met.net).
+
+#### Logs
+
+If you are draining a Heroku app, you can simply add your l2met drain via the Heroku command line tool.
+
+```bash
+$ heroku drains:add https://l2met:your-token@drain.l2met.net/logs -a myapp
+```
+
+Or, you can use [log-shuttle](https://github.com/ryandotsmith/log-shuttle) to move your logs from $stdout to l2met.
+
+```bash
+$ export LOGPLEX_URL=https://l2met:your-token@drain.l2met.net/logs
+$ echo 'measure=hello' | log-shuttle
+```
+
+Finally, you can just as easily post your logs directly to l2met.
+
+```bash
+$ curl "https://api.l2met.net/logs" \
+	-X POST \
+	-u 'l2met:your-l2met-token' \
+	-d "63 <13>1 2000-01-01T00:44:30+00:00 token app web.1 - - measure=hello"
+```
+
 #### Metrics
 
 ```bash

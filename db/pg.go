@@ -33,7 +33,7 @@ func init() {
 	}
 
 	rurl := os.Getenv("DATABASE_READ_URL")
-	if len(rurl) > 0 {
+	if len(rurl) <= 0 {
 		rstr, err := pq.ParseURL(rurl)
 		if err != nil {
 			fmt.Printf("at=error error=\"unable to parse DATABASE_READ_URL\"\n")

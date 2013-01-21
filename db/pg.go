@@ -33,16 +33,21 @@ func init() {
 	}
 
 	rurl := os.Getenv("DATABASE_READ_URL")
-	if len(url) == 0 {
-		fmt.Printf("at=error error=\"must set DATABASE_READ_URL\"\n")
-		os.Exit(1)
+	if len(rurl) > 0 {
+		rstr, err := pq.ParseURL(rurl)
+		if err != nil {
+			fmt.Printf("at=error error=\"unable to parse DATABASE_READ_URL\"\n")
+			os.Exit(1)
+		}
+		PGR, err = sql.Open("postgres", rstr)
+		if err != nil {
+			fmt.Printf("at=error error=%s\n", err)
+			os.Exit(1)
+		}
 	}
-	rstr, err := pq.ParseURL(rurl)
-	if err != nil {
-		fmt.Printf("at=error error=\"unable to parse DATABASE_READ_URL\"\n")
-		os.Exit(1)
-	}
-	PGR, err = sql.Open("postgres", rstr)
+
+	fmt.Printf("Missing DATABASE_READ_URL. Using DATABASE_URL to service reads.\n")
+	PGR, err = sql.Open("postgres", str)
 	if err != nil {
 		fmt.Printf("at=error error=%s\n", err)
 		os.Exit(1)

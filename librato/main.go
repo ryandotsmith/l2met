@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
+	"l2met/db"
 	"net/http"
 	"strconv"
 	"time"
@@ -51,18 +52,38 @@ func main() {
 	select {}
 }
 
+func allBucketIds(min, max time.Time) ([]int64, error) {
+	var buckets []int64
+	startQuery := time.Now()
+	r, err := db.PGR.Query("select id from metrics where bucket >= $1 and bucket < $2 order by bucket desc",
+		min, max)
+	if err != nil {
+		return nil, err
+	}
+	utils.MeasureT(startQuery, "metrics.query")
+	startParse := time.Now()
+	defer r.Close()
+	for r.Next() {
+		var id int64
+		r.Scan(&id)
+		buckets = append(buckets, id)
+	}
+	utils.MeasureT(startParse, "metrics.vals.parse")
+	return buckets, nil
+}
+
 func fetch(out chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Second * 10) {
 		startPoll := time.Now()
 		max := utils.RoundTime(time.Now(), time.Minute)
 		min := max.Add(-time.Minute)
-		metrics, err := store.FindBuckets(min, max)
+		ids , err := allBucketIds(min, max)
 		if err != nil {
 			utils.MeasureE("find-failed", err)
 			continue
 		}
-		for _, id := range metrics {
-			b := store.Bucket{Id: id}
+		for i := range ids{
+			b := store.Bucket{Id: ids[i]}
 			out <- &b
 		}
 		utils.MeasureT(startPoll, "librato.fetch")

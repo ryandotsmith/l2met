@@ -37,13 +37,29 @@ func main() {
 	}
 	reciever := func(w http.ResponseWriter, r *http.Request) { recieveLogs(w, r, iChan) }
 	http.HandleFunc("/logs", reciever)
-	http.HandleFunc("/query", findMetrics)
-	http.HandleFunc("/buckets", getBucket)
-	http.ListenAndServe(":"+port, nil)
+	http.HandleFunc("/buckets", getBuckets)
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
+		os.Exit(1)
+	}
 }
 
-func findMetrics(w http.ResponseWriter, r *http.Request) {
+func getBuckets(w http.ResponseWriter, r *http.Request) {
 	defer utils.MeasureT(time.Now(), "query-bucket")
+
+	if r.Method != "GET" {
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+
+	token, err := utils.ParseToken(r)
+	if err != nil {
+		errmsg := map[string]string{"error": "Missing authorization."}
+		utils.WriteJson(w, 400, errmsg)
+		return
+	}
+
 	q := r.URL.Query()
 	limit, err := strconv.ParseInt(q.Get("limit"), 10, 32)
 	if err != nil {
@@ -51,35 +67,16 @@ func findMetrics(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJson(w, 400, errmsg)
 		return
 	}
+
 	max := utils.RoundTime(time.Now(), time.Minute)
 	min := max.Add(-1 * time.Minute * time.Duration(limit))
-	buckets, err := store.FindBuckets(min, max)
+	buckets, err := store.GetAll(token, min, max)
 	if err != nil {
 		errmsg := map[string]string{"error": "Unable to find buckets"}
 		utils.WriteJson(w, 500, errmsg)
 		return
 	}
 	utils.WriteJson(w, 200, buckets)
-}
-
-func getBucket(w http.ResponseWriter, r *http.Request) {
-	defer utils.MeasureT(time.Now(), "get-bucket")
-	q := r.URL.Query()
-	id, err := strconv.ParseInt(q.Get("id"), 10, 64)
-	if err != nil {
-		errmsg := map[string]string{"error": "Missing bucket id."}
-		utils.WriteJson(w, 400, errmsg)
-		return
-	}
-	bucket := &store.Bucket{Id: id}
-	b, ok := store.CacheGet(bucket)
-	if ok {
-		utils.WriteJsonBytes(w, 200, b)
-		return
-	}
-	bucket.Get()
-	store.CacheSet(bucket)
-	utils.WriteJson(w, 200, bucket)
 }
 
 func recieveLogs(w http.ResponseWriter, r *http.Request, ch chan<- *store.Bucket) {

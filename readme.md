@@ -5,6 +5,7 @@ with 0 software installation.
 
 * [Log Conventions](#log-conventions)
 * [API](#api)
+* [Setup](#setup)
 
 ## Log Conventions
 
@@ -137,4 +138,41 @@ $ curl "https://api.l2met.net/metrics?limit=1&offset=0&resolution=m" \
 $ curl "https://api.l2met.net/buckets?limit=1&offset=0&resolution=m" \
 	-X GET \
 	-u 'l2met:your-l2met-token'
+```
+
+## Setup
+
+If you are a Herokai, there is no need to setup this software. We have a production instance running and available for your use. Email ryan@heroku.com for instructions.
+
+### Heroku Setup
+
+Create a Heroku app.
+
+```bash
+$ git clone git://github.com/ryandotsmith/l2met.git
+$ cd l2met
+$ heroku create your-l2met --buildpack git://github.com/kr/heroku-buildpack-go.git
+$ git push heroku master
+```
+
+Add database services.
+
+```bash
+$ heroku addons:add heroku-postgresql:dev
+$ heroku addons:add redisgreen:basic
+```
+
+Setup PostgreSQL schema.
+
+```bash
+$ heroku pg:promote
+$ heroku pg:psql
+\i ./sql/schema.sql
+```
+
+Update Heroku config.
+
+```bash
+$ heroku config:add APP_NAME=your-l2met
+$ heroku config:add NUM_LIBRATO_WORKERS=1
 ```

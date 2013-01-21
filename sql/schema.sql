@@ -11,6 +11,7 @@ create table metrics (
 	id bigserial,
 	token uuid,
 	name text,
+	source text,
 	bucket timestamptz,
 	vals float8[] default '{}'
 );

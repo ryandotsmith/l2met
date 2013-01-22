@@ -36,6 +36,7 @@ func main() {
 		go outlet(oChan)
 	}
 	reciever := func(w http.ResponseWriter, r *http.Request) { recieveLogs(w, r, iChan) }
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 	http.HandleFunc("/logs", reciever)
 	http.HandleFunc("/buckets", getBuckets)
 	err := http.ListenAndServe(":"+port, nil)

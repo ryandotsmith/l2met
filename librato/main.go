@@ -3,15 +3,15 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
+	"l2met/db"
 	"l2met/store"
 	"l2met/utils"
-	"l2met/db"
 	"net/http"
 	"strconv"
 	"time"
-	"flag"
 )
 
 var (
@@ -77,12 +77,12 @@ func fetch(out chan<- *store.Bucket) {
 		startPoll := time.Now()
 		max := utils.RoundTime(time.Now(), time.Minute)
 		min := max.Add(-time.Minute)
-		ids , err := allBucketIds(min, max)
+		ids, err := allBucketIds(min, max)
 		if err != nil {
 			utils.MeasureE("find-failed", err)
 			continue
 		}
-		for i := range ids{
+		for i := range ids {
 			b := store.Bucket{Id: ids[i]}
 			out <- &b
 		}

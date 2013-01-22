@@ -84,6 +84,7 @@ func NewBucket(token string, rdr *bufio.Reader) ([]*Bucket, error) {
 		m.Vals = append(m.Vals, val)
 		buckets = append(buckets, m)
 	}
+	utils.MeasureI("received-measurements", int64(len(buckets)))
 	return buckets, nil
 }
 

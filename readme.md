@@ -15,7 +15,7 @@ L2met uses convention over configuration to build metrics.
 
 Metrics Produced:
 
-* app.module.function.count
+* count
 
 ```
 measure="app.module.function"
@@ -27,14 +27,15 @@ Samples are useful for building metrics around time based functions. For instanc
 
 Metrics Produced:
 
-* app.module.function.min
-* app.module.function.max
-* app.module.function.mean
-* app.module.function.median
-* app.module.function.perc95
-* app.module.function.perc99
-* app.module.function.last
-* app.module.function.count
+* min
+* median
+* perc95
+* perc99
+* max
+* mean
+* last
+* count
+* sum
 
 Protocol:
 

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -26,8 +25,7 @@ func init() {
 
 func MeasureI(n string, i int64) {
 	n = appName + "." + n
-	is := strconv.FormatInt(i, 10)
-	fmt.Printf("measure=%q val=%d\n", n, is)
+	fmt.Printf("measure=%q val=%d\n", n, i)
 }
 
 func MeasureE(n string, e error) {

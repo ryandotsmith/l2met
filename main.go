@@ -54,6 +54,7 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 
 	token, err := utils.ParseToken(r)
 	if err != nil {
+		fmt.Printf("at=error error=%q", err)
 		errmsg := map[string]string{"error": "Missing authorization."}
 		utils.WriteJson(w, 401, errmsg)
 		return

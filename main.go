@@ -86,6 +86,8 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJson(w, 500, errmsg)
 		return
 	}
+	// Support CORS.
+    w.Header().Set("Access-Control-Allow-Origin", "*")
 	utils.WriteJson(w, 200, metrics)
 }
 

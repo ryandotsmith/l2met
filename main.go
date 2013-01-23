@@ -39,6 +39,7 @@ func main() {
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 	http.HandleFunc("/logs", reciever)
 	http.HandleFunc("/buckets", getBuckets)
+	http.HandleFunc("/metrics", getMetrics)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
@@ -46,8 +47,50 @@ func main() {
 	}
 }
 
+func getMetrics(w http.ResponseWriter, r *http.Request) {
+	defer utils.MeasureT(time.Now(), "get-metrics")
+
+	if r.Method != "GET" {
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+
+	token, err := utils.ParseToken(r)
+	if err != nil {
+		errmsg := map[string]string{"error": "Missing authorization."}
+		utils.WriteJson(w, 400, errmsg)
+		return
+	}
+
+	q := r.URL.Query()
+	limit, err := strconv.ParseInt(q.Get("limit"), 10, 32)
+	if err != nil {
+		errmsg := map[string]string{"error": "Missing limit parameter."}
+		utils.WriteJson(w, 400, errmsg)
+		return
+	}
+
+	resolution, err := strconv.ParseInt(q.Get("resolution"), 10, 32)
+	if err != nil {
+		errmsg := map[string]string{"error": "Missing resolution parameter."}
+		utils.WriteJson(w, 400, errmsg)
+		return
+	}
+
+	max := utils.RoundTime(time.Now(), time.Minute)
+	min := max.Add(-1 * time.Minute * time.Duration(limit))
+
+	metrics, err := store.GetMetrics(token, resolution, min, max)
+	if err != nil {
+		errmsg := map[string]string{"error": "Unable to find metrics."}
+		utils.WriteJson(w, 500, errmsg)
+		return
+	}
+	utils.WriteJson(w, 200, metrics)
+}
+
 func getBuckets(w http.ResponseWriter, r *http.Request) {
-	defer utils.MeasureT(time.Now(), "query-bucket")
+	defer utils.MeasureT(time.Now(), "get-buckets")
 
 	if r.Method != "GET" {
 		http.Error(w, "Invalid Request", 400)

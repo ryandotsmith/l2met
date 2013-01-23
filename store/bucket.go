@@ -25,9 +25,44 @@ type Bucket struct {
 	Vals   []float64 `json:"vals,omitempty"`
 }
 
+type Metric struct {
+	Time   time.Time `json:"time"`
+	Name   string    `json:"name"`
+	Source string    `json:"source,omitempty"`
+	Mean   float64   `json:"mean"`
+}
+
 // Cachable Interface
 func (b *Bucket) Key() int64 {
 	return b.Id
+}
+
+func GetMetrics(token string, resolution int64, min, max time.Time) ([]*Metric, error) {
+	rows, err := db.PGR.Query("select * from get_metrics($1, $2, $3, $4)",
+		token, resolution, min, max)
+	if err != nil {
+		utils.MeasureE("get-metrics-error", err)
+		return nil, err
+	}
+	defer rows.Close()
+	var metrics []*Metric
+	for rows.Next() {
+		var tmp []byte
+		b := new(Bucket)
+		rows.Scan(&b.Name, &b.Source, &b.Time, &tmp)
+		if len(tmp) == 0 {
+			b.Vals = []float64{}
+			continue
+		}
+		encoding.DecodeArray(tmp, &b.Vals)
+		m := new(Metric)
+		m.Time = b.Time
+		m.Name = b.Name
+		m.Source = b.Source
+		m.Mean = b.Mean()
+		metrics = append(metrics, m)
+	}
+	return metrics, nil
 }
 
 func GetBuckets(token string, min, max time.Time) ([]*Bucket, error) {

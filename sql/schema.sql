@@ -1,3 +1,5 @@
+create extension "uuid-osp";
+
 create table tokens (
 	id uuid,
 	u text,

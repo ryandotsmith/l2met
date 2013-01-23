@@ -30,7 +30,7 @@ func (b *Bucket) Key() int64 {
 	return b.Id
 }
 
-func GetAll(token string, min, max time.Time) ([]*Bucket, error) {
+func GetBuckets(token string, min, max time.Time) ([]*Bucket, error) {
 	var buckets []*Bucket
 	startQuery := time.Now()
 	rows, err := db.PGR.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",

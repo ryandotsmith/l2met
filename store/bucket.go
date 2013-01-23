@@ -30,6 +30,33 @@ func (b *Bucket) Key() int64 {
 	return b.Id
 }
 
+func GetAll(token string, min, max time.Time) ([]*Bucket, error) {
+	var buckets []*Bucket
+	startQuery := time.Now()
+	rows, err := db.PGR.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",
+		token, min, max)
+	if err != nil {
+		return nil, err
+	}
+	utils.MeasureT(startQuery, "buckets.get-all")
+
+	startParse := time.Now()
+	defer rows.Close()
+	for rows.Next() {
+		var tmp []byte
+		b := new(Bucket)
+		buckets = append(buckets, b)
+		rows.Scan(&b.Name, &b.Time, &b.Source, &b.Token, &tmp)
+		if len(tmp) == 0 {
+			b.Vals = []float64{}
+			continue
+		}
+		encoding.DecodeArray(tmp, &b.Vals)
+	}
+	utils.MeasureT(startParse, "buckets.vals.decode")
+	return buckets, nil
+}
+
 func NewBucket(token string, rdr *bufio.Reader) ([]*Bucket, error) {
 	var buckets []*Bucket
 	lp := logplex.NewReader(rdr)
@@ -106,33 +133,6 @@ func (b *Bucket) String() (res string) {
 		res += ":" + b.Source
 	}
 	return
-}
-
-func GetAll(token string, min, max time.Time) ([]*Bucket, error) {
-	var buckets []*Bucket
-	startQuery := time.Now()
-	rows, err := db.PGR.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",
-		token, min, max)
-	if err != nil {
-		return nil, err
-	}
-	utils.MeasureT(startQuery, "buckets.get-all")
-
-	startParse := time.Now()
-	defer rows.Close()
-	for rows.Next() {
-		var tmp []byte
-		b := new(Bucket)
-		buckets = append(buckets, b)
-		rows.Scan(&b.Name, &b.Time, &b.Source, &b.Token, &tmp)
-		if len(tmp) == 0 {
-			b.Vals = []float64{}
-			continue
-		}
-		encoding.DecodeArray(tmp, &b.Vals)
-	}
-	utils.MeasureT(startParse, "buckets.vals.decode")
-	return buckets, nil
 }
 
 func (b *Bucket) Get() {

@@ -49,6 +49,7 @@ func main() {
 
 func getMetrics(w http.ResponseWriter, r *http.Request) {
 	defer utils.MeasureT(time.Now(), "get-metrics")
+
 	// Support CORS.
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "Authorization")

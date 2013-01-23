@@ -55,7 +55,7 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.ParseToken(r)
 	if err != nil {
 		errmsg := map[string]string{"error": "Missing authorization."}
-		utils.WriteJson(w, 400, errmsg)
+		utils.WriteJson(w, 401, errmsg)
 		return
 	}
 
@@ -97,7 +97,7 @@ func getBuckets(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.ParseToken(r)
 	if err != nil {
 		errmsg := map[string]string{"error": "Missing authorization."}
-		utils.WriteJson(w, 400, errmsg)
+		utils.WriteJson(w, 401, errmsg)
 		return
 	}
 

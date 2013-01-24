@@ -111,19 +111,21 @@ func allBucketIds(min, max time.Time) ([]int64, error) {
 // (load the vals into the bucket) and processed.
 func fetch(out chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Duration(*processInterval) * time.Second) {
-		startPoll := time.Now()
-		max := utils.RoundTime(time.Now(), time.Minute)
-		min := max.Add(-time.Minute)
-		ids, err := allBucketIds(min, max)
-		if err != nil {
-			utils.MeasureE("find-failed", err)
-			continue
-		}
-		for i := range ids {
-			b := store.Bucket{Id: ids[i]}
-			out <- &b
-		}
-		utils.MeasureT(startPoll, "librato.fetch")
+		go func(out chan<- *store.Bucket) {
+			startPoll := time.Now()
+			max := utils.RoundTime(time.Now(), time.Minute)
+			min := max.Add(-time.Minute)
+			ids, err := allBucketIds(min, max)
+			if err != nil {
+				utils.MeasureE("find-failed", err)
+				return
+			}
+			for i := range ids {
+				b := store.Bucket{Id: ids[i]}
+				out <- &b
+			}
+			utils.MeasureT(startPoll, "librato.fetch")
+		}(out)
 	}
 }
 

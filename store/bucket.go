@@ -38,12 +38,15 @@ func (b *Bucket) Key() int64 {
 }
 
 func GetMetrics(token string, resolution int64, min, max time.Time) ([]*Metric, error) {
+	startQuery := time.Now()
 	rows, err := db.PGR.Query("select * from get_metrics($1, $2, $3, $4)",
 		token, resolution, min, max)
 	if err != nil {
 		utils.MeasureE("get-metrics-error", err)
 		return nil, err
 	}
+	utils.MeasureT(startQuery, "queries.get-metrics")
+	startParse := time.Now()
 	defer rows.Close()
 	var metrics []*Metric
 	for rows.Next() {
@@ -62,6 +65,7 @@ func GetMetrics(token string, resolution int64, min, max time.Time) ([]*Metric, 
 		m.Mean = b.Mean()
 		metrics = append(metrics, m)
 	}
+	utils.MeasureT(startParse, "parse.get-metrics")
 	return metrics, nil
 }
 

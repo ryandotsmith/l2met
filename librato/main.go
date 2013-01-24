@@ -39,16 +39,37 @@ var (
 )
 
 func main() {
+	// The inbox is used to hold empty buckets that are
+	// waiting to be processed. We buffer the chanel so
+	// as not to slow down the fetch routine. We can
+	inbox := make(chan *store.Bucket, 1000)
+	// The converter will take items from the inbox,
+	// fill in the bucket with the vals, then convert the
+	// bucket into a librato metric.
 	lms := make(chan LM)
-	inbox := make(chan *store.Bucket)
+	// The converter will place the librato metrics into
+	// the outbox for HTTP submission. We rely on the batch
+	// routine to make sure that the collections of librato metrics
+	// in the outbox are homogeneous with respect to their token.
+	// This ensures that we route the metrics to the correct librato account.
 	outbox := make(chan []LM)
 
+	// Lightweight routine that reads ints from the database
+	// and sends them to the inbox.
 	go fetch(inbox)
+	// Shouldn't need to be concurrent since it's responsibility
+	// it to serialize a collection of librato metrics.
 	go batch(lms, outbox)
+
+	// These routines involve reading data from the database
+	// and making HTTP requests. We will want to take advantage of
+	// parallel processing.
 	for i := 0; i < *workers; i++ {
 		go convert(inbox, lms)
 		go post(outbox)
 	}
+
+	// Live forever.
 	select {}
 }
 
@@ -72,6 +93,10 @@ func allBucketIds(min, max time.Time) ([]int64, error) {
 	return buckets, nil
 }
 
+// Fetch should kick off the librato outlet process.
+// Its responsibility is to get the ids of buckets for the current time,
+// make empty Buckets, then place the buckets in an inbox to be filled
+// (load the vals into the bucket) and processed.
 func fetch(out chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Second * 10) {
 		startPoll := time.Now()

@@ -54,6 +54,9 @@ func main() {
 	// This ensures that we route the metrics to the correct librato account.
 	outbox := make(chan []LM)
 
+	// Print chan visibility.
+	go report(inbox, lms, outbox)
+
 	// Lightweight routine that reads ints from the database
 	// and sends them to the inbox.
 	go fetch(inbox)
@@ -71,6 +74,14 @@ func main() {
 
 	// Live forever.
 	select {}
+}
+
+func report(i chan *store.Bucket, l chan LM, o chan []LM) {
+	for _ = range time.Tick(time.Second * 5) {
+		utils.MeasureI("librato.inbox", int64(len(i)))
+		utils.MeasureI("librato.lms", int64(len(l)))
+		utils.MeasureI("librato.outbox", int64(len(o)))
+	}
 }
 
 func allBucketIds(min, max time.Time) ([]int64, error) {

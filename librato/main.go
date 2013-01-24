@@ -130,8 +130,8 @@ func fetch(out chan<- *store.Bucket) {
 func convert(in <-chan *store.Bucket, out chan<- LM) {
 	for b := range in {
 		b.Get()
-		fmt.Printf("at=librato.process.bucket name=%q minute=%d\n",
-			b.Name, b.Time.Minute())
+		fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
+			b.Time.Minute(), b.Name)
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}

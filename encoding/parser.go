@@ -28,13 +28,12 @@ func ParseMsgData(msg []byte) (map[string]string, error) {
 }
 
 func DecodeArray(b []byte, dest *[]float64) {
+	defer utils.MeasureT(time.Now(), "encoding.decode-array")
 	// pq returns something like: {1.0, 2.0}
 	// let us remove the { and the }
 	trimed := b[1:(len(b) - 1)]
 	// Assuming the numbers are seperated by commas.
-	startSplit := time.Now()
 	numbers := strings.Split(string(trimed), ",")
-	utils.MeasureT(startSplit, "encoding.split-array")
 	// Showing that we can do cool things with floats.
 	for _, x := range numbers {
 		f, err := strconv.ParseFloat(x, 64)

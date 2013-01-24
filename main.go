@@ -8,12 +8,14 @@ import (
 	"l2met/utils"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"sync"
 	"time"
 )
 
 var (
+	metricsPat     = regexp.MustCompile(`\/metrics\/(.*)\?`)
 	workers        = flag.Int("workers", 2, "Number of workers to process the storing of metrics.")
 	port           = flag.String("port", "8080", "Port for HTTP server to bind to.")
 	registerLocker sync.Mutex
@@ -37,7 +39,7 @@ func main() {
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 	http.HandleFunc("/logs", reciever)
 	http.HandleFunc("/buckets", getBuckets)
-	http.HandleFunc("/metrics", getMetrics)
+	http.HandleFunc("/metrics/", getMetrics)
 	err := http.ListenAndServe(":"+*port, nil)
 	if err != nil {
 		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
@@ -52,6 +54,15 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+
+	names := metricsPat.FindStringSubmatch(r.URL.Path)
+	if len(names) < 1 {
+		fmt.Printf("at=error error=%q\n", "Name parameter not provided.")
+		errmsg := map[string]string{"error": "Name parameter not provided."}
+		utils.WriteJson(w, 401, errmsg)
+		return
+	}
+	name := names[0]
 
 	token, err := utils.ParseToken(r)
 	if err != nil {
@@ -79,7 +90,7 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 	max := utils.RoundTime(time.Now(), (time.Minute * time.Duration(resolution)))
 	min := max.Add(-1 * time.Minute * time.Duration(limit*resolution))
 
-	metrics, err := store.GetMetrics(token, resolution, min, max)
+	metrics, err := store.GetMetrics(token, name, resolution, min, max)
 	if err != nil {
 		errmsg := map[string]string{"error": "Unable to find metrics."}
 		utils.WriteJson(w, 500, errmsg)

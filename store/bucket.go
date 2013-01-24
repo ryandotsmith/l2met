@@ -37,10 +37,10 @@ func (b *Bucket) Key() int64 {
 	return b.Id
 }
 
-func GetMetrics(token string, resolution int64, min, max time.Time) ([]*Metric, error) {
+func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Metric, error) {
 	startQuery := time.Now()
-	rows, err := db.PGR.Query("select * from get_metrics($1, $2, $3, $4)",
-		token, resolution, min, max)
+	rows, err := db.PGR.Query("select * from get_metrics($1, $2, $3, $4, $5)",
+		token, name, resolution, min, max)
 	if err != nil {
 		utils.MeasureE("get-metrics-error", err)
 		return nil, err

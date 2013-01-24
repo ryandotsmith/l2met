@@ -1,11 +1,11 @@
 package encoding
 
 import (
+	"l2met/utils"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"l2met/utils"
 )
 
 var (

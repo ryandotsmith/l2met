@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"l2met/store"
 	"l2met/utils"
@@ -13,20 +14,17 @@ import (
 )
 
 var (
-	port           string
+	workers        = flag.Int("workers", 2, "Number of workers to process the storing of metrics.")
+	port           = flag.String("port", "8080", "Port for HTTP server to bind to.")
 	registerLocker sync.Mutex
 )
 
 func init() {
-	port = os.Getenv("PORT")
-	if len(port) == 0 {
-		fmt.Printf("at=error error=\"$PORT not set.\"\n")
-		os.Exit(1)
-	}
+	flag.Parse()
 }
 
 func main() {
-	fmt.Printf("at=start-l2met port=%s\n", port)
+	fmt.Printf("at=start-l2met port=%s\n", *port)
 	register := make(map[string]*store.Bucket)
 	iChan := make(chan *store.Bucket, 1000)
 	oChan := make(chan *store.Bucket, 1000)
@@ -40,7 +38,7 @@ func main() {
 	http.HandleFunc("/logs", reciever)
 	http.HandleFunc("/buckets", getBuckets)
 	http.HandleFunc("/metrics", getMetrics)
-	err := http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe(":"+*port, nil)
 	if err != nil {
 		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
 		os.Exit(1)

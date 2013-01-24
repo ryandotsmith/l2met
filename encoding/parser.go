@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
+	"l2met/utils"
 )
 
 var (
@@ -30,7 +32,9 @@ func DecodeArray(b []byte, dest *[]float64) {
 	// let us remove the { and the }
 	trimed := b[1:(len(b) - 1)]
 	// Assuming the numbers are seperated by commas.
+	startSplit := time.Now()
 	numbers := strings.Split(string(trimed), ",")
+	utils.MeasureT(startSplit, "encoding.split-array")
 	// Showing that we can do cool things with floats.
 	for _, x := range numbers {
 		f, err := strconv.ParseFloat(x, 64)

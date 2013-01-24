@@ -28,7 +28,7 @@ func main() {
 	register := make(map[string]*store.Bucket)
 	iChan := make(chan *store.Bucket, 1000)
 	oChan := make(chan *store.Bucket, 1000)
-	for i := 0; i < 5; i++ {
+	for i := 0; i < *workers; i++ {
 		go accept(iChan, &register)
 		go transfer(&register, oChan)
 		go outlet(oChan)

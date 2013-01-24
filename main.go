@@ -76,7 +76,7 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	max := utils.RoundTime(time.Now(), time.Duration(resolution))
+	max := utils.RoundTime(time.Now(), (time.Minute * time.Duration(resolution)))
 	min := max.Add(-1 * time.Minute * time.Duration(limit * resolution))
 
 	metrics, err := store.GetMetrics(token, resolution, min, max)

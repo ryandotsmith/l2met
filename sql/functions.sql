@@ -17,8 +17,8 @@ from
 	metrics
 where
 	token = $1::uuid
-	and bucket > $3
-	and bucket <= $4
+	and bucket >= $3
+	and bucket < $4
 group by 1, 2, 3
 order by 3 desc
 $$ language sql immutable;

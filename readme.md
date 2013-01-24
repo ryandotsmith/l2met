@@ -127,6 +127,15 @@ $ curl "https://api.l2met.net/logs" \
 
 #### Metrics
 
+There are several parameters to use when fetching metrics:
+
+* limit
+* group-by
+
+Group-by determines the what time each metric should represent. For example, if a group-by=1 is used, each metric will represent 1 minute. If a group-by=60 is used, each metric will represent 60 minutes.
+
+The limit parameter controls how how many grouped metrics are returned. For example, if a `group-by=15 limit=4` is used, then there will be 4 of each metrics represented by a 15 minute interval.
+
 ```bash
 $ curl "https://api.l2met.net/metrics?limit=1&offset=0&resolution=m" \
 	-X GET \

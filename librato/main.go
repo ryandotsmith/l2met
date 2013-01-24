@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	workers = flag.Int("workers", 4, "Number of routines that will post data to librato")
+	workers         = flag.Int("workers", 4, "Number of routines that will post data to librato")
+	processInterval = flag.Int("proc-int", 5, "Number of seconds to wait in between bucket processing.")
 )
 
 func init() {
@@ -109,7 +110,7 @@ func allBucketIds(min, max time.Time) ([]int64, error) {
 // make empty Buckets, then place the buckets in an inbox to be filled
 // (load the vals into the bucket) and processed.
 func fetch(out chan<- *store.Bucket) {
-	for _ = range time.Tick(time.Second * 10) {
+	for _ = range time.Tick(time.Duration(*processInterval) * time.Second) {
 		startPoll := time.Now()
 		max := utils.RoundTime(time.Now(), time.Minute)
 		min := max.Add(-time.Minute)

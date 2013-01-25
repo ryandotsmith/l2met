@@ -56,13 +56,13 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 
 	names := metricsPat.FindStringSubmatch(r.URL.Path)
-	if len(names) < 1 {
+	if len(names) < 2 {
 		fmt.Printf("at=error error=%q\n", "Name parameter not provided.")
 		errmsg := map[string]string{"error": "Name parameter not provided."}
 		utils.WriteJson(w, 401, errmsg)
 		return
 	}
-	name := names[0]
+	name := names[1]
 
 	token, err := utils.ParseToken(r)
 	if err != nil {

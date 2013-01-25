@@ -50,6 +50,7 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 	defer rows.Close()
 	var metrics []*Metric
 	for rows.Next() {
+		startLoop := time.Now()
 		var tmp []byte
 		b := new(Bucket)
 		rows.Scan(&b.Name, &b.Source, &b.Time, &tmp)
@@ -64,6 +65,7 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 		m.Source = b.Source
 		m.Mean = b.Mean()
 		metrics = append(metrics, m)
+		utils.MeasureT(startLoop, "scan-struct.get-metrics")
 	}
 	utils.MeasureT(startParse, "parse.get-metrics")
 	return metrics, nil

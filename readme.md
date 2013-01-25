@@ -137,7 +137,7 @@ Group-by determines the what time each metric should represent. For example, if 
 The limit parameter controls how how many grouped metrics are returned. For example, if a `group-by=15 limit=4` is used, then there will be 4 of each metrics represented by a 15 minute interval.
 
 ```bash
-$ curl "https://api.l2met.net/metrics?limit=1&offset=0&resolution=m" \
+$ curl "https://api.l2met.net/metrics/your-metric?limit=1&offset=0&resolution=m" \
 	-X GET \
 	-u 'l2met:your-l2met-token'
 ```

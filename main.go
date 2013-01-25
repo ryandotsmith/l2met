@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	metricsPat     = regexp.MustCompile(`\/metrics\/(.*)\?`)
+	metricsPat     = regexp.MustCompile(`\/metrics\/(.*)\??`)
 	workers        = flag.Int("workers", 2, "Number of workers to process the storing of metrics.")
 	port           = flag.String("port", "8080", "Port for HTTP server to bind to.")
 	registerLocker sync.Mutex

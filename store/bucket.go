@@ -45,7 +45,7 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 		utils.MeasureE("get-metrics-error", err)
 		return nil, err
 	}
-	utils.MeasureT(startQuery, "queries.get-metrics")
+	utils.MeasureT(startQuery, "get-metrics.query")
 	startParse := time.Now()
 	defer rows.Close()
 	var metrics []*Metric
@@ -65,7 +65,7 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 		m.Source = b.Source
 		m.Mean = b.Mean()
 		metrics = append(metrics, m)
-		utils.MeasureT(startLoop, "scan-struct.get-metrics")
+		utils.MeasureT(startLoop, "get-metrics.scan-struct-loop")
 	}
 	utils.MeasureT(startParse, "parse.get-metrics")
 	return metrics, nil
@@ -177,6 +177,7 @@ func (b *Bucket) String() (res string) {
 }
 
 func (b *Bucket) Get() {
+	defer utils.MeasureT(time.Now(), "bucket.get")
 	db.PGRLocker.Lock()
 	rows, err := db.PGR.Query("select name, bucket, source, token, vals from metrics where id = $1",
 		b.Id)

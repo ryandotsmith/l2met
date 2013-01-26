@@ -143,6 +143,7 @@ func convert(in <-chan *store.Bucket, out chan<- LM) {
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
 		out <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
+		utils.MeasureI("librato.convert", 1)
 	}
 }
 
@@ -214,6 +215,7 @@ func post(in <-chan []LM) {
 			fmt.Printf("status=%d post-body=%s resp-body=%s\n",
 				resp.StatusCode, postBody, b)
 		}
+		utils.MeasureI("librato.post", 1)
 		resp.Body.Close()
 	}
 }

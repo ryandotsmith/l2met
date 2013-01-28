@@ -2,6 +2,7 @@ package store
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/bmizerany/logplex"
 	"io"
@@ -175,24 +176,23 @@ func (b *Bucket) String() (res string) {
 	return
 }
 
-func (b *Bucket) Get() {
+func (b *Bucket) Get() error {
 	defer utils.MeasureT(time.Now(), "bucket.get")
 	rows, err := pgRead.Query("select name, bucket, source, token, vals from metrics where id = $1",
 		b.Id)
 	if err != nil {
-		fmt.Printf("at=error error=%s\n", err)
-		return
+		fmt.Printf("error=%s\n", err)
+		return err
 	}
 	defer rows.Close()
 	rows.Next()
 	var tmp []byte
 	rows.Scan(&b.Name, &b.Time, &b.Source, &b.Token, &tmp)
-
 	if len(tmp) == 0 {
-		b.Vals = []float64{}
-		return
+		return errors.New("store/bucket: No values to get.")
 	}
 	encoding.DecodeArray(tmp, &b.Vals)
+	return nil
 }
 
 func (b *Bucket) dbId() (int64, error) {

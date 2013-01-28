@@ -193,6 +193,9 @@ func (b *Bucket) Get() error {
 		return errors.New("store/bucket: No values to get.")
 	}
 	encoding.DecodeArray(tmp, &b.Vals)
+	if len(b.Vals) == 0 {
+		return errors.New("store/bucket: No values in bucket.")
+	}
 	return nil
 }
 
@@ -299,8 +302,5 @@ func (b *Bucket) Max() float64 {
 
 func (b *Bucket) Last() float64 {
 	pos := b.Count() - 1
-	if len(b.Vals) >= pos {
-		return b.Vals[pos]
-	}
-	return 0
+	return b.Vals[pos]
 }

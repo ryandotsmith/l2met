@@ -2,7 +2,6 @@ package store
 
 import (
 	"fmt"
-	"l2met/db"
 )
 
 type Token struct {
@@ -12,15 +11,13 @@ type Token struct {
 }
 
 func (t *Token) Get() {
-	db.PGRLocker.Lock()
-	defer db.PGRLocker.Unlock()
-	rows, err := db.PGR.Query("select u, p from tokens where id = $1", t.Id)
+	rows, err := pgRead.Query("select u, p from tokens where id = $1", t.Id)
 	if err != nil {
-		fmt.Printf("at=error error=%s\n", err)
+		fmt.Printf("error=%s\n", err)
 		return
 	}
+	defer rows.Close()
 	rows.Next()
 	rows.Scan(&t.User, &t.Pass)
-	rows.Close()
 	return
 }

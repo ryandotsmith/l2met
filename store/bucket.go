@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bmizerany/logplex"
 	"io"
-	"l2met/db"
 	"l2met/encoding"
 	"l2met/utils"
 	"math"
@@ -39,7 +38,7 @@ func (b *Bucket) Key() int64 {
 
 func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Metric, error) {
 	startQuery := time.Now()
-	rows, err := db.PGR.Query("select * from get_metrics($1, $2, $3, $4, $5)",
+	rows, err := pgRead.Query("select * from get_metrics($1, $2, $3, $4, $5)",
 		token, name, resolution, min, max)
 	if err != nil {
 		utils.MeasureE("get-metrics-error", err)
@@ -74,15 +73,15 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 func GetBuckets(token string, min, max time.Time) ([]*Bucket, error) {
 	var buckets []*Bucket
 	startQuery := time.Now()
-	rows, err := db.PGR.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",
+	rows, err := pgRead.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",
 		token, min, max)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	utils.MeasureT(startQuery, "buckets.get-all")
 
 	startParse := time.Now()
-	defer rows.Close()
 	for rows.Next() {
 		var tmp []byte
 		b := new(Bucket)
@@ -178,18 +177,16 @@ func (b *Bucket) String() (res string) {
 
 func (b *Bucket) Get() {
 	defer utils.MeasureT(time.Now(), "bucket.get")
-	db.PGRLocker.Lock()
-	rows, err := db.PGR.Query("select name, bucket, source, token, vals from metrics where id = $1",
+	rows, err := pgRead.Query("select name, bucket, source, token, vals from metrics where id = $1",
 		b.Id)
 	if err != nil {
 		fmt.Printf("at=error error=%s\n", err)
 		return
 	}
+	defer rows.Close()
 	rows.Next()
 	var tmp []byte
 	rows.Scan(&b.Name, &b.Time, &b.Source, &b.Token, &tmp)
-	rows.Close()
-	db.PGRLocker.Unlock()
 
 	if len(tmp) == 0 {
 		b.Vals = []float64{}
@@ -199,7 +196,7 @@ func (b *Bucket) Get() {
 }
 
 func (b *Bucket) dbId() (int64, error) {
-	rows, err := db.PG.Query("select id from metrics where name = $1 and bucket = $2",
+	rows, err := pgRead.Query("select id from metrics where name = $1 and bucket = $2",
 		b.Name, b.Time)
 	if err != nil {
 		fmt.Printf("at=error error=%s\n", err)
@@ -216,15 +213,13 @@ func (b *Bucket) dbId() (int64, error) {
 func (b *Bucket) Put() (int64, error) {
 	b.Lock()
 	defer b.Unlock()
-	db.PGLocker.Lock()
-	defer db.PGLocker.Unlock()
 	var err error
 	id, _ := b.dbId()
 	// Create the bucket if needed.
 	if id == 0 {
 		fmt.Printf("at=create-bucket name=%s bucket=%s\n",
 			b.Name, b.Time)
-		_, err := db.PG.Exec("insert into metrics (name, bucket, source, token) values($1,$2,$3,$4)",
+		_, err := pg.Exec("insert into metrics (name, bucket, source, token) values($1,$2,$3,$4)",
 			b.Name, b.Time, b.Source, b.Token)
 		if err != nil {
 			fmt.Printf("at=error error=%s\n", err)
@@ -232,7 +227,7 @@ func (b *Bucket) Put() (int64, error) {
 		}
 	}
 
-	res, err := db.PG.Exec("update metrics set vals = vals || $1::float8[] where name = $2 and bucket = $3",
+	res, err := pg.Exec("update metrics set vals = vals || $1::float8[] where name = $2 and bucket = $3",
 		string(encoding.EncodeArray(b.Vals)), b.Name, b.Time)
 	if err != nil {
 		fmt.Printf("at=error error=%s\n", err)

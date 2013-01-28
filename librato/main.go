@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"l2met/db"
 	"l2met/store"
 	"l2met/utils"
 	"net/http"
@@ -88,7 +87,7 @@ func report(i chan *store.Bucket, l chan LM, o chan []LM) {
 func allBucketIds(min, max time.Time) ([]int64, error) {
 	var buckets []int64
 	startQuery := time.Now()
-	r, err := db.PGR.Query("select id from metrics where bucket >= $1 and bucket < $2 order by bucket desc",
+	r, err := pg.Query("select id from metrics where bucket >= $1 and bucket < $2 order by bucket desc",
 		min, max)
 	if err != nil {
 		return nil, err

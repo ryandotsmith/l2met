@@ -96,9 +96,11 @@ module L2met
     end
 
     def set(mkey, bucket, data)
-      i = [mkey, bucket, SecureRandom.uuid].join(':')
-      redis.mapped_hmset(i, data)
-      redis.expireat(i, bucket + (3*60))
+      log(at: "set-bucket", bucket: Time.at(bucket).min, name_source: [data[:name], data[:source].join(".")]) do
+        i = [mkey, bucket, SecureRandom.uuid].join(':')
+        redis.mapped_hmset(i, data)
+        redis.expireat(i, bucket + (3*60))
+      end
     end
 
     def redis

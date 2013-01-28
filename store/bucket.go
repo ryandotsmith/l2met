@@ -2,6 +2,7 @@ package store
 
 import (
 	"bufio"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/bmizerany/logplex"
@@ -195,56 +196,54 @@ func (b *Bucket) Get() error {
 	return nil
 }
 
-func (b *Bucket) dbId() (int64, error) {
-	rows, err := pgRead.Query("select id from metrics where name = $1 and bucket = $2",
-		b.Name, b.Time)
-	if err != nil {
-		fmt.Printf("at=error error=%s\n", err)
-		return 0, err
-	}
-	// Grab the first row.
-	rows.Next()
-	var id int64
-	rows.Scan(&id)
-	rows.Close()
-	return id, nil
-}
-
-func (b *Bucket) Put() (int64, error) {
+func (b *Bucket) Put() error {
 	b.Lock()
 	defer b.Unlock()
-	var err error
-	id, _ := b.dbId()
-	// Create the bucket if needed.
-	if id == 0 {
-		fmt.Printf("at=create-bucket name=%s bucket=%s\n",
-			b.Name, b.Time)
-		_, err := pg.Exec("insert into metrics (name, bucket, source, token) values($1,$2,$3,$4)",
+
+	txn, err := pg.Begin()
+	if err != nil {
+		return err
+	}
+
+	found := false
+	s := "select id from metrics where name = $1 and source = $2 and time = $3"
+	rows, err := txn.Query(s, b.Name, b.Source, b.Time)
+	if err != nil {
+		txn.Rollback()
+		return err
+	}
+	for rows.Next() {
+		tmp := new(sql.NullInt64)
+		err = rows.Scan(tmp)
+		if tmp.Valid {
+			found = true
+		}
+	}
+	rows.Close()
+
+	if !found {
+		fmt.Printf("at=create-bucket name=%s bucket=%s\n", b.Name, b.Time)
+		_, err = txn.Exec("insert into metrics (name, bucket, source, token) values($1,$2,$3,$4)",
 			b.Name, b.Time, b.Source, b.Token)
 		if err != nil {
-			fmt.Printf("at=error error=%s\n", err)
-			return 0, err
+			txn.Rollback()
+			return err
 		}
 	}
 
-	res, err := pg.Exec("update metrics set vals = vals || $1::float8[] where name = $2 and bucket = $3",
+	_, err = pg.Exec("update metrics set vals = vals || $1::float8[] where name = $2 and bucket = $3",
 		string(encoding.EncodeArray(b.Vals)), b.Name, b.Time)
 	if err != nil {
-		fmt.Printf("at=error error=%s\n", err)
-		return 0, err
+		txn.Rollback()
+		return err
 	}
 
-	//Reset the vals on this bucket. It might be used again.
-	// It might be used again.
-	b.Vals = []float64{}
-
-	var count int64
-	count, err = res.RowsAffected()
+	err = txn.Commit()
 	if err != nil {
-		fmt.Printf("at=error error=%s\n", err)
-		count = 0
+		return err
 	}
-	return count, nil
+
+	return nil
 }
 
 func (b *Bucket) Count() int {

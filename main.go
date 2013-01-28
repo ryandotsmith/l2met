@@ -189,7 +189,9 @@ func transfer(register *map[string]*store.Bucket, ch chan<- *store.Bucket) {
 
 func outlet(ch <-chan *store.Bucket) {
 	for m := range ch {
-		m.Put()
-		fmt.Printf("at=put-bucket\n")
+		err := m.Put()
+		if err != nil {
+			fmt.Printf("error=%s\n", err)
+		}
 	}
 }

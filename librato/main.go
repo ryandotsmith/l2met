@@ -108,9 +108,9 @@ func allBucketIds(min, max time.Time) ([]int64, error) {
 // Its responsibility is to get the ids of buckets for the current time,
 // make empty Buckets, then place the buckets in an inbox to be filled
 // (load the vals into the bucket) and processed.
-func fetch(out chan<- *store.Bucket) {
+func fetch(inbox chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Duration(*processInterval) * time.Second) {
-		go func(out chan<- *store.Bucket) {
+		go func(inbox chan<- *store.Bucket) {
 			startPoll := time.Now()
 			max := utils.RoundTime(time.Now(), time.Minute)
 			min := max.Add(-time.Minute)
@@ -121,10 +121,10 @@ func fetch(out chan<- *store.Bucket) {
 			}
 			for i := range ids {
 				b := store.Bucket{Id: ids[i]}
-				out <- &b
+				inbox <- &b
 			}
 			utils.MeasureT(startPoll, "librato.fetch")
-		}(out)
+		}(inbox)
 	}
 }
 

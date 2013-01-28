@@ -206,7 +206,7 @@ func (b *Bucket) Put() error {
 	}
 
 	found := false
-	s := "select id from metrics where name = $1 and source = $2 and time = $3"
+	s := "select id from metrics where name = $1 and source = $2 and bucket = $3"
 	rows, err := txn.Query(s, b.Name, b.Source, b.Time)
 	if err != nil {
 		txn.Rollback()

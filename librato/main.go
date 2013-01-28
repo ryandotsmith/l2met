@@ -31,7 +31,7 @@ type LM struct {
 }
 
 type LP struct {
-	Gauges []LM `json:"gauges"`
+	Gauges *[]*LM `json:"gauges"`
 }
 
 var (
@@ -46,20 +46,27 @@ func main() {
 	// The converter will take items from the inbox,
 	// fill in the bucket with the vals, then convert the
 	// bucket into a librato metric.
-	lms := make(chan LM)
+	lms := make(chan *LM)
 	// The converter will place the librato metrics into
 	// the outbox for HTTP submission. We rely on the batch
 	// routine to make sure that the collections of librato metrics
 	// in the outbox are homogeneous with respect to their token.
 	// This ensures that we route the metrics to the correct librato account.
-	outbox := make(chan []LM)
+	outbox := make(chan *[]*LM)
 
 	// Print chan visibility.
 	go report(inbox, lms, outbox)
 
-	// Lightweight routine that reads ints from the database
+	// Routine that reads ints from the database
 	// and sends them to the inbox.
 	go fetch(inbox)
+
+	// We take the empty buckets from the inbox,
+	// get the values from the database, then make librato metrics out of them.
+	for i := 0; i < *workers; i++ {
+		go convert(inbox, lms)
+	}
+
 	// Shouldn't need to be concurrent since it's responsibility
 	// it to serialize a collection of librato metrics.
 	go batch(lms, outbox)
@@ -68,7 +75,6 @@ func main() {
 	// and making HTTP requests. We will want to take advantage of
 	// parallel processing.
 	for i := 0; i < *workers; i++ {
-		go convert(inbox, lms)
 		go post(outbox)
 	}
 
@@ -76,7 +82,7 @@ func main() {
 	select {}
 }
 
-func report(i chan *store.Bucket, l chan LM, o chan []LM) {
+func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {
 	for _ = range time.Tick(time.Second * 5) {
 		utils.MeasureI("librato.inbox", int64(len(i)))
 		utils.MeasureI("librato.lms", int64(len(l)))
@@ -128,7 +134,7 @@ func fetch(inbox chan<- *store.Bucket) {
 	}
 }
 
-func convert(inbox <-chan *store.Bucket, lms chan<- LM) {
+func convert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 	for b := range inbox {
 		err := b.Get()
 		if err != nil {
@@ -137,15 +143,15 @@ func convert(inbox <-chan *store.Bucket, lms chan<- LM) {
 		}
 		fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
 			b.Time.Minute(), b.Name)
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
-		lms <- LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
+		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
 		utils.MeasureI("librato.convert", 1)
 	}
 }
@@ -158,42 +164,43 @@ func fi(x int) string {
 	return strconv.FormatInt(int64(x), 10)
 }
 
-func batch(in <-chan LM, out chan<- []LM) {
+func batch(lms <-chan *LM, outbox chan<- *[]*LM) {
 	ticker := time.Tick(time.Second)
-	batchMap := make(map[string]*[]LM)
+	batchMap := make(map[string]*[]*LM)
 	for {
 		select {
 		case <-ticker:
 			for k, v := range batchMap {
 				if len(*v) > 0 {
-					out <- *v
+					outbox <- v
 					delete(batchMap, k)
 				}
 			}
-		case lm := <-in:
+		case lm := <-lms:
 			k := lm.Token
 			v, ok := batchMap[k]
 			if !ok {
-				tmp := make([]LM, 0, 50)
+				tmp := make([]*LM, 0, 50)
 				v = &tmp
 				batchMap[k] = v
 			}
 			*v = append(*v, lm)
 			if len(*v) == cap(*v) {
-				out <- *v
+				outbox <- v
 				delete(batchMap, k)
 			}
 		}
 	}
 }
 
-func post(in <-chan []LM) {
-	for metrics := range in {
-		if len(metrics) < 1 {
+func post(outbox <-chan *[]*LM) {
+	for metrics := range outbox {
+		if len(*metrics) < 1 {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
-		token := store.Token{Id: metrics[0].Token}
+		m := *metrics
+		token := store.Token{Id: m[0].Token}
 		token.Get()
 		payload := LP{metrics}
 		j, err := json.Marshal(payload)

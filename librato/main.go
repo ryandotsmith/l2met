@@ -105,6 +105,7 @@ func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {
 // (load the vals into the bucket) and processed.
 func scheduleFetch(inbox chan<- *store.Bucket) {
 	for t := range time.Tick(time.Second) {
+		// Start working on the new minute right away.
 		if t.Second()%*processInterval == 0 {
 			fetch(t, inbox)
 		}
@@ -146,23 +147,23 @@ func scanBuckets(min, max time.Time) ([]int64, error) {
 
 func scheduleConvert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 	for b := range inbox {
-		err := b.Get()
-		if err != nil {
-			fmt.Printf("error=%s\n", err)
-			continue
-		}
-		if len(b.Vals) == 0 {
-			fmt.Printf("at=bucket-no-vals name=%s\n", b.Name)
-			continue
-		}
-		fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
-			b.Time.Minute(), b.Name)
-		convert(b, lms)
+		go convert(b, lms)
 	}
 }
 
 func convert(b *store.Bucket, lms chan<- *LM) {
 	defer utils.MeasureT(time.Now(), "librato.convert")
+	err := b.Get()
+	if err != nil {
+		fmt.Printf("error=%s\n", err)
+		return
+	}
+	if len(b.Vals) == 0 {
+		fmt.Printf("at=bucket-no-vals name=%s\n", b.Name)
+		return
+	}
+	fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
+		b.Time.Minute(), b.Name)
 	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
 	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
 	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}

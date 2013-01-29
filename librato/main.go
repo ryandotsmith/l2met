@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"net"
 )
 
 var (
@@ -20,6 +21,15 @@ var (
 
 func init() {
 	flag.Parse()
+	http.DefaultTransport = &http.Transport{
+		Dial: func(n, a string) (net.Conn, error) {
+			c, err := net.DialTimeout(n, a, time.Second * 2)
+			if err != nil {
+				return c, err
+			}
+			return c, c.SetDeadline(time.Now().Add(time.Second * 5))
+		},
+	}
 }
 
 type LM struct {
@@ -205,7 +215,12 @@ func schedulePost(outbox <-chan *[]*LM) {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
-		post(metrics)
+		go func() {
+			err := post(metrics)
+			if err != nil {
+				fmt.Printf("at=post-error error=%s\n", err)
+			}
+		}()
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"runtime"
 )
 
 var (
@@ -23,6 +24,7 @@ var (
 
 func init() {
 	flag.Parse()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func main() {

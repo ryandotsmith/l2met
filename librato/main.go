@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 	"net"
+	"runtime"
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 
 func init() {
 	flag.Parse()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	http.DefaultTransport = &http.Transport{
 		Dial: func(n, a string) (net.Conn, error) {
 			c, err := net.DialTimeout(n, a, time.Second * 2)

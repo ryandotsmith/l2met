@@ -203,6 +203,8 @@ func post(outbox <-chan *[]*LM) {
 			continue
 		}
 		m := *metrics
+		minute := time.Unix(m[0].Time, -1)
+		fmt.Printf("at=start_post minute=%d\n", minute.Minute())
 		token := store.Token{Id: m[0].Token}
 		token.Get()
 		payload := LP{metrics}

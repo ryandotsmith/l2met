@@ -30,14 +30,14 @@ func init() {
 func main() {
 	fmt.Printf("at=start-l2met port=%s\n", *port)
 	register := make(map[string]*store.Bucket)
-	iChan := make(chan *store.Bucket, 1000)
-	oChan := make(chan *store.Bucket, 1000)
+	inbox := make(chan *store.Bucket, 1000)
+	outbox := make(chan *store.Bucket, 1000)
 	for i := 0; i < *workers; i++ {
-		go accept(iChan, &register)
-		go transfer(&register, oChan)
-		go outlet(oChan)
+		go accept(inbox, &register)
+		go transfer(&register, outbox)
+		go outlet(outbox)
 	}
-	reciever := func(w http.ResponseWriter, r *http.Request) { recieveLogs(w, r, iChan) }
+	reciever := func(w http.ResponseWriter, r *http.Request) { recieveLogs(w, r, inbox) }
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 	http.HandleFunc("/logs", reciever)
 	http.HandleFunc("/buckets", getBuckets)
@@ -161,8 +161,8 @@ func recieveLogs(w http.ResponseWriter, r *http.Request, ch chan<- *store.Bucket
 	}
 }
 
-func accept(ch <-chan *store.Bucket, register *map[string]*store.Bucket) {
-	for m := range ch {
+func accept(inbox <-chan *store.Bucket, register *map[string]*store.Bucket) {
+	for m := range inbox {
 		k := m.String()
 		var bucket *store.Bucket
 		registerLocker.Lock()
@@ -178,12 +178,12 @@ func accept(ch <-chan *store.Bucket, register *map[string]*store.Bucket) {
 	}
 }
 
-func transfer(register *map[string]*store.Bucket, ch chan<- *store.Bucket) {
+func transfer(register *map[string]*store.Bucket, outbox chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Second) {
 		for k := range *register {
 			registerLocker.Lock()
 			if m, ok := (*register)[k]; ok {
-				ch <- m
+				outbox <- m
 				delete(*register, k)
 			}
 			registerLocker.Unlock()
@@ -191,8 +191,8 @@ func transfer(register *map[string]*store.Bucket, ch chan<- *store.Bucket) {
 	}
 }
 
-func outlet(ch <-chan *store.Bucket) {
-	for m := range ch {
+func outlet(outbox <-chan *store.Bucket) {
+	for m := range outbox {
 		err := m.Put()
 		if err != nil {
 			fmt.Printf("error=%s\n", err)

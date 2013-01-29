@@ -147,7 +147,7 @@ func scanBuckets(min, max time.Time) ([]int64, error) {
 
 func scheduleConvert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 	for b := range inbox {
-		go convert(b, lms)
+		convert(b, lms)
 	}
 }
 

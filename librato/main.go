@@ -54,9 +54,6 @@ func main() {
 	// This ensures that we route the metrics to the correct librato account.
 	outbox := make(chan *[]*LM, 1000)
 
-	// Print chan visibility.
-	go report(inbox, lms, outbox)
-
 	// Routine that reads ints from the database
 	// and sends them to the inbox.
 	go fetch(inbox)
@@ -78,8 +75,8 @@ func main() {
 		go post(outbox)
 	}
 
-	// Live forever.
-	select {}
+	// Print chanel metrics & live forever.
+	report(inbox, lms, outbox)
 }
 
 func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {

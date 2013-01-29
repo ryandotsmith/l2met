@@ -12,15 +12,15 @@ var (
 )
 
 func init() {
-	url := os.Getenv("DATABASE_READ_URL")
+	url := os.Getenv("DATABASE_URL")
 	if len(url) == 0 {
-		fmt.Printf("error=\"must set DATABASE_READ_URL\"\n")
+		fmt.Printf("error=\"must set DATABASE_URL\"\n")
 		os.Exit(1)
 	}
 
 	pgurl, err := pq.ParseURL(url)
 	if err != nil {
-		fmt.Printf("error=\"unable to parse DATABASE_READ_URL\"\n")
+		fmt.Printf("error=\"unable to parse DATABASE_URL\"\n")
 		os.Exit(1)
 	}
 

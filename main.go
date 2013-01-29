@@ -32,6 +32,7 @@ func main() {
 	register := make(map[string]*store.Bucket)
 	inbox := make(chan *store.Bucket, 1000)
 	outbox := make(chan *store.Bucket, 1000)
+	go report(inbox, outbox)
 	for i := 0; i < *workers; i++ {
 		go accept(inbox, &register)
 		go transfer(&register, outbox)
@@ -46,6 +47,13 @@ func main() {
 	if err != nil {
 		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
 		os.Exit(1)
+	}
+}
+
+func report(inbox chan *store.Bucket, outbox chan *store.Bucket) {
+	for _ = range time.Tick(time.Second * 5) {
+		utils.MeasureI("web.inbox", int64(len(inbox)))
+		utils.MeasureI("web.outbox", int64(len(outbox)))
 	}
 }
 

@@ -3,7 +3,6 @@ package store
 import (
 	"bufio"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/bmizerany/logplex"
 	"io"
@@ -188,12 +187,9 @@ func (b *Bucket) Get() error {
 	rows.Next()
 	var tmp []byte
 	rows.Scan(&b.Name, &b.Time, &b.Source, &b.Token, &tmp)
-	if len(tmp) == 0 {
-		return errors.New("store/bucket: No values to get.")
-	}
-	encoding.DecodeArray(tmp, &b.Vals)
-	if len(b.Vals) == 0 {
-		return errors.New("store/bucket: No values in bucket.")
+	err = encoding.DecodeArray(tmp, &b.Vals)
+	if err != nil {
+		return err
 	}
 	return nil
 }

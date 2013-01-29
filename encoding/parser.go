@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"errors"
 	"l2met/utils"
 	"regexp"
 	"strconv"
@@ -27,8 +28,17 @@ func ParseMsgData(msg []byte) (map[string]string, error) {
 	return d, nil
 }
 
-func DecodeArray(b []byte, dest *[]float64) {
+func DecodeArray(b []byte, dest *[]float64) error {
 	defer utils.MeasureT(time.Now(), "encoding.decode-array")
+	if len(b) < 2 {
+		return errors.New("l2met/parser: Not able to decode array.")
+	}
+	if b[0] != '{' {
+		return errors.New("l2met/parser: Not able to decode array.")
+	}
+	if b[len(b)-1] != '}' {
+		return errors.New("l2met/parser: Not able to decode array.")
+	}
 	// pq returns something like: {1.0, 2.0}
 	// let us remove the { and the }
 	trimed := b[1:(len(b) - 1)]
@@ -41,6 +51,7 @@ func DecodeArray(b []byte, dest *[]float64) {
 			*dest = append(*dest, f)
 		}
 	}
+	return nil
 }
 
 func EncodeArray(arr []float64) []byte {

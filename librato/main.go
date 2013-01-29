@@ -205,6 +205,7 @@ func schedulePost(outbox <-chan *[]*LM) {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
+		post(metrics)
 	}
 }
 

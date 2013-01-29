@@ -234,8 +234,8 @@ func (b *Bucket) Put() error {
 		}
 	}
 
-	_, err = pg.Exec("update metrics set vals = vals || $1::float8[] where name = $2 and bucket = $3",
-		string(encoding.EncodeArray(b.Vals)), b.Name, b.Time)
+	_, err = pg.Exec("update metrics set vals = vals || $1::float8[] where name = $2 and source = $4 and bucket = $3",
+		string(encoding.EncodeArray(b.Vals)), b.Name, b.Time, b.Source)
 	if err != nil {
 		txn.Rollback()
 		return err

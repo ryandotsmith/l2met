@@ -93,7 +93,7 @@ func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {
 // (load the vals into the bucket) and processed.
 func scheduleFetch(inbox chan<- *store.Bucket) {
 	for t := range time.Tick(time.Second) {
-		if t.Second() % *processInterval == 0 {
+		if t.Second()%*processInterval == 0 {
 			fetch(t, inbox)
 		}
 	}

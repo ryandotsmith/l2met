@@ -221,7 +221,8 @@ func (b *Bucket) Put() error {
 	rows.Close()
 
 	if !found {
-		fmt.Printf("at=create-bucket name=%s bucket=%s\n", b.Name, b.Time)
+		fmt.Printf("at=%q minute=%d name=%s\n",
+			"insert-bucket", b.Time.Minute(), b.Name)
 		_, err = txn.Exec("insert into metrics (name, bucket, source, token) values($1,$2,$3,$4)",
 			b.Name, b.Time, b.Source, b.Token)
 		if err != nil {

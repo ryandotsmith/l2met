@@ -143,6 +143,7 @@ func convert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 		}
 		if len(b.Vals) == 0 {
 			fmt.Printf("at=bucket-no-vals name=%s\n", b.Name)
+			continue
 		}
 		fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
 			b.Time.Minute(), b.Name)

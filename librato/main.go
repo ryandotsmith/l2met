@@ -56,7 +56,7 @@ func main() {
 
 	// Routine that reads ints from the database
 	// and sends them to the inbox.
-	go fetch(inbox)
+	go scheduleFetch(inbox)
 
 	// We take the empty buckets from the inbox,
 	// get the values from the database, then make librato metrics out of them.
@@ -87,51 +87,51 @@ func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {
 	}
 }
 
-func allBucketIds(min, max time.Time) ([]int64, error) {
-	var buckets []int64
-	startQuery := time.Now()
-	r, err := pg.Query("select id from metrics where bucket >= $1 and bucket < $2 order by bucket desc",
-		min, max)
-	if err != nil {
-		return nil, err
-	}
-	utils.MeasureT(startQuery, "metrics.query")
-	startParse := time.Now()
-	defer r.Close()
-	for r.Next() {
-		var id int64
-		r.Scan(&id)
-		buckets = append(buckets, id)
-	}
-	utils.MeasureT(startParse, "metrics.vals.parse")
-	return buckets, nil
-}
-
 // Fetch should kick off the librato outlet process.
 // Its responsibility is to get the ids of buckets for the current time,
 // make empty Buckets, then place the buckets in an inbox to be filled
 // (load the vals into the bucket) and processed.
-func fetch(inbox chan<- *store.Bucket) {
+func scheduleFetch(inbox chan<- *store.Bucket) {
 	for t := range time.Tick(time.Second) {
-		if t.Second() % *processInterval != 0 {
-			continue
+		if t.Second() % *processInterval == 0 {
+			fetch(t, inbox)
 		}
-		fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
-		startPoll := time.Now()
-		max := utils.RoundTime(t, time.Minute)
-		min := max.Add(-time.Minute)
-		ids, err := allBucketIds(min, max)
-		if err != nil {
-			utils.MeasureE("find-failed", err)
-			return
-		}
-		for i := range ids {
-			b := store.Bucket{Id: ids[i]}
-			inbox <- &b
-		}
-		utils.MeasureT(startPoll, "librato.fetch")
 	}
 }
+
+func fetch(t time.Time, inbox chan<- *store.Bucket) {
+	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
+	defer utils.MeasureT(time.Now(), "librato.fetch")
+	max := utils.RoundTime(t, time.Minute)
+	min := max.Add(-time.Minute)
+	ids, err := scanBuckets(min, max)
+	if err != nil {
+		return
+	}
+	for i := range ids {
+		inbox <- &store.Bucket{Id: ids[i]}
+	}
+}
+
+func scanBuckets(min, max time.Time) ([]int64, error) {
+	defer utils.MeasureT(time.Now(), "librato.scan-buckets")
+	rows, err := pg.Query("select id from metrics where bucket >= $1 and bucket < $2 order by bucket desc",
+		min, max)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var buckets []int64
+	for rows.Next() {
+		var id int64
+		err = rows.Scan(&id)
+		if err == nil {
+			buckets = append(buckets, id)
+		}
+	}
+	return buckets, nil
+}
+
 
 func convert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 	for b := range inbox {

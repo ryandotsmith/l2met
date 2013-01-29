@@ -115,7 +115,10 @@ func allBucketIds(min, max time.Time) ([]int64, error) {
 // make empty Buckets, then place the buckets in an inbox to be filled
 // (load the vals into the bucket) and processed.
 func fetch(inbox chan<- *store.Bucket) {
-	for t := range time.Tick(time.Duration(*processInterval) * time.Second) {
+	for t := range time.Tick(time.Second) {
+		if t.Second() % *processInterval != 0 {
+			continue
+		}
 		fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
 		startPoll := time.Now()
 		max := utils.RoundTime(t, time.Minute)

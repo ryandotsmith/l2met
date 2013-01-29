@@ -72,7 +72,7 @@ func main() {
 	// and making HTTP requests. We will want to take advantage of
 	// parallel processing.
 	for i := 0; i < *workers; i++ {
-		go post(outbox)
+		go schedulePost(outbox)
 	}
 
 	// Print chanel metrics & live forever.
@@ -199,41 +199,43 @@ func batch(lms <-chan *LM, outbox chan<- *[]*LM) {
 	}
 }
 
-func post(outbox <-chan *[]*LM) {
+func schedulePost(outbox <-chan *[]*LM) {
 	for metrics := range outbox {
 		if len(*metrics) < 1 {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
-		m := *metrics
-		minute := time.Unix(m[0].Time, -1)
-		fmt.Printf("at=start_post minute=%d\n", minute.Minute())
-		token := store.Token{Id: m[0].Token}
-		token.Get()
-		payload := LP{metrics}
-		j, err := json.Marshal(payload)
-		postBody := bytes.NewBuffer(j)
-		if err != nil {
-			utils.MeasureE("librato.json", err)
-			continue
-		}
-		req, err := http.NewRequest("POST", libratoUrl, postBody)
-		if err != nil {
-			continue
-		}
-		req.Header.Add("Content-Type", "application/json")
-		req.SetBasicAuth(token.User, token.Pass)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			utils.MeasureE("librato-post", err)
-			continue
-		}
-		if resp.StatusCode/100 != 2 {
-			b, _ := ioutil.ReadAll(resp.Body)
-			fmt.Printf("status=%d post-body=%s resp-body=%s\n",
-				resp.StatusCode, postBody, b)
-		}
-		utils.MeasureI("librato.post", 1)
-		resp.Body.Close()
 	}
+}
+
+func post(metrics *[]*LM) error {
+	sampleMetric := *(*metrics)[0]
+	token := store.Token{Id: sampleMetric.Token}
+	token.Get()
+
+	payload := LP{metrics}
+	j, err := json.Marshal(payload)
+	postBody := bytes.NewBuffer(j)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", libratoUrl, postBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.SetBasicAuth(token.User, token.Pass)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode/100 != 2 {
+		b, _ := ioutil.ReadAll(resp.Body)
+		fmt.Printf("status=%d post-body=%s resp-body=%s\n",
+			resp.StatusCode, postBody, b)
+	}
+	return nil
 }

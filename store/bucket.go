@@ -195,6 +195,7 @@ func (b *Bucket) Get() error {
 }
 
 func (b *Bucket) Put() error {
+	defer utils.MeasureT(time.Now(), "bucket.put")
 	b.Lock()
 	defer b.Unlock()
 

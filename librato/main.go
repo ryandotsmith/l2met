@@ -61,7 +61,7 @@ func main() {
 	// We take the empty buckets from the inbox,
 	// get the values from the database, then make librato metrics out of them.
 	for i := 0; i < *workers; i++ {
-		go convert(inbox, lms)
+		go scheduleConvert(inbox, lms)
 	}
 
 	// Shouldn't need to be concurrent since it's responsibility
@@ -132,8 +132,7 @@ func scanBuckets(min, max time.Time) ([]int64, error) {
 	return buckets, nil
 }
 
-
-func convert(inbox <-chan *store.Bucket, lms chan<- *LM) {
+func scheduleConvert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 	for b := range inbox {
 		err := b.Get()
 		if err != nil {
@@ -146,17 +145,21 @@ func convert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 		}
 		fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
 			b.Time.Minute(), b.Name)
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
-		lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
-		utils.MeasureI("librato.convert", 1)
+		convert(b, lms)
 	}
+}
+
+func convert(b *store.Bucket, lms chan<- *LM) {
+	defer utils.MeasureT(time.Now(), "librato.convert")
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
+	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
 }
 
 func ff(x float64) string {

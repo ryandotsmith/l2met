@@ -32,12 +32,16 @@ func main() {
 	register := make(map[string]*store.Bucket)
 	inbox := make(chan *store.Bucket, 1000)
 	outbox := make(chan *store.Bucket, 1000)
+
 	go report(inbox, outbox)
 	for i := 0; i < *workers; i++ {
 		go accept(inbox, &register)
-		go transfer(&register, outbox)
+	}
+	go transfer(&register, outbox)
+	for i := 0; i < *workers; i++ {
 		go outlet(outbox)
 	}
+
 	reciever := func(w http.ResponseWriter, r *http.Request) { recieveLogs(w, r, inbox) }
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 	http.HandleFunc("/logs", reciever)
@@ -187,7 +191,7 @@ func accept(inbox <-chan *store.Bucket, register *map[string]*store.Bucket) {
 }
 
 func transfer(register *map[string]*store.Bucket, outbox chan<- *store.Bucket) {
-	for _ = range time.Tick(time.Second) {
+	for _ = range time.Tick(time.Second * 5) {
 		for k := range *register {
 			registerLocker.Lock()
 			if m, ok := (*register)[k]; ok {
@@ -200,8 +204,8 @@ func transfer(register *map[string]*store.Bucket, outbox chan<- *store.Bucket) {
 }
 
 func outlet(outbox <-chan *store.Bucket) {
-	for m := range outbox {
-		err := m.Put()
+	for b := range outbox {
+		err := b.Put()
 		if err != nil {
 			fmt.Printf("error=%s\n", err)
 		}

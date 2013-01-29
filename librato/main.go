@@ -46,13 +46,13 @@ func main() {
 	// The converter will take items from the inbox,
 	// fill in the bucket with the vals, then convert the
 	// bucket into a librato metric.
-	lms := make(chan *LM)
+	lms := make(chan *LM, 1000)
 	// The converter will place the librato metrics into
 	// the outbox for HTTP submission. We rely on the batch
 	// routine to make sure that the collections of librato metrics
 	// in the outbox are homogeneous with respect to their token.
 	// This ensures that we route the metrics to the correct librato account.
-	outbox := make(chan *[]*LM)
+	outbox := make(chan *[]*LM, 1000)
 
 	// Print chan visibility.
 	go report(inbox, lms, outbox)
@@ -116,21 +116,19 @@ func allBucketIds(min, max time.Time) ([]int64, error) {
 // (load the vals into the bucket) and processed.
 func fetch(inbox chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Duration(*processInterval) * time.Second) {
-		go func(inbox chan<- *store.Bucket) {
-			startPoll := time.Now()
-			max := utils.RoundTime(time.Now(), time.Minute)
-			min := max.Add(-time.Minute)
-			ids, err := allBucketIds(min, max)
-			if err != nil {
-				utils.MeasureE("find-failed", err)
-				return
-			}
-			for i := range ids {
-				b := store.Bucket{Id: ids[i]}
-				inbox <- &b
-			}
-			utils.MeasureT(startPoll, "librato.fetch")
-		}(inbox)
+		startPoll := time.Now()
+		max := utils.RoundTime(time.Now(), time.Minute)
+		min := max.Add(-time.Minute)
+		ids, err := allBucketIds(min, max)
+		if err != nil {
+			utils.MeasureE("find-failed", err)
+			return
+		}
+		for i := range ids {
+			b := store.Bucket{Id: ids[i]}
+			inbox <- &b
+		}
+		utils.MeasureT(startPoll, "librato.fetch")
 	}
 }
 

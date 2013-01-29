@@ -40,7 +40,7 @@ func (b *Bucket) Key() int64 {
 
 func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Metric, error) {
 	startQuery := time.Now()
-	rows, err := pgRead.Query("select * from get_metrics($1, $2, $3, $4, $5)",
+	rows, err := pg.Query("select * from get_metrics($1, $2, $3, $4, $5)",
 		token, name, resolution, min, max)
 	if err != nil {
 		utils.MeasureE("get-metrics-error", err)
@@ -75,7 +75,7 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 func GetBuckets(token string, min, max time.Time) ([]*Bucket, error) {
 	var buckets []*Bucket
 	startQuery := time.Now()
-	rows, err := pgRead.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",
+	rows, err := pg.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",
 		token, min, max)
 	if err != nil {
 		return nil, err
@@ -179,10 +179,9 @@ func (b *Bucket) String() (res string) {
 
 func (b *Bucket) Get() error {
 	defer utils.MeasureT(time.Now(), "bucket.get")
-	rows, err := pgRead.Query("select name, bucket, source, token, vals from metrics where id = $1",
+	rows, err := pg.Query("select name, bucket, source, token, vals from metrics where id = $1",
 		b.Id)
 	if err != nil {
-		fmt.Printf("error=%s\n", err)
 		return err
 	}
 	defer rows.Close()

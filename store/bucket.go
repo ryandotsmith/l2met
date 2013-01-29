@@ -123,7 +123,7 @@ func NewBucket(token string, rdr *bufio.Reader) ([]*Bucket, error) {
 
 		source, ok := d["source"]
 		if !ok {
-			source = ""
+			source = "default"
 		}
 
 		var val float64

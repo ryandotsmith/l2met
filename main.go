@@ -166,7 +166,7 @@ func accept(ch <-chan *store.Bucket, register *map[string]*store.Bucket) {
 		registerLocker.Lock()
 		bucket, ok := (*register)[k]
 		if !ok {
-			fmt.Printf("at=%q minute=%d name=%d\n",
+			fmt.Printf("at=%q minute=%d name=%s\n",
 				"add-to-register", m.Time.Minute(), m.Name)
 			(*register)[k] = m
 		} else {

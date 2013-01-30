@@ -55,7 +55,7 @@ type LM struct {
 	Time   int64  `json:"measure_time"`
 	Val    string `json:"value"`
 	Source string `json:"source,omitempty"`
-	Token  string
+	Token  string `json:",omitempty"`
 }
 
 type LP struct {
@@ -235,7 +235,7 @@ func fi(x int) string {
 }
 
 func batch(lms <-chan *LM, outbox chan<- []*LM) {
-	ticker := time.Tick(time.Millisecond * 250)
+	ticker := time.Tick(time.Second)
 	batchMap := make(map[string][]*LM)
 	for {
 		select {

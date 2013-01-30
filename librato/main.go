@@ -287,14 +287,14 @@ func post(metrics *[]*LM) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", libratoUrl, postBody)
-	if err != nil {
-		return err
-	}
-	req.Header.Add("Content-Type", "application/json")
-	req.SetBasicAuth(token.User, token.Pass)
-
 	for i := 0; i < 3; i++ {
+		req, err := http.NewRequest("POST", libratoUrl, postBody)
+		if err != nil {
+			return err
+		}
+		req.Header.Add("Content-Type", "application/json")
+		req.SetBasicAuth(token.User, token.Pass)
+
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return err

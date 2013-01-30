@@ -293,15 +293,20 @@ func post(metrics *[]*LM) error {
 	req.Header.Add("Content-Type", "application/json")
 	req.SetBasicAuth(token.User, token.Pass)
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode/100 != 2 {
-		b, _ := ioutil.ReadAll(resp.Body)
-		fmt.Printf("status=%d post-body=%s resp-body=%s\n",
-			resp.StatusCode, postBody, b)
+	for i := 0; i < 3; i++ {
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode/100 != 2 {
+			b, _ := ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+			fmt.Printf("status=%d post-body=%s resp-body=%s\n",
+				resp.StatusCode, postBody, b)
+		} else {
+			resp.Body.Close()
+			break
+		}
 	}
 	return nil
 }

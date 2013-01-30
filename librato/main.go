@@ -59,7 +59,7 @@ type LM struct {
 }
 
 type LP struct {
-	Gauges []*LM `json:"gauges"`
+	Gauges *[]*LM `json:"gauges"`
 }
 
 var (
@@ -263,17 +263,17 @@ func schedulePost(outbox <-chan []*LM) {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
-		go func(m []*LM) {
+		go func(m *[]*LM) {
 			err := post(m)
 			if err != nil {
 				fmt.Printf("at=post-error error=%s\n", err)
 			}
-		}(metrics)
+		}(&metrics)
 	}
 }
 
-func post(metrics []*LM) error {
-	sampleMetric := metrics[0]
+func post(metrics *[]*LM) error {
+	sampleMetric := *(*metrics)[0]
 	token := store.Token{Id: sampleMetric.Token}
 	token.Get()
 

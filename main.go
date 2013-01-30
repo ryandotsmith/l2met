@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
-	"runtime"
 )
 
 var (

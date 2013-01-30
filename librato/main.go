@@ -2,30 +2,45 @@ package main
 
 import (
 	"bytes"
+	"errors"
+	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
-	"net/http"
-	"strconv"
-	"time"
 	"net"
+	"net/http"
 	"runtime"
+	"time"
+	"strconv"
+	"log"
+	"os"
 )
 
 var (
+	paritionId      int
+	maxPartitions   int
 	workers         = flag.Int("workers", 4, "Number of routines that will post data to librato")
 	processInterval = flag.Int("proc-int", 5, "Number of seconds to wait in between bucket processing.")
 )
 
 func init() {
-	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	flag.Parse()
+
+	var err error
+	tmp := os.Getenv("MAX_LIBRATO_PROCS")
+	maxPartitions, err = strconv.Atoi(tmp)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	http.DefaultTransport = &http.Transport{
 		Dial: func(n, a string) (net.Conn, error) {
-			c, err := net.DialTimeout(n, a, time.Second * 2)
+			c, err := net.DialTimeout(n, a, time.Second*2)
 			if err != nil {
 				return c, err
 			}
@@ -51,6 +66,11 @@ var (
 )
 
 func main() {
+	var err error
+	paritionId, err = lockPartition()
+	if err != nil {
+		log.Fatal("Unable to lock partition.")
+	}
 	// The inbox is used to hold empty buckets that are
 	// waiting to be processed. We buffer the chanel so
 	// as not to slow down the fetch routine. We can
@@ -91,6 +111,29 @@ func main() {
 	report(inbox, lms, outbox)
 }
 
+// Lock a partition to work.
+func lockPartition() (int, error) {
+	for {
+		for p := 1; p < maxPartitions; p++ {
+			rows, err := pg.Query("select pg_try_advisory_lock($1)", p)
+			if err != nil {
+				continue
+			}
+			for rows.Next() {
+				var result sql.NullBool
+				rows.Scan(&result)
+				if result.Valid && result.Bool {
+					rows.Close()
+					return p, nil
+				}
+			}
+			rows.Close()
+		}
+		time.Sleep(time.Second * 10)
+	}
+	return 0, errors.New("Unable to lock partition.")
+}
+
 func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {
 	for _ = range time.Tick(time.Second * 5) {
 		utils.MeasureI("librato.inbox", int64(len(i)))
@@ -128,8 +171,10 @@ func fetch(t time.Time, inbox chan<- *store.Bucket) {
 
 func scanBuckets(min, max time.Time) ([]int64, error) {
 	defer utils.MeasureT(time.Now(), "librato.scan-buckets")
-	rows, err := pg.Query("select id from metrics where bucket >= $1 and bucket < $2 order by bucket desc",
-		min, max)
+	s := "select id from metrics where bucket >= $1 and bucket < $2 "
+	s += "and MOD(id, $3) = $4 "
+	s += "order by bucket desc"
+	rows, err := pg.Query(s, min, max, paritionId, maxPartitions)
 	if err != nil {
 		return nil, err
 	}

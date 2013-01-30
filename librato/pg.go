@@ -29,4 +29,6 @@ func init() {
 		fmt.Printf("error=%s\n", err)
 		os.Exit(1)
 	}
+
+	pg.Exec("set application_name = 'l2met-next_librato'")
 }

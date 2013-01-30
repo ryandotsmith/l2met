@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "net/http/pprof"
 	"bytes"
 	"database/sql"
 	"encoding/json"
@@ -14,6 +13,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"strconv"
@@ -296,6 +296,7 @@ func post(metrics *[]*LM) error {
 	for i := 0; i < 3; i++ {
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
+			fmt.Printf("at=librato-http-post error=%s\n", err)
 			return err
 		}
 		if resp.StatusCode/100 != 2 {

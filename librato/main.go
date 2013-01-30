@@ -114,7 +114,7 @@ func main() {
 // Lock a partition to work.
 func lockPartition() (int, error) {
 	for {
-		for p := 0; p <= maxPartitions; p++ {
+		for p := 1; p <= maxPartitions; p++ {
 			rows, err := pg.Query("select pg_try_advisory_lock($1)", p)
 			if err != nil {
 				continue

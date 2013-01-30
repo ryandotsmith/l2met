@@ -235,7 +235,7 @@ func fi(x int) string {
 }
 
 func batch(lms <-chan *LM, outbox chan<- []*LM) {
-	ticker := time.Tick(time.Second)
+	ticker := time.Tick(time.Millisecond * 250)
 	batchMap := make(map[string][]*LM)
 	for {
 		select {
@@ -247,13 +247,13 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 				}
 			}
 		case lm := <-lms:
-			v, ok := batchMap[lm.Token]
+			_, ok := batchMap[lm.Token]
 			if !ok {
 				var tmp []*LM
 				tmp = append(tmp, lm)
 				batchMap[lm.Token] = tmp
 			} else {
-				v = append(v, lm)
+				batchMap[lm.Token] = append(batchMap[lm.Token], lm)
 			}
 		}
 	}

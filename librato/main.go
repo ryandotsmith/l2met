@@ -41,11 +41,11 @@ func init() {
 
 	http.DefaultTransport = &http.Transport{
 		Dial: func(n, a string) (net.Conn, error) {
-			c, err := net.DialTimeout(n, a, time.Second*2)
+			c, err := net.DialTimeout(n, a, time.Second*5)
 			if err != nil {
 				return c, err
 			}
-			return c, c.SetDeadline(time.Now().Add(time.Second * 5))
+			return c, c.SetDeadline(time.Now().Add(time.Second * 7))
 		},
 	}
 }

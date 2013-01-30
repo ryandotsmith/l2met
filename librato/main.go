@@ -67,9 +67,6 @@ var (
 )
 
 func main() {
-	p := os.Getenv("PORT")
-	log.Println(http.ListenAndServe(":"+p, nil))
-
 	var err error
 	partitionId, err = lockPartition()
 	if err != nil {
@@ -110,6 +107,9 @@ func main() {
 	for i := 0; i < *workers; i++ {
 		go schedulePost(outbox)
 	}
+
+	p := os.Getenv("PORT")
+	log.Println(http.ListenAndServe(":"+p, nil))
 
 	// Print chanel metrics & live forever.
 	report(inbox, lms, outbox)

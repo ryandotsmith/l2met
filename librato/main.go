@@ -123,6 +123,8 @@ func lockPartition() (int, error) {
 				var result sql.NullBool
 				rows.Scan(&result)
 				if result.Valid && result.Bool {
+					fmt.Printf("at=%q partition=%d max=%d\n",
+						"acquired-lock", p, maxPartitions)
 					rows.Close()
 					return p, nil
 				}

@@ -59,7 +59,7 @@ type LM struct {
 }
 
 type LP struct {
-	Gauges *[]*LM `json:"gauges"`
+	Gauges []*LM `json:"gauges"`
 }
 
 var (
@@ -88,7 +88,7 @@ func main() {
 	// routine to make sure that the collections of librato metrics
 	// in the outbox are homogeneous with respect to their token.
 	// This ensures that we route the metrics to the correct librato account.
-	outbox := make(chan *[]*LM, 1000)
+	outbox := make(chan []*LM, 1000)
 
 	// Routine that reads ints from the database
 	// and sends them to the inbox.
@@ -140,7 +140,7 @@ func lockPartition() (int, error) {
 	return 0, errors.New("Unable to lock partition.")
 }
 
-func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {
+func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {
 	for _ = range time.Tick(time.Second * 5) {
 		utils.MeasureI("librato.inbox", int64(len(i)))
 		utils.MeasureI("librato.lms", int64(len(l)))
@@ -234,52 +234,46 @@ func fi(x int) string {
 	return strconv.FormatInt(int64(x), 10)
 }
 
-func batch(lms <-chan *LM, outbox chan<- *[]*LM) {
-	ticker := time.Tick(time.Second)
-	batchMap := make(map[string]*[]*LM)
+func batch(lms <-chan *LM, outbox chan<- []*LM) {
+	ticker := time.Tick(time.Millisecond * 250)
+	batchMap := make(map[string][]*LM)
 	for {
 		select {
 		case <-ticker:
 			for k, v := range batchMap {
-				if len(*v) > 0 {
+				if len(v) > 0 {
 					outbox <- v
 					delete(batchMap, k)
 				}
 			}
 		case lm := <-lms:
 			k := lm.Token
-			v, ok := batchMap[k]
+			_, ok := batchMap[k]
 			if !ok {
-				tmp := make([]*LM, 0, 50)
-				v = &tmp
-				batchMap[k] = v
+				batchMap[k] = make([]*LM, 1)
 			}
-			*v = append(*v, lm)
-			if len(*v) == cap(*v) {
-				outbox <- v
-				delete(batchMap, k)
-			}
+			batchMap[k] = append(batchMap[k], lm)
 		}
 	}
 }
 
-func schedulePost(outbox <-chan *[]*LM) {
+func schedulePost(outbox <-chan []*LM) {
 	for metrics := range outbox {
-		if len(*metrics) < 1 {
+		if len(metrics) < 1 {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
-		go func() {
-			err := post(metrics)
+		go func(m []*LM) {
+			err := post(m)
 			if err != nil {
 				fmt.Printf("at=post-error error=%s\n", err)
 			}
-		}()
+		}(metrics)
 	}
 }
 
-func post(metrics *[]*LM) error {
-	sampleMetric := *(*metrics)[0]
+func post(metrics []*LM) error {
+	sampleMetric := *(metrics)[0]
 	token := store.Token{Id: sampleMetric.Token}
 	token.Get()
 

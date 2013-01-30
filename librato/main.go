@@ -1,6 +1,7 @@
 package main
 
 import (
+	import _ "net/http/pprof"
 	"bytes"
 	"database/sql"
 	"encoding/json"
@@ -66,6 +67,9 @@ var (
 )
 
 func main() {
+	p := os.Getenv("PORT")
+	log.Println(http.ListenAndServe(":"+p, nil))
+
 	var err error
 	partitionId, err = lockPartition()
 	if err != nil {

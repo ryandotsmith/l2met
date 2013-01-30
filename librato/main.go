@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	paritionId      int
+	partitionId      int
 	maxPartitions   int
 	workers         = flag.Int("workers", 4, "Number of routines that will post data to librato")
 	processInterval = flag.Int("proc-int", 5, "Number of seconds to wait in between bucket processing.")
@@ -67,7 +67,7 @@ var (
 
 func main() {
 	var err error
-	paritionId, err = lockPartition()
+	partitionId, err = lockPartition()
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}
@@ -114,7 +114,7 @@ func main() {
 // Lock a partition to work.
 func lockPartition() (int, error) {
 	for {
-		for p := 1; p <= maxPartitions; p++ {
+		for p := 0; p < maxPartitions; p++ {
 			rows, err := pg.Query("select pg_try_advisory_lock($1)", p)
 			if err != nil {
 				continue
@@ -176,7 +176,7 @@ func scanBuckets(min, max time.Time) ([]int64, error) {
 	s := "select id from metrics where bucket >= $1 and bucket < $2 "
 	s += "and MOD(id, $3) = $4 "
 	s += "order by bucket desc"
-	rows, err := pg.Query(s, min, max, paritionId, maxPartitions)
+	rows, err := pg.Query(s, min, max, maxPartitions, partitionId)
 	if err != nil {
 		return nil, err
 	}

@@ -286,6 +286,7 @@ func post(metrics *[]*LM) error {
 		return err
 	}
 
+	fmt.Printf("body=%s\n", postBody)
 	req, err := http.NewRequest("POST", libratoUrl, postBody)
 	if err != nil {
 		return err
@@ -296,7 +297,6 @@ func post(metrics *[]*LM) error {
 	for i := 0; i < 3; i++ {
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			fmt.Printf("at=librato-http-post error=%s\n", err)
 			return err
 		}
 		if resp.StatusCode/100 != 2 {

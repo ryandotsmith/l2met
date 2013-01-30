@@ -275,6 +275,7 @@ func schedulePost(outbox <-chan []*LM) {
 }
 
 func post(metrics *[]*LM) error {
+	defer utils.MeasureT(time.Now(), "librato.http-post")
 	sampleMetric := *(*metrics)[0]
 	token := store.Token{Id: sampleMetric.Token}
 	token.Get()

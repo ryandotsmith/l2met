@@ -286,7 +286,6 @@ func post(metrics *[]*LM) error {
 		return err
 	}
 
-	fmt.Printf("body=%s\n", postBody)
 	req, err := http.NewRequest("POST", libratoUrl, postBody)
 	if err != nil {
 		return err

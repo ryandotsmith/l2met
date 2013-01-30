@@ -273,7 +273,7 @@ func schedulePost(outbox <-chan []*LM) {
 }
 
 func post(metrics []*LM) error {
-	sampleMetric := *(metrics)[0]
+	sampleMetric := metrics[0]
 	token := store.Token{Id: sampleMetric.Token}
 	token.Get()
 

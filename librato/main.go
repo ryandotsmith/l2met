@@ -241,18 +241,20 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 		select {
 		case <-ticker:
 			for k, v := range batchMap {
+				delete(batchMap, k)
 				if len(v) > 0 {
 					outbox <- v
-					delete(batchMap, k)
 				}
 			}
 		case lm := <-lms:
-			k := lm.Token
-			_, ok := batchMap[k]
+			v, ok := batchMap[lm.Token]
 			if !ok {
-				batchMap[k] = make([]*LM, 1)
+				var tmp []*LM
+				tmp = append(tmp, lm)
+				batchMap[lm.Token] = tmp
+			} else {
+				v = append(v, lm)
 			}
-			batchMap[k] = append(batchMap[k], lm)
 		}
 	}
 }

@@ -2,25 +2,25 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
+	"log"
 	"net"
 	"net/http"
-	"runtime"
-	"time"
-	"strconv"
-	"log"
 	"os"
+	"runtime"
+	"strconv"
+	"time"
 )
 
 var (
-	partitionId      int
+	partitionId     int
 	maxPartitions   int
 	workers         = flag.Int("workers", 4, "Number of routines that will post data to librato")
 	processInterval = flag.Int("proc-int", 5, "Number of seconds to wait in between bucket processing.")

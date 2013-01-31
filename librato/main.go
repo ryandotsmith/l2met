@@ -247,10 +247,10 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 				}
 				delete(batchMap, k)
 			}
-			utils.MeasureT(purgeBatch, "purge-batch")
+			utils.MeasureT(purgeBatch, "purge-time-batch")
 		case lm := <-lms:
-			_, ok := batchMap[lm.Token]
-			if !ok {
+			_, present := batchMap[lm.Token]
+			if !present {
 				batchMap[lm.Token] = make([]*LM, 1, 50)
 				batchMap[lm.Token][0] = lm
 			} else {
@@ -258,13 +258,9 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 			}
 			if len(batchMap[lm.Token]) == cap(batchMap[lm.Token]) {
 				purgeBatch := time.Now()
-				for k, v := range batchMap {
-					delete(batchMap, k)
-					if len(v) > 0 {
-						outbox <- v
-					}
-				}
-				utils.MeasureT(purgeBatch, "purge-batch")
+				outbox <-batchMap[lm.Token]
+				delete(batchMap, lm.Token)
+				utils.MeasureT(purgeBatch, "purge-cap-batch")
 			}
 		}
 	}
@@ -293,7 +289,9 @@ func post(outbox <-chan []*LM) {
 			fmt.Printf("at=empty-body-error body=%s\n", j)
 			continue
 		}
-
+		fmt.Printf("at=%q name=%s source=%s len=%d",
+			"post-metric", sampleMetric.Name, sampleMetric.Source,
+			len(metrics))
 		maxRetry := 5
 		for i := 0; i <= maxRetry; i++ {
 			b := bytes.NewBuffer(j)

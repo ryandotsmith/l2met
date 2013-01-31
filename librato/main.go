@@ -285,17 +285,17 @@ func post(outbox <-chan []*LM) {
 			continue
 		}
 
-		b := bytes.NewBuffer(j)
-		req, err := http.NewRequest("POST", libratoUrl, b)
-		if err != nil {
-			fmt.Printf("at=%q error=%s body=%s\n", "request-error", err, b)
-			continue
-		}
-		req.Header.Add("Content-Type", "application/json")
-		req.SetBasicAuth(token.User, token.Pass)
-
 		maxRetry := 5
 		for i := 0; i <= maxRetry; i++ {
+			b := bytes.NewBuffer(j)
+			req, err := http.NewRequest("POST", libratoUrl, b)
+			if err != nil {
+				fmt.Printf("at=%q error=%s body=%s\n", "request-error", err, b)
+				continue
+			}
+			req.Header.Add("Content-Type", "application/json")
+			req.SetBasicAuth(token.User, token.Pass)
+
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				fmt.Printf("at=%q error=%s body=%s\n", "do-error", err, b)

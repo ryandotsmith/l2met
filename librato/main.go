@@ -1,7 +1,6 @@
 package main
 
 import (
-	import _ "net/http/pprof"
 	"bytes"
 	"database/sql"
 	"encoding/json"

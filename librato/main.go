@@ -1,7 +1,6 @@
 package main
 
 import (
-	"runtime/pprof"
 	"bytes"
 	"database/sql"
 	"encoding/json"
@@ -59,7 +58,7 @@ type LM struct {
 }
 
 type LP struct {
-	Gauges []*LM `json:"gauges"`
+	Gauges *[]*LM `json:"gauges"`
 }
 
 var (
@@ -142,9 +141,6 @@ func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {
 		utils.MeasureI("librato.inbox", int64(len(i)))
 		utils.MeasureI("librato.lms", int64(len(l)))
 		utils.MeasureI("librato.outbox", int64(len(o)))
-		var b bytes.Buffer
-		pprof.Lookup("heap").WriteTo(&b, 1) //1 prints func names
-		fmt.Printf("at=%q profile=%s\n", "heap-profile", b.String())
 	}
 }
 
@@ -273,7 +269,8 @@ func post(outbox <-chan []*LM) {
 		sampleMetric := *(metrics)[0]
 		token := store.Token{Id: sampleMetric.Token}
 		token.Get()
-		payload := LP{metrics}
+		payload := new(LP)
+		payload.Gauges = &metrics
 
 		j, err := json.Marshal(payload)
 		if err != nil {

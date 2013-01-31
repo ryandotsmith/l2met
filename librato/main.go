@@ -282,6 +282,10 @@ func schedulePost(outbox <-chan []*LM) {
 				return
 			}
 
+			if len(j) == 0 {
+				fmt.Printf("at=post-error-empty-body body=%s\n", j)
+				return
+			}
 			b := bytes.NewBuffer(j)
 			err = post(b, token.User, token.Pass)
 			if err != nil {

@@ -297,6 +297,7 @@ func post(body *bytes.Buffer, user, pass string) error {
 	for i := 0; i < 3; i++ {
 		req, err := http.NewRequest("POST", libratoUrl, body)
 		if err != nil {
+			fmt.Printf("body=%s\n", body)
 			return err
 		}
 		req.Header.Add("Content-Type", "application/json")
@@ -304,6 +305,7 @@ func post(body *bytes.Buffer, user, pass string) error {
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
+			fmt.Printf("body=%s\n", body)
 			return err
 		}
 		if resp.StatusCode/100 != 2 {
@@ -313,8 +315,10 @@ func post(body *bytes.Buffer, user, pass string) error {
 				resp.StatusCode, body, b)
 		} else {
 			resp.Body.Close()
+			fmt.Printf("body=%s\n", body)
 			return nil
 		}
 	}
+	fmt.Printf("body=%s\n", body)
 	return errors.New("Unable to post to librato.")
 }

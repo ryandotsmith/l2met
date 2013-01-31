@@ -39,6 +39,7 @@ func init() {
 	}
 
 	http.DefaultTransport = &http.Transport{
+		DisableKeepAlives: true,
 		Dial: func(n, a string) (net.Conn, error) {
 			c, err := net.DialTimeout(n, a, time.Second*5)
 			if err != nil {

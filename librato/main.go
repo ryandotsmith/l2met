@@ -58,7 +58,7 @@ type LM struct {
 }
 
 type LP struct {
-	Gauges *[]*LM `json:"gauges"`
+	Gauges []*LM `json:"gauges"`
 }
 
 var (
@@ -235,27 +235,36 @@ func ft(t time.Time) int64 {
 }
 
 func batch(lms <-chan *LM, outbox chan<- []*LM) {
-	ticker := time.Tick(time.Millisecond * 250)
+	ticker := time.Tick(time.Second)
 	batchMap := make(map[string][]*LM)
 	for {
 		select {
 		case <-ticker:
 			purgeBatch := time.Now()
 			for k, v := range batchMap {
-				delete(batchMap, k)
 				if len(v) > 0 {
 					outbox <- v
 				}
+				delete(batchMap, k)
 			}
 			utils.MeasureT(purgeBatch, "purge-batch")
 		case lm := <-lms:
 			_, ok := batchMap[lm.Token]
 			if !ok {
-				var tmp []*LM
-				tmp = append(tmp, lm)
-				batchMap[lm.Token] = tmp
+				batchMap[lm.Token] = make([]*LM, 1, 50)
+				batchMap[lm.Token][0] = lm
 			} else {
 				batchMap[lm.Token] = append(batchMap[lm.Token], lm)
+			}
+			if len(batchMap[lm.Token]) == cap(batchMap[lm.Token]) {
+				purgeBatch := time.Now()
+				for k, v := range batchMap {
+					delete(batchMap, k)
+					if len(v) > 0 {
+						outbox <- v
+					}
+				}
+				utils.MeasureT(purgeBatch, "purge-batch")
 			}
 		}
 	}
@@ -268,11 +277,11 @@ func post(outbox <-chan []*LM) {
 			continue
 		}
 
-		sampleMetric := *(metrics)[0]
+		sampleMetric := metrics[0]
 		token := store.Token{Id: sampleMetric.Token}
 		token.Get()
 		payload := new(LP)
-		payload.Gauges = &metrics
+		payload.Gauges = metrics
 
 		j, err := json.Marshal(payload)
 		if err != nil {

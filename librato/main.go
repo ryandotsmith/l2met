@@ -294,7 +294,8 @@ func post(outbox <-chan []*LM) {
 		req.Header.Add("Content-Type", "application/json")
 		req.SetBasicAuth(token.User, token.Pass)
 
-		for i := 0; i < 5; i++ {
+		maxRetry := 5
+		for i := 0; i <= maxRetry; i++ {
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				fmt.Printf("at=%q error=%s body=%s\n", "do-error", err, b)
@@ -305,8 +306,10 @@ func post(outbox <-chan []*LM) {
 				break
 			} else {
 				resp.Body.Close()
-				fmt.Printf("at=%q status=%d response=%s\n",
-					"librato-status-error", b, resp.StatusCode)
+				if i == maxRetry {
+					fmt.Printf("at=%q status=%d\n",
+						"librato-status-error", resp.StatusCode)
+				}
 			}
 		}
 	}

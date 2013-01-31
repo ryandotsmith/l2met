@@ -39,7 +39,7 @@ func (b *Bucket) Key() int64 {
 
 func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Metric, error) {
 	startQuery := time.Now()
-	rows, err := pg.Query("select * from get_metrics($1, $2, $3, $4, $5)",
+	rows, err := pg.Query("select * from get_buckets($1, $2, $3, $4, $5)",
 		token, name, resolution, min, max)
 	if err != nil {
 		utils.MeasureE("get-metrics-error", err)
@@ -74,7 +74,7 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 func GetBuckets(token string, min, max time.Time) ([]*Bucket, error) {
 	var buckets []*Bucket
 	startQuery := time.Now()
-	rows, err := pg.Query("select name, bucket, source, token, vals from metrics where token = $1 and bucket > $2 and bucket <= $3 order by bucket desc",
+	rows, err := pg.Query("select measure, time, source, token, vals from buckets where token = $1 and time > $2 and time <= $3 order by time desc",
 		token, min, max)
 	if err != nil {
 		return nil, err
@@ -178,7 +178,7 @@ func (b *Bucket) String() (res string) {
 
 func (b *Bucket) Get() error {
 	defer utils.MeasureT(time.Now(), "bucket.get")
-	rows, err := pg.Query("select name, bucket, source, token, vals from metrics where id = $1",
+	rows, err := pg.Query("select measure, time, source, token, vals from buckets where id = $1",
 		b.Id)
 	if err != nil {
 		return err
@@ -205,7 +205,7 @@ func (b *Bucket) Put() error {
 	}
 
 	found := false
-	s := "select id from metrics where name = $1 and source = $2 and bucket = $3"
+	s := "select id from buckets where measure = $1 and source = $2 and time = $3"
 	rows, err := txn.Query(s, b.Name, b.Source, b.Time)
 	if err != nil {
 		txn.Rollback()
@@ -223,7 +223,7 @@ func (b *Bucket) Put() error {
 	if !found {
 		fmt.Printf("at=%q minute=%d name=%s\n",
 			"insert-bucket", b.Time.Minute(), b.Name)
-		_, err = txn.Exec("insert into metrics (name, bucket, source, token) values($1,$2,$3,$4)",
+		_, err = txn.Exec("insert into buckets (measure, time, source, token) values($1,$2,$3,$4)",
 			b.Name, b.Time, b.Source, b.Token)
 		if err != nil {
 			txn.Rollback()
@@ -235,7 +235,7 @@ func (b *Bucket) Put() error {
 		return err
 	}
 
-	_, err = pg.Exec("update metrics set vals = vals || $1::float8[] where name = $2 and source = $4 and bucket = $3",
+	_, err = pg.Exec("update buckets set vals = vals || $1::float8[] where measure = $2 and source = $4 and time = $3",
 		string(encoding.EncodeArray(b.Vals)), b.Name, b.Time, b.Source)
 	if err != nil {
 		return err

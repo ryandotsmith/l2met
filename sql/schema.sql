@@ -9,13 +9,13 @@ create table tokens (
 
 create unique index tokens_by_id on tokens(id);
 
-create table metrics (
+create table buckets (
 	id bigserial,
 	token uuid,
-	name text,
+	measure text,
 	source text,
-	bucket timestamptz,
+	time timestamptz,
 	vals float8[] default '{}'
 );
 
-create unique index metrics_by_name_bucket on metrics (name, bucket);
+create unique index buckets_by_name_bucket on buckets(measure, time);

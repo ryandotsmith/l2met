@@ -173,9 +173,9 @@ func fetch(t time.Time, inbox chan<- *store.Bucket) {
 
 func scanBuckets(min, max time.Time) ([]int64, error) {
 	defer utils.MeasureT(time.Now(), "librato.scan-buckets")
-	s := "select id from metrics where bucket >= $1 and bucket < $2 "
+	s := "select id from buckets where time >= $1 and time < $2 "
 	s += "and MOD(id, $3) = $4 "
-	s += "order by bucket desc"
+	s += "order by time desc"
 	rows, err := pg.Query(s, min, max, maxPartitions, partitionId)
 	if err != nil {
 		return nil, err

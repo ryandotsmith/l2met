@@ -143,7 +143,7 @@ func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {
 		utils.MeasureI("librato.lms", int64(len(l)))
 		utils.MeasureI("librato.outbox", int64(len(o)))
 		var b bytes.Buffer
-		pprof.WriteHeapProfile(&b)
+		pprof.Lookup("heap").WriteTo(&b, 1) //1 prints func names
 		fmt.Printf("at=%q profile=%s\n", "heap-profile", b.String())
 	}
 }

@@ -107,9 +107,6 @@ func main() {
 		go post(outbox)
 	}
 
-	p := os.Getenv("PORT")
-	log.Println(http.ListenAndServe(":"+p, nil))
-
 	// Print chanel metrics & live forever.
 	report(inbox, lms, outbox)
 }

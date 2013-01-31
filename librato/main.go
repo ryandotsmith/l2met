@@ -289,7 +289,7 @@ func post(outbox <-chan []*LM) {
 			fmt.Printf("at=empty-body-error body=%s\n", j)
 			continue
 		}
-		fmt.Printf("at=%q name=%s source=%s len=%d",
+		fmt.Printf("at=%q name=%s source=%s len=%d\n",
 			"post-metric", sampleMetric.Name, sampleMetric.Source,
 			len(metrics))
 		maxRetry := 5

@@ -278,14 +278,15 @@ func schedulePost(outbox <-chan []*LM) {
 
 			j, err := json.Marshal(payload)
 			if err != nil {
-				fmt.Printf("at=post-error error=%s\n", err)
+				fmt.Printf("at=json-marshal-error error=%s\n", err)
 				return
 			}
 
 			if len(j) == 0 {
-				fmt.Printf("at=post-error-empty-body body=%s\n", j)
+				fmt.Printf("at=empty-body-error body=%s\n", j)
 				return
 			}
+
 			b := bytes.NewBuffer(j)
 			err = post(b, token.User, token.Pass)
 			if err != nil {
@@ -301,7 +302,6 @@ func post(body *bytes.Buffer, user, pass string) error {
 	for i := 0; i < 3; i++ {
 		req, err := http.NewRequest("POST", libratoUrl, body)
 		if err != nil {
-			fmt.Printf("body=%s\n", body)
 			return err
 		}
 		req.Header.Add("Content-Type", "application/json")
@@ -309,7 +309,6 @@ func post(body *bytes.Buffer, user, pass string) error {
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			fmt.Printf("body=%s\n", body)
 			return err
 		}
 		if resp.StatusCode/100 != 2 {
@@ -319,10 +318,8 @@ func post(body *bytes.Buffer, user, pass string) error {
 				resp.StatusCode, body, b)
 		} else {
 			resp.Body.Close()
-			fmt.Printf("body=%s\n", body)
 			return nil
 		}
 	}
-	fmt.Printf("body=%s\n", body)
 	return errors.New("Unable to post to librato.")
 }

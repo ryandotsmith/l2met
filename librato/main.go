@@ -240,12 +240,14 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 	for {
 		select {
 		case <-ticker:
+			purgeBatch := time.Now()
 			for k, v := range batchMap {
 				delete(batchMap, k)
 				if len(v) > 0 {
 					outbox <- v
 				}
 			}
+			utils.MeasureT(purgeBatch, "purge-batch")
 		case lm := <-lms:
 			_, ok := batchMap[lm.Token]
 			if !ok {

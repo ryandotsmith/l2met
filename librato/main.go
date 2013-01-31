@@ -41,11 +41,11 @@ func init() {
 
 	http.DefaultTransport = &http.Transport{
 		Dial: func(n, a string) (net.Conn, error) {
-			c, err := net.DialTimeout(n, a, time.Second*2)
+			c, err := net.DialTimeout(n, a, time.Second*5)
 			if err != nil {
 				return c, err
 			}
-			return c, c.SetDeadline(time.Now().Add(time.Second * 5))
+			return c, c.SetDeadline(time.Now().Add(time.Second * 7))
 		},
 	}
 }
@@ -55,7 +55,7 @@ type LM struct {
 	Time   int64  `json:"measure_time"`
 	Val    string `json:"value"`
 	Source string `json:"source,omitempty"`
-	Token  string
+	Token  string `json:",omitempty"`
 }
 
 type LP struct {
@@ -85,7 +85,7 @@ func main() {
 	// routine to make sure that the collections of librato metrics
 	// in the outbox are homogeneous with respect to their token.
 	// This ensures that we route the metrics to the correct librato account.
-	outbox := make(chan *[]*LM, 1000)
+	outbox := make(chan []*LM, 1000)
 
 	// Routine that reads ints from the database
 	// and sends them to the inbox.
@@ -140,7 +140,7 @@ func lockPartition() (int, error) {
 	return 0, errors.New("Unable to lock partition.")
 }
 
-func report(i chan *store.Bucket, l chan *LM, o chan *[]*LM) {
+func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {
 	for _ = range time.Tick(time.Second * 5) {
 		utils.MeasureI("librato.inbox", int64(len(i)))
 		utils.MeasureI("librato.lms", int64(len(l)))
@@ -215,15 +215,15 @@ func convert(b *store.Bucket, lms chan<- *LM) {
 	}
 	fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
 		b.Time.Minute(), b.Name)
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
 }
 
 func ff(x float64) string {
@@ -234,51 +234,52 @@ func fi(x int) string {
 	return strconv.FormatInt(int64(x), 10)
 }
 
-func batch(lms <-chan *LM, outbox chan<- *[]*LM) {
-	ticker := time.Tick(time.Second)
-	batchMap := make(map[string]*[]*LM)
+func ft(t time.Time) int64 {
+	return t.Unix() + 59
+}
+
+func batch(lms <-chan *LM, outbox chan<- []*LM) {
+	ticker := time.Tick(time.Millisecond * 250)
+	batchMap := make(map[string][]*LM)
 	for {
 		select {
 		case <-ticker:
 			for k, v := range batchMap {
-				if len(*v) > 0 {
+				delete(batchMap, k)
+				if len(v) > 0 {
 					outbox <- v
-					delete(batchMap, k)
 				}
 			}
 		case lm := <-lms:
-			k := lm.Token
-			v, ok := batchMap[k]
+			_, ok := batchMap[lm.Token]
 			if !ok {
-				tmp := make([]*LM, 0, 50)
-				v = &tmp
-				batchMap[k] = v
-			}
-			*v = append(*v, lm)
-			if len(*v) == cap(*v) {
-				outbox <- v
-				delete(batchMap, k)
+				var tmp []*LM
+				tmp = append(tmp, lm)
+				batchMap[lm.Token] = tmp
+			} else {
+				batchMap[lm.Token] = append(batchMap[lm.Token], lm)
 			}
 		}
 	}
 }
 
-func schedulePost(outbox <-chan *[]*LM) {
+func schedulePost(outbox <-chan []*LM) {
 	for metrics := range outbox {
-		if len(*metrics) < 1 {
+		if len(metrics) < 1 {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
-		go func() {
-			err := post(metrics)
+		go func(m *[]*LM) {
+			err := post(m)
 			if err != nil {
 				fmt.Printf("at=post-error error=%s\n", err)
 			}
-		}()
+		}(&metrics)
 	}
 }
 
 func post(metrics *[]*LM) error {
+	defer utils.MeasureT(time.Now(), "librato.http-post")
 	sampleMetric := *(*metrics)[0]
 	token := store.Token{Id: sampleMetric.Token}
 	token.Get()
@@ -290,14 +291,14 @@ func post(metrics *[]*LM) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", libratoUrl, postBody)
-	if err != nil {
-		return err
-	}
-	req.Header.Add("Content-Type", "application/json")
-	req.SetBasicAuth(token.User, token.Pass)
-
 	for i := 0; i < 3; i++ {
+		req, err := http.NewRequest("POST", libratoUrl, postBody)
+		if err != nil {
+			return err
+		}
+		req.Header.Add("Content-Type", "application/json")
+		req.SetBasicAuth(token.User, token.Pass)
+
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return err

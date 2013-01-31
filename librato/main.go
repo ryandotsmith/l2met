@@ -7,7 +7,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
 	"log"
@@ -295,18 +294,20 @@ func post(outbox <-chan []*LM) {
 		req.Header.Add("Content-Type", "application/json")
 		req.SetBasicAuth(token.User, token.Pass)
 
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			fmt.Printf("at=%q error=%s body=%s\n", "do-error", err, b)
-			continue
+		for i := 0; i < 5; i++ {
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				fmt.Printf("at=%q error=%s body=%s\n", "do-error", err, b)
+				continue
+			}
+			if resp.StatusCode/100 == 2 {
+				resp.Body.Close()
+				break
+			} else {
+				resp.Body.Close()
+				fmt.Printf("at=%q status=%d response=%s\n",
+					"librato-status-error", b, resp.StatusCode)
+			}
 		}
-
-		if resp.StatusCode/100 != 2 {
-			respBody, _ := ioutil.ReadAll(resp.Body)
-			fmt.Printf("at=%q body=%s status=%d response=%s\n",
-				"librato-status-error", b, resp.StatusCode, respBody)
-		}
-
-		resp.Body.Close()
 	}
 }

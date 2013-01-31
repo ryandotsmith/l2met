@@ -215,15 +215,15 @@ func convert(b *store.Bucket, lms chan<- *LM) {
 	}
 	fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
 		b.Time.Minute(), b.Name)
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
-	lms <- &LM{Token: b.Token, Time: b.Time.Unix(), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".last", Val: ff(b.Last())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".min", Val: ff(b.Min())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".max", Val: ff(b.Max())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".mean", Val: ff(b.Mean())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".median", Val: ff(b.Median())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".perc95", Val: ff(b.P95())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".perc99", Val: ff(b.P99())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".count", Val: fi(b.Count())}
+	lms <- &LM{Token: b.Token, Time: ft(b.Time), Source: b.Source, Name: b.Name + ".sum", Val: ff(b.Sum())}
 }
 
 func ff(x float64) string {
@@ -232,6 +232,10 @@ func ff(x float64) string {
 
 func fi(x int) string {
 	return strconv.FormatInt(int64(x), 10)
+}
+
+func ft(t time.Time) int64 {
+	return t.Unix() + 59
 }
 
 func batch(lms <-chan *LM, outbox chan<- []*LM) {

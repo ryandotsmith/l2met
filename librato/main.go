@@ -268,35 +268,38 @@ func schedulePost(outbox <-chan []*LM) {
 			fmt.Printf("at=%q\n", "post.empty.metrics")
 			continue
 		}
+
 		go func(m *[]*LM) {
-			err := post(m)
+			sampleMetric := *(*m)[0]
+			token := store.Token{Id: sampleMetric.Token}
+			token.Get()
+			payload := LP{m}
+
+			j, err := json.Marshal(payload)
 			if err != nil {
 				fmt.Printf("at=post-error error=%s\n", err)
+				return
+			}
+
+			b := bytes.NewBuffer(j)
+			err = post(b, token.User, token.Pass)
+			if err != nil {
+				fmt.Printf("at=post-error error=%s\n", err)
+				return
 			}
 		}(&metrics)
 	}
 }
 
-func post(metrics *[]*LM) error {
+func post(body *bytes.Buffer, user, pass string) error {
 	defer utils.MeasureT(time.Now(), "librato.http-post")
-	sampleMetric := *(*metrics)[0]
-	token := store.Token{Id: sampleMetric.Token}
-	token.Get()
-
-	payload := LP{metrics}
-	j, err := json.Marshal(payload)
-	postBody := bytes.NewBuffer(j)
-	if err != nil {
-		return err
-	}
-
 	for i := 0; i < 3; i++ {
-		req, err := http.NewRequest("POST", libratoUrl, postBody)
+		req, err := http.NewRequest("POST", libratoUrl, body)
 		if err != nil {
 			return err
 		}
 		req.Header.Add("Content-Type", "application/json")
-		req.SetBasicAuth(token.User, token.Pass)
+		req.SetBasicAuth(user, pass)
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -306,11 +309,11 @@ func post(metrics *[]*LM) error {
 			b, _ := ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
 			fmt.Printf("status=%d post-body=%s resp-body=%s\n",
-				resp.StatusCode, postBody, b)
+				resp.StatusCode, body, b)
 		} else {
 			resp.Body.Close()
-			break
+			return nil
 		}
 	}
-	return nil
+	return errors.New("Unable to post to librato.")
 }

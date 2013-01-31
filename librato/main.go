@@ -59,7 +59,7 @@ type LM struct {
 }
 
 type LP struct {
-	Gauges *[]*LM `json:"gauges"`
+	Gauges []*LM `json:"gauges"`
 }
 
 var (
@@ -105,7 +105,7 @@ func main() {
 	// and making HTTP requests. We will want to take advantage of
 	// parallel processing.
 	for i := 0; i < *workers; i++ {
-		go schedulePost(outbox)
+		go post(outbox)
 	}
 
 	p := os.Getenv("PORT")
@@ -263,63 +263,50 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 	}
 }
 
-func schedulePost(outbox <-chan []*LM) {
+func post(outbox <-chan []*LM) {
 	for metrics := range outbox {
 		if len(metrics) < 1 {
-			fmt.Printf("at=%q\n", "post.empty.metrics")
+			fmt.Printf("at=%q\n", "empty-metrics-error")
 			continue
 		}
 
-		go func(m *[]*LM) {
-			sampleMetric := *(*m)[0]
-			token := store.Token{Id: sampleMetric.Token}
-			token.Get()
-			payload := LP{m}
+		sampleMetric := *(metrics)[0]
+		token := store.Token{Id: sampleMetric.Token}
+		token.Get()
+		payload := LP{metrics}
 
-			j, err := json.Marshal(payload)
-			if err != nil {
-				fmt.Printf("at=json-marshal-error error=%s\n", err)
-				return
-			}
-
-			if len(j) == 0 {
-				fmt.Printf("at=empty-body-error body=%s\n", j)
-				return
-			}
-
-			b := bytes.NewBuffer(j)
-			err = post(b, token.User, token.Pass)
-			if err != nil {
-				fmt.Printf("at=post-error error=%s\n", err)
-				return
-			}
-		}(&metrics)
-	}
-}
-
-func post(body *bytes.Buffer, user, pass string) error {
-	defer utils.MeasureT(time.Now(), "librato.http-post")
-	for i := 0; i < 3; i++ {
-		req, err := http.NewRequest("POST", libratoUrl, body)
+		j, err := json.Marshal(payload)
 		if err != nil {
-			return err
+			fmt.Printf("at=json-marshal-error error=%s\n", err)
+			continue
+		}
+
+		if len(j) == 0 {
+			fmt.Printf("at=empty-body-error body=%s\n", j)
+			continue
+		}
+
+		b := bytes.NewBuffer(j)
+		req, err := http.NewRequest("POST", libratoUrl, b)
+		if err != nil {
+			fmt.Printf("at=%q error=%s body=%s\n", "request-error", err, b)
+			continue
 		}
 		req.Header.Add("Content-Type", "application/json")
-		req.SetBasicAuth(user, pass)
+		req.SetBasicAuth(token.User, token.Pass)
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return err
+			fmt.Printf("at=%q error=%s body=%s\n", "do-error", err, b)
+			continue
 		}
+
 		if resp.StatusCode/100 != 2 {
-			b, _ := ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
-			fmt.Printf("status=%d post-body=%s resp-body=%s\n",
-				resp.StatusCode, body, b)
-		} else {
-			resp.Body.Close()
-			return nil
+			respBody, _ := ioutil.ReadAll(resp.Body)
+			fmt.Printf("at=%q body=%s status=%d response=%s\n",
+				"librato-status-error", b, resp.StatusCode, respBody)
 		}
+
+		resp.Body.Close()
 	}
-	return errors.New("Unable to post to librato.")
 }

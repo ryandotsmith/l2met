@@ -111,6 +111,7 @@ func NewBucket(token string, rdr *bufio.Reader) ([]*Bucket, error) {
 			return nil, err
 		}
 
+		utils.Measure("received-log-line")
 		d, err := encoding.ParseMsgData(packet.Msg)
 		if err != nil {
 			continue

@@ -35,9 +35,9 @@ func main() {
 
 	go report(inbox, outbox)
 	for i := 0; i < *workers; i++ {
-		go accept(inbox, &register)
+		go accept(inbox, register)
 	}
-	go transfer(&register, outbox)
+	go transfer(register, outbox)
 	for i := 0; i < *workers; i++ {
 		go outlet(outbox)
 	}
@@ -173,16 +173,16 @@ func recieveLogs(w http.ResponseWriter, r *http.Request, ch chan<- *store.Bucket
 	}
 }
 
-func accept(inbox <-chan *store.Bucket, register *map[string]*store.Bucket) {
+func accept(inbox <-chan *store.Bucket, register map[string]*store.Bucket) {
 	for m := range inbox {
 		k := m.String()
 		var bucket *store.Bucket
 		registerLocker.Lock()
-		bucket, ok := (*register)[k]
+		bucket, ok := register[k]
 		if !ok {
 			fmt.Printf("at=%q minute=%d name=%s\n",
 				"add-to-register", m.Time.Minute(), m.Name)
-			(*register)[k] = m
+			register[k] = m
 		} else {
 			bucket.Add(m)
 		}
@@ -190,13 +190,13 @@ func accept(inbox <-chan *store.Bucket, register *map[string]*store.Bucket) {
 	}
 }
 
-func transfer(register *map[string]*store.Bucket, outbox chan<- *store.Bucket) {
+func transfer(register map[string]*store.Bucket, outbox chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Second * 5) {
-		for k := range *register {
+		for k := range register {
 			registerLocker.Lock()
-			if m, ok := (*register)[k]; ok {
+			if m, ok := register[k]; ok {
 				outbox <- m
-				delete(*register, k)
+				delete(register, k)
 			}
 			registerLocker.Unlock()
 		}

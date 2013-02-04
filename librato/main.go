@@ -310,6 +310,7 @@ func post(outbox <-chan []*LM) {
 			}
 			if resp.StatusCode/100 == 2 {
 				resp.Body.Close()
+				utils.Measure("librato-http-post")
 				break
 			} else {
 				resp.Body.Close()

@@ -258,7 +258,7 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 			}
 			if len(batchMap[lm.Token]) == cap(batchMap[lm.Token]) {
 				purgeBatch := time.Now()
-				outbox <-batchMap[lm.Token]
+				outbox <- batchMap[lm.Token]
 				delete(batchMap, lm.Token)
 				utils.MeasureT(purgeBatch, "purge-cap-batch")
 			}

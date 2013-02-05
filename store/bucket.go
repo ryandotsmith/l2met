@@ -15,6 +15,12 @@ import (
 	"time"
 )
 
+type BKey struct {
+	Time   time.Time
+	Name   string
+	Source string
+}
+
 type Bucket struct {
 	sync.Mutex
 	Id     int64     `json:"id"`
@@ -57,64 +63,65 @@ func GetBuckets(token string, min, max time.Time) ([]*Bucket, error) {
 	return buckets, nil
 }
 
-func NewBucket(token string, rdr *bufio.Reader) ([]*Bucket, error) {
-	var buckets []*Bucket
-	lp := logplex.NewReader(rdr)
-	for {
-		packet, err := lp.ReadMsg()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			fmt.Printf("at=logplex-error err=%s\n", err)
-			return nil, err
-		}
-
-		utils.Measure("received-log-line")
-		utils.Measure(token+"-received-log-line")
-		d, err := encoding.ParseMsgData(packet.Msg)
-		if err != nil {
-			continue
-		}
-
-		name, ok := d["measure"]
-		if !ok {
-			continue
-		}
-
-		source, ok := d["source"]
-		if !ok {
-			source = ""
-		}
-
-		var val float64
-		tmpVal, ok := d["val"]
-		if ok {
-			val, err = strconv.ParseFloat(tmpVal, 64)
+func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
+	buckets := make(chan *Bucket, 10)
+	go func(c chan<- *Bucket) {
+		defer close(c)
+		lp := logplex.NewReader(rdr)
+		for {
+			packet, err := lp.ReadMsg()
 			if err != nil {
-				fmt.Printf("at=error error=\"unable to parse val.\"\n")
+				if err == io.EOF {
+					break
+				}
+				fmt.Printf("at=logplex-error err=%s\n", err)
+				return
+			}
+			utils.Measure("received-log-line")
+			utils.Measure(token + "-received-log-line")
+			d, err := encoding.ParseMsgData(packet.Msg)
+			if err != nil {
 				continue
 			}
-		} else {
-			val = float64(1)
-		}
 
-		t, err := packet.Time()
-		if err != nil {
-			fmt.Printf("at=time-error error=%s\n", err)
-			continue
-		}
+			name, ok := d["measure"]
+			if !ok {
+				continue
+			}
 
-		m := &Bucket{}
-		m.Token = token
-		m.Time = utils.RoundTime(t, time.Minute)
-		m.Name = name
-		m.Source = source
-		m.Vals = append(m.Vals, val)
-		buckets = append(buckets, m)
-	}
-	utils.MeasureI("received-measurements", int64(len(buckets)))
-	return buckets, nil
+			source, ok := d["source"]
+			if !ok {
+				source = ""
+			}
+
+			var val float64
+			tmpVal, ok := d["val"]
+			if ok {
+				val, err = strconv.ParseFloat(tmpVal, 64)
+				if err != nil {
+					fmt.Printf("at=error error=\"unable to parse val.\"\n")
+					continue
+				}
+			} else {
+				val = float64(1)
+			}
+
+			t, err := packet.Time()
+			if err != nil {
+				fmt.Printf("at=time-error error=%s\n", err)
+				continue
+			}
+
+			m := &Bucket{}
+			m.Token = token
+			m.Time = utils.RoundTime(t, time.Minute)
+			m.Name = name
+			m.Source = source
+			m.Vals = append(m.Vals, val)
+			c <- m
+		}
+	}(buckets)
+	return buckets
 }
 
 func (b *Bucket) Add(otherM *Bucket) {

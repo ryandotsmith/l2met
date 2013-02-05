@@ -27,10 +27,15 @@ func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
+type LogRequest struct {
+	Token  string
+	Reader *bufio.Reader
+}
+
 func main() {
 	fmt.Printf("at=start-l2met port=%s\n", *port)
-	register := make(map[string]*store.Bucket)
-	inbox := make(chan *store.Bucket, 1000)
+	register := make(map[store.BKey]*store.Bucket)
+	inbox := make(chan *LogRequest, 1000)
 	outbox := make(chan *store.Bucket, 1000)
 
 	go report(inbox, outbox)
@@ -54,7 +59,7 @@ func main() {
 	}
 }
 
-func report(inbox chan *store.Bucket, outbox chan *store.Bucket) {
+func report(inbox chan *LogRequest, outbox chan *store.Bucket) {
 	for _ = range time.Tick(time.Second * 5) {
 		utils.MeasureI("web.inbox", int64(len(inbox)))
 		utils.MeasureI("web.outbox", int64(len(outbox)))
@@ -147,13 +152,12 @@ func getBuckets(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, 200, buckets)
 }
 
-func recieveLogs(w http.ResponseWriter, r *http.Request, ch chan<- *store.Bucket) {
+func recieveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogRequest) {
 	defer utils.MeasureT(time.Now(), "http-receiver")
 	if r.Method != "POST" {
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
-	defer r.Body.Close()
 	token, err := utils.ParseToken(r)
 	if err != nil {
 		utils.MeasureE("http-auth", err)
@@ -161,36 +165,29 @@ func recieveLogs(w http.ResponseWriter, r *http.Request, ch chan<- *store.Bucket
 		return
 	}
 	defer utils.MeasureT(time.Now(), token+"-http-receive")
-
-	buckets, err := store.NewBucket(token, bufio.NewReader(r.Body))
-	if err != nil {
-		http.Error(w, "Invalid Request", 400)
-		return
-	}
-
-	for i := range buckets {
-		ch <- buckets[i]
-	}
+	defer r.Body.Close()
+	inbox <- &LogRequest{token, bufio.NewReader(r.Body)}
 }
 
-func accept(inbox <-chan *store.Bucket, register map[string]*store.Bucket) {
-	for m := range inbox {
-		k := m.String()
-		var bucket *store.Bucket
-		registerLocker.Lock()
-		bucket, ok := register[k]
-		if !ok {
-			fmt.Printf("at=%q minute=%d name=%s\n",
-				"add-to-register", m.Time.Minute(), m.Name)
-			register[k] = m
-		} else {
-			bucket.Add(m)
+func accept(inbox <-chan *LogRequest, register map[store.BKey]*store.Bucket) {
+	for lreq := range inbox {
+		for bucket := range store.NewBucket(lreq.Token, lreq.Reader) {
+			registerLocker.Lock()
+			k := store.BKey{bucket.Time, bucket.Name, bucket.Source}
+			_, present := register[k]
+			if !present {
+				fmt.Printf("at=%q minute=%d name=%s\n",
+					"add-to-register", bucket.Time.Minute(), bucket.Name)
+				register[k] = bucket
+			} else {
+				register[k].Add(bucket)
+			}
+			registerLocker.Unlock()
 		}
-		registerLocker.Unlock()
 	}
 }
 
-func transfer(register map[string]*store.Bucket, outbox chan<- *store.Bucket) {
+func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Second * 5) {
 		for k := range register {
 			registerLocker.Lock()

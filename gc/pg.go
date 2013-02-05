@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	pg     *sql.DB
+	pg *sql.DB
 )
 
 func init() {

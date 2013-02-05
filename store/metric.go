@@ -1,9 +1,9 @@
 package store
 
 import (
-	"time"
-	"l2met/utils"
 	"l2met/encoding"
+	"l2met/utils"
+	"time"
 )
 
 type Metric struct {

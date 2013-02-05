@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"time"
 	"flag"
+	"fmt"
 	"l2met/utils"
+	"time"
 )
 
 var (
@@ -17,7 +17,7 @@ func init() {
 
 func main() {
 	for t := range time.Tick(time.Second) {
-		if t.Second() % 10 == 0 {
+		if t.Second()%10 == 0 {
 			count, err := pruneBuckets(*period)
 			if err != nil {
 				fmt.Printf("measure=%q\n", "prune-failure")

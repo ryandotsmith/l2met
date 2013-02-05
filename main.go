@@ -2,9 +2,10 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
 	"net/http"
@@ -30,7 +31,7 @@ func init() {
 
 type LogRequest struct {
 	Token string
-	Body  io.ReadCloser
+	Body  *bytes.Reader
 }
 
 func main() {
@@ -167,12 +168,18 @@ func recieveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogReques
 	}
 	defer utils.MeasureT(time.Now(), token+"-http-receive")
 	defer r.Body.Close()
-	inbox <- &LogRequest{token, r.Body}
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+	inbox <- &LogRequest{token, bytes.NewReader(b)}
 }
 
 func accept(inbox <-chan *LogRequest, register map[store.BKey]*store.Bucket) {
 	for lreq := range inbox {
-		for bucket := range store.NewBucket(lreq.Token, bufio.NewReader(lreq.Body)) {
+		rdr := bufio.NewReader(lreq.Body)
+		for bucket := range store.NewBucket(lreq.Token, rdr) {
 			registerLocker.Lock()
 			k := store.BKey{bucket.Time, bucket.Name, bucket.Source}
 			_, present := register[k]
@@ -185,7 +192,6 @@ func accept(inbox <-chan *LogRequest, register map[store.BKey]*store.Bucket) {
 			}
 			registerLocker.Unlock()
 		}
-		lreq.Body.Close()
 	}
 }
 

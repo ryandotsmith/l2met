@@ -33,7 +33,7 @@ func (b *Bucket) Key() int64 {
 func GetBuckets(token string, min, max time.Time) ([]*Bucket, error) {
 	var buckets []*Bucket
 	startQuery := time.Now()
-	rows, err := pg.Query("select measure, time, source, token, vals from buckets where token = $1 and time > $2 and time <= $3 order by time desc",
+	rows, err := pgRead.Query("select measure, time, source, token, vals from buckets where token = $1 and time > $2 and time <= $3 order by time desc",
 		token, min, max)
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (b *Bucket) String() (res string) {
 
 func (b *Bucket) Get() error {
 	defer utils.MeasureT(time.Now(), "bucket.get")
-	rows, err := pg.Query("select measure, time, source, token, vals from buckets where id = $1",
+	rows, err := pgRead.Query("select measure, time, source, token, vals from buckets where id = $1",
 		b.Id)
 	if err != nil {
 		return err

@@ -37,8 +37,8 @@ type LogRequest struct {
 func main() {
 	fmt.Printf("at=start-l2met port=%s\n", *port)
 	register := make(map[store.BKey]*store.Bucket)
-	inbox := make(chan *LogRequest, 1000)
-	outbox := make(chan *store.Bucket, 1000)
+	inbox := make(chan *LogRequest, 10000)
+	outbox := make(chan *store.Bucket, 10000)
 
 	go report(inbox, outbox)
 	for i := 0; i < *workers; i++ {

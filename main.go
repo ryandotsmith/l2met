@@ -196,7 +196,7 @@ func accept(inbox <-chan *LogRequest, register map[store.BKey]*store.Bucket) {
 }
 
 func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket) {
-	for _ = range time.Tick(time.Second * 5) {
+	for _ = range time.Tick(time.Second) {
 		for k := range register {
 			registerLocker.Lock()
 			if m, ok := register[k]; ok {

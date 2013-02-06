@@ -116,10 +116,12 @@ func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket
 		for k := range register {
 			registerLocker.Lock()
 			if m, ok := register[k]; ok {
-				outbox <- m
 				delete(register, k)
+				registerLocker.Unlock()
+				outbox <- m
+			} else {
+				registerLocker.Unlock()
 			}
-			registerLocker.Unlock()
 		}
 	}
 }

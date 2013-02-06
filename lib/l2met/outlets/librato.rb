@@ -1,3 +1,4 @@
+require 'sequel'
 require 'librato/metrics'
 require 'l2met/db'
 require 'l2met/utils'
@@ -43,10 +44,14 @@ module L2met
       end
 
       def librato_client(consumer_id)
-        consumer = DB["consumers"].at(consumer_id).attributes
+        consumer = pg[:tokens].where(id: consumer_id).fist
         ::Librato::Metrics::Client.new.tap do |c|
-          c.authenticate(consumer["email"], consumer["token"])
+          c.authenticate(consumer[:u], consumer[:p])
         end
+      end
+
+      def pg
+        @pg ||= Sequel.connect(Confg.l2met_next_db_url)
       end
 
       def log(data, &blk)

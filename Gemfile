@@ -1,6 +1,8 @@
 source :rubygems
 
 gem 'mongrel', '1.2.0.pre2'
+gem 'sequel'
+gem 'pg'
 gem 'sinatra'
 gem 'excon'
 gem 'rack-ssl-enforcer'

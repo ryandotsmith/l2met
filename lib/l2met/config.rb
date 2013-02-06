@@ -26,5 +26,6 @@ module L2met
     def m2pg_url; env("M2PG_URL"); end
     def enable_m2pg?; env("ENABLE_M2PG") || false; end
     def enable_librato?; env("ENABLE_LIBRATO") || false; end
+    def l2met_next_db_url; env!("L2MET_DB_URL"); end
   end
 end

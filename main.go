@@ -61,6 +61,65 @@ func report(inbox chan *store.Bucket, outbox chan *store.Bucket) {
 	}
 }
 
+func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *store.Bucket) {
+	defer utils.MeasureT(time.Now(), "http-receiver")
+	if r.Method != "POST" {
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+	token, err := utils.ParseToken(r)
+	if err != nil {
+		utils.MeasureE("http-auth", err)
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+	defer utils.MeasureT(time.Now(), token+"-http-receive")
+
+	defer r.Body.Close()
+	rdr := bufio.NewReader(r.Body)
+	for bucket := range store.NewBucket(token, rdr) {
+		inbox <- bucket
+	}
+}
+
+func accept(inbox <-chan *store.Bucket, register map[store.BKey]*store.Bucket) {
+	for bucket := range inbox {
+		registerLocker.Lock()
+		k := store.BKey{bucket.Time, bucket.Name, bucket.Source}
+		_, present := register[k]
+		if !present {
+			fmt.Printf("at=%q minute=%d name=%s\n",
+				"add-to-register", bucket.Time.Minute(), bucket.Name)
+			register[k] = bucket
+		} else {
+			register[k].Add(bucket)
+		}
+		registerLocker.Unlock()
+	}
+}
+
+func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket) {
+	for _ = range time.Tick(time.Second) {
+		for k := range register {
+			registerLocker.Lock()
+			if m, ok := register[k]; ok {
+				outbox <- m
+				delete(register, k)
+			}
+			registerLocker.Unlock()
+		}
+	}
+}
+
+func outlet(outbox <-chan *store.Bucket) {
+	for b := range outbox {
+		err := b.Put()
+		if err != nil {
+			fmt.Printf("error=%s\n", err)
+		}
+	}
+}
+
 func getMetrics(w http.ResponseWriter, r *http.Request) {
 	defer utils.MeasureT(time.Now(), "get-metrics")
 
@@ -145,63 +204,4 @@ func getBuckets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteJson(w, 200, buckets)
-}
-
-func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *store.Bucket) {
-	defer utils.MeasureT(time.Now(), "http-receiver")
-	if r.Method != "POST" {
-		http.Error(w, "Invalid Request", 400)
-		return
-	}
-	token, err := utils.ParseToken(r)
-	if err != nil {
-		utils.MeasureE("http-auth", err)
-		http.Error(w, "Invalid Request", 400)
-		return
-	}
-	defer utils.MeasureT(time.Now(), token+"-http-receive")
-
-	defer r.Body.Close()
-	rdr := bufio.NewReader(r.Body)
-	for bucket := range store.NewBucket(token, rdr) {
-		inbox <- bucket
-	}
-}
-
-func accept(inbox <-chan *store.Bucket, register map[store.BKey]*store.Bucket) {
-	for bucket := range inbox {
-		registerLocker.Lock()
-		k := store.BKey{bucket.Time, bucket.Name, bucket.Source}
-		_, present := register[k]
-		if !present {
-			fmt.Printf("at=%q minute=%d name=%s\n",
-				"add-to-register", bucket.Time.Minute(), bucket.Name)
-			register[k] = bucket
-		} else {
-			register[k].Add(bucket)
-		}
-		registerLocker.Unlock()
-	}
-}
-
-func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket) {
-	for _ = range time.Tick(time.Second) {
-		for k := range register {
-			registerLocker.Lock()
-			if m, ok := register[k]; ok {
-				outbox <- m
-				delete(register, k)
-			}
-			registerLocker.Unlock()
-		}
-	}
-}
-
-func outlet(outbox <-chan *store.Bucket) {
-	for b := range outbox {
-		err := b.Put()
-		if err != nil {
-			fmt.Printf("error=%s\n", err)
-		}
-	}
 }

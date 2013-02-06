@@ -62,7 +62,7 @@ func main() {
 }
 
 func report(inbox chan *LogRequest, outbox chan *store.Bucket) {
-	for _ = range time.Tick(time.Second * 5) {
+	for _ = range time.Tick(time.Second * 2) {
 		utils.MeasureI("web.inbox", int64(len(inbox)))
 		utils.MeasureI("web.outbox", int64(len(outbox)))
 	}

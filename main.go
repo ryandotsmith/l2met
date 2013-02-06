@@ -49,9 +49,9 @@ func main() {
 		go outlet(outbox)
 	}
 
-	reciever := func(w http.ResponseWriter, r *http.Request) { recieveLogs(w, r, inbox) }
+	receiver := func(w http.ResponseWriter, r *http.Request) { receiveLogs(w, r, inbox) }
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
-	http.HandleFunc("/logs", reciever)
+	http.HandleFunc("/logs", receiver)
 	http.HandleFunc("/buckets", getBuckets)
 	http.HandleFunc("/metrics/", getMetrics)
 	err := http.ListenAndServe(":"+*port, nil)
@@ -154,7 +154,7 @@ func getBuckets(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, 200, buckets)
 }
 
-func recieveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogRequest) {
+func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogRequest) {
 	defer utils.MeasureT(time.Now(), "http-receiver")
 	if r.Method != "POST" {
 		http.Error(w, "Invalid Request", 400)

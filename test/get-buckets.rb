@@ -3,7 +3,7 @@ require './helper'
 class GetBucketsTest < L2metTest
 
   def test_l2met_retains_data
-    num_vals = 50
+    num_vals = 2
     t = Time.now
     # Make sure we have enough time to work with the same bucket.
     t = Time.now until t.sec < 55

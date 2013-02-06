@@ -2,6 +2,7 @@ require 'sequel'
 require 'librato/metrics'
 require 'l2met/db'
 require 'l2met/utils'
+require 'l2met/config'
 
 module L2met
   module Outlet
@@ -51,7 +52,7 @@ module L2met
       end
 
       def pg
-        @pg ||= Sequel.connect(Confg.l2met_next_db_url)
+        @pg ||= Sequel.connect(Config.l2met_next_db_url)
       end
 
       def log(data, &blk)

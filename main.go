@@ -62,6 +62,7 @@ func report(inbox chan *store.Bucket, outbox chan *store.Bucket) {
 }
 
 func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *store.Bucket) {
+	defer r.Body.Close()
 	defer utils.MeasureT(time.Now(), "http-receiver")
 	if r.Method != "POST" {
 		http.Error(w, "Invalid Request", 400)
@@ -75,7 +76,6 @@ func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *store.Buc
 	}
 	defer utils.MeasureT(time.Now(), token+"-http-receive")
 
-	defer r.Body.Close()
 	rdr := bufio.NewReader(r.Body)
 	for bucket := range store.NewBucket(token, rdr) {
 		inbox <- bucket

@@ -45,7 +45,7 @@ module L2met
       end
 
       def librato_client(consumer_id)
-        consumer = pg[:tokens].where(id: consumer_id).fist
+        consumer = pg[:tokens].where(id: consumer_id).first
         ::Librato::Metrics::Client.new.tap do |c|
           c.authenticate(consumer[:u], consumer[:p])
         end

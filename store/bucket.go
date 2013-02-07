@@ -183,7 +183,8 @@ func (b *Bucket) Put() error {
 	defer utils.MeasureT(time.Now(), "bucket.put")
 
 	b.Lock()
-	vals := b.Vals
+	//vals := b.Vals
+	vals := []float64{1,1,1}
 	b.Unlock()
 
 	rc := redisPool.Get()

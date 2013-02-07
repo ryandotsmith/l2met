@@ -188,11 +188,12 @@ func (b *Bucket) Put() error {
 	rc := redisPool.Get()
 	defer rc.Close()
 
+	partition := b.Partition()
 	rc.Send("MULTI")
 	rc.Send("RPUSH", b.String(), b.Vals)
 	rc.Send("EXPIRE", b.String(), 300)
-	rc.Send("SADD", b.Partition(), b.String())
-	rc.Send("EXPIRE", b.Partition(), 300)
+	rc.Send("SADD", partition, b.String())
+	rc.Send("EXPIRE", partition, 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {
 		return err

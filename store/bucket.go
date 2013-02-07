@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/bmizerany/logplex"
 	"github.com/garyburd/redigo/redis"
-	"hash/crc32"
+	"hash/crc64"
 	"io"
 	"l2met/encoding"
 	"l2met/utils"
@@ -20,13 +20,13 @@ import (
 )
 
 var (
-	maxPartitions int
+	maxPartitions uint64
 )
 
 func init() {
 	var err error
 	tmp := os.Getenv("MAX_LIBRATO_PROCS")
-	maxPartitions, err = strconv.Atoi(tmp)
+	maxPartitions, err = strconv.ParseUint(tmp, 10, 64)
 	if err != nil {
 		fmt.Printf("error=%q err=%s\n", "Unable to read MAX_LIBRATO_PROCS.", err)
 		os.Exit(1)
@@ -141,9 +141,10 @@ func (b *Bucket) Add(otherM *Bucket) {
 }
 
 func (b *Bucket) Partition() string {
-	i := int(crc32.ChecksumIEEE([]byte(b.String())))
-	i = i % maxPartitions
-	return "partition:" + strconv.Itoa(i)
+	tab := crc64.MakeTable(crc64.ISO)
+	check := crc64.Checksum([]byte(b.String()), tab)
+	partition := check % maxPartitions
+	return "partition:" + strconv.FormatUint(partition, 10)
 }
 
 // time:token:name:source

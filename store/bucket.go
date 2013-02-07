@@ -189,12 +189,14 @@ func (b *Bucket) Put() error {
 	rc := redisPool.Get()
 	defer rc.Close()
 
-	defer utils.MeasureT(time.Now(), "redis.push")
 	partition := b.Partition()
+	key := b.String()
+
+	defer utils.MeasureT(time.Now(), "redis.push")
 	rc.Send("MULTI")
-	rc.Send("RPUSH", b.String(), v)
-	rc.Send("EXPIRE", b.String(), 300)
-	rc.Send("SADD", partition, b.String())
+	rc.Send("RPUSH", key, v)
+	rc.Send("EXPIRE", key, 300)
+	rc.Send("SADD", partition, key)
 	rc.Send("EXPIRE", partition, 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {

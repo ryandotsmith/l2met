@@ -189,9 +189,9 @@ func (b *Bucket) Put() error {
 
 	rc.Send("MULTI")
 	rc.Send("RPUSH", b.String(), b.Vals)
-	rc.Send("EXPIRE", b.String(), 5*time.Minute)
+	rc.Send("EXPIRE", b.String(), 300)
 	rc.Send("SADD", b.Partition(), b.String())
-	rc.Send("EXPIRE", b.Partition(), 5*time.Minute)
+	rc.Send("EXPIRE", b.Partition(), 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {
 		return err

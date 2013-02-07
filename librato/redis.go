@@ -11,9 +11,9 @@ import (
 var redisPool *redis.Pool
 
 func init() {
-	u, err := url.Parse(os.Getenv("REDISGREEN_URL"))
+	u, err := url.Parse(os.Getenv("REDIS_URL"))
 	if err != nil {
-		fmt.Printf("error=%q\n", "Missing REDISGREEN_URL.")
+		fmt.Printf("error=%q\n", "Missing REDIS_URL.")
 		os.Exit(1)
 	}
 	server := u.Host

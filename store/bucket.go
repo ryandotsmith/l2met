@@ -127,6 +127,8 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 			b := &Bucket{Key: k}
 			b.Vals = append(b.Vals, val)
 			c <- b
+			utils.Measure(token + "-received-measurement")
+			utils.Measure("received-measurement")
 		}
 	}(buckets)
 	return buckets

@@ -186,13 +186,12 @@ func (b *Bucket) Put() error {
 
 	b.Lock()
 	vals := b.Vals
+	partition := b.Partition()
+	key := b.String()
 	b.Unlock()
 
 	rc := redisPool.Get()
 	defer rc.Close()
-
-	partition := b.Partition()
-	key := b.String()
 
 	defer utils.MeasureT(time.Now(), "redis.push")
 	rc.Send("MULTI")

@@ -19,6 +19,10 @@ import (
 	"time"
 )
 
+const (
+	keySep = "→"
+)
+
 var (
 	maxPartitions uint64
 )
@@ -42,7 +46,7 @@ type BKey struct {
 
 // time:token:name:source
 func ParseKey(s string) (*BKey, error) {
-	parts := strings.Split(s, ":")
+	parts := strings.Split(s, keySep)
 	if len(parts) < 3 {
 		return nil, errors.New("bucket: Unable to parse bucket key.")
 	}
@@ -151,11 +155,11 @@ func (b *Bucket) Partition() string {
 
 // time:token:name:source
 func (b *Bucket) String() (res string) {
-	res += strconv.FormatInt(b.Key.Time.Unix(), 10) + ":"
-	res += b.Key.Token + ":"
+	res += strconv.FormatInt(b.Key.Time.Unix(), 10) + keySep
+	res += b.Key.Token + keySep
 	res += b.Key.Name
 	if len(b.Key.Source) > 0 {
-		res += ":" + b.Key.Source
+		res += keySep + b.Key.Source
 	}
 	return
 }

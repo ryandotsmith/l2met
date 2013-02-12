@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"l2met/store"
@@ -22,16 +21,37 @@ import (
 var (
 	partitionId     int
 	maxPartitions   int
-	workers         = flag.Int("workers", 4, "Number of routines that will post data to librato")
-	processInterval = flag.Int("proc-int", 5, "Number of seconds to wait in between bucket processing.")
+	workers         int
+	processInterval int
 )
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	flag.Parse()
-
+	var strmp string
 	var err error
+
+	strmp = os.Getenv("LOCAL_WORKERS")
+	if len(strmp) == 0 {
+		workers = 2
+	} else {
+		n, err := strconv.Atoi(strmp)
+		if err != nil {
+			n = 2
+		}
+		workers = n
+	}
+
+	strmp = os.Getenv("LIBRATO_INTERVAL")
+	if len(strmp) == 0 {
+		processInterval = 5
+	} else {
+		n, err := strconv.Atoi(strmp)
+		if err != nil {
+			n = 5
+		}
+		processInterval = n
+	}
+
 	tmp := os.Getenv("MAX_LIBRATO_PROCS")
 	maxPartitions, err = strconv.Atoi(tmp)
 	if err != nil {
@@ -93,7 +113,7 @@ func main() {
 
 	// We take the empty buckets from the inbox,
 	// get the values from the database, then make librato metrics out of them.
-	for i := 0; i < *workers; i++ {
+	for i := 0; i < workers; i++ {
 		go scheduleConvert(inbox, lms)
 	}
 
@@ -104,7 +124,7 @@ func main() {
 	// These routines involve reading data from the database
 	// and making HTTP requests. We will want to take advantage of
 	// parallel processing.
-	for i := 0; i < *workers; i++ {
+	for i := 0; i < workers; i++ {
 		go post(outbox)
 	}
 
@@ -152,7 +172,7 @@ func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {
 func scheduleFetch(inbox chan<- *store.Bucket) {
 	for t := range time.Tick(time.Second) {
 		// Start working on the new minute right away.
-		if t.Second()%*processInterval == 0 {
+		if t.Second()%processInterval == 0 {
 			fetch(t, inbox)
 		}
 	}

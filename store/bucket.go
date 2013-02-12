@@ -191,13 +191,13 @@ func (b *Bucket) Put() error {
 	startLock := time.Now()
 	b.Lock()
 	inLock := time.Now()
-	t := time.Since(startLock)/time.Millisecond
+	t := time.Since(startLock) / time.Millisecond
 	utils.MeasureI("bucket-lock-acquired", int64(t))
 	vals := b.Vals
 	partition := b.Partition()
 	key := b.String()
 	b.Unlock()
-	t = time.Since(inLock)/time.Millisecond
+	t = time.Since(inLock) / time.Millisecond
 	utils.MeasureI("bucket-lock-released", int64(t))
 
 	defer utils.MeasureT(time.Now(), "redis.push")

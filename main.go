@@ -11,15 +11,15 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
 )
 
 var (
 	metricsPat     = regexp.MustCompile(`\/metrics\/(.*)\??`)
-	workers int
-	port string
+	workers        int
+	port           string
 	registerLocker sync.Mutex
 )
 

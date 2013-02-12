@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"hash/crc64"
 	"l2met/store"
 	"l2met/utils"
 	"log"
@@ -134,9 +135,14 @@ func main() {
 
 // Lock a partition to work.
 func lockPartition() (int, error) {
+	tab := crc64.MakeTable(crc64.ISO)
+
 	for {
 		for p := 0; p < maxPartitions; p++ {
-			rows, err := pg.Query("select pg_try_advisory_lock($1)", p)
+			pId := fmt.Sprintf("librato_outlet.%d", p)
+			check := crc64.Checksum([]byte(pId), tab)
+
+			rows, err := pg.Query("select pg_try_advisory_lock($1)", check)
 			if err != nil {
 				continue
 			}
@@ -159,9 +165,9 @@ func lockPartition() (int, error) {
 
 func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {
 	for _ = range time.Tick(time.Second * 5) {
-		utils.MeasureI("librato.inbox", int64(len(i)))
-		utils.MeasureI("librato.lms", int64(len(l)))
-		utils.MeasureI("librato.outbox", int64(len(o)))
+		utils.MeasureI("librato_outlet.inbox", int64(len(i)))
+		utils.MeasureI("librato_outlet.lms", int64(len(l)))
+		utils.MeasureI("librato_outlet.outbox", int64(len(o)))
 	}
 }
 
@@ -180,7 +186,7 @@ func scheduleFetch(inbox chan<- *store.Bucket) {
 
 func fetch(t time.Time, inbox chan<- *store.Bucket) {
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
-	defer utils.MeasureT(time.Now(), "librato.fetch")
+	defer utils.MeasureT(time.Now(), "librato_outlet.fetch")
 	for bucket := range scanBuckets(t) {
 		inbox <- bucket
 	}
@@ -195,10 +201,10 @@ func scanBuckets(t time.Time) chan *store.Bucket {
 		defer utils.MeasureT(time.Now(), "redis.scan-buckets")
 		defer close(ch)
 		p := strconv.Itoa(partitionId)
-		k := "partition:" + p
+		mailbox := "librato:" + p
 		rc.Send("MULTI")
-		rc.Send("SMEMBERS", k)
-		rc.Send("DEL", k)
+		rc.Send("SMEMBERS", mailbox)
+		rc.Send("DEL", mailbox)
 		reply, err := redis.Values(rc.Do("EXEC"))
 		if err != nil {
 			fmt.Printf("at=%q error=%s\n", "redset-smembers", err)
@@ -227,7 +233,7 @@ func scheduleConvert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 }
 
 func convert(b *store.Bucket, lms chan<- *LM) {
-	defer utils.MeasureT(time.Now(), "librato.convert")
+	defer utils.MeasureT(time.Now(), "librato_outlet.convert")
 	err := b.Get()
 	if err != nil {
 		fmt.Printf("error=%s\n", err)
@@ -237,7 +243,7 @@ func convert(b *store.Bucket, lms chan<- *LM) {
 		fmt.Printf("at=bucket-no-vals bucket=%s\n", b.Key.Name)
 		return
 	}
-	fmt.Printf("at=librato.process.bucket minute=%d name=%q\n",
+	fmt.Printf("at=librato_outlet.process.bucket minute=%d name=%q\n",
 		b.Key.Time.Minute(), b.Key.Name)
 	k := b.Key
 	lms <- &LM{Token: k.Token, Time: ft(k.Time), Source: k.Source, Name: k.Name + ".last", Val: ff(b.Last())}

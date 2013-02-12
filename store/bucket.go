@@ -146,12 +146,11 @@ func (b *Bucket) Add(otherM *Bucket) {
 	}
 }
 
-func (b *Bucket) Partition() string {
+func (b *Bucket) Partition() uint64 {
 	defer utils.MeasureT(time.Now(), "compute-partition")
 	tab := crc64.MakeTable(crc64.ISO)
 	check := crc64.Checksum([]byte(b.String()), tab)
-	partition := check % maxPartitions
-	return "partition:" + strconv.FormatUint(partition, 10)
+	return check % maxPartitions
 }
 
 // time:token:name:source
@@ -203,11 +202,15 @@ func (b *Bucket) Put() error {
 	defer utils.MeasureT(time.Now(), "redis.push")
 	rc := redisPool.Get()
 	defer rc.Close()
+
+	defer utils.MeasureT(time.Now(), "redis.push")
+	rkey := fmt.Sprintf("librato_outlet.%d", partition)
+
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, vals)
 	rc.Send("EXPIRE", key, 300)
-	rc.Send("SADD", partition, key)
-	rc.Send("EXPIRE", partition, 300)
+	rc.Send("SADD", rkey, key)
+	rc.Send("EXPIRE", rkey, 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {
 		return err

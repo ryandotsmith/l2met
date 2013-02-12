@@ -187,17 +187,15 @@ func (b *Bucket) Get() error {
 
 func (b *Bucket) Put() error {
 	defer utils.MeasureT(time.Now(), "bucket.put")
-
 	b.Lock()
 	vals := b.Vals
 	partition := b.Partition()
 	key := b.String()
 	b.Unlock()
 
+	defer utils.MeasureT(time.Now(), "redis.push")
 	rc := redisPool.Get()
 	defer rc.Close()
-
-	defer utils.MeasureT(time.Now(), "redis.push")
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, vals)
 	rc.Send("EXPIRE", key, 300)

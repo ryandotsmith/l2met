@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"l2met/store"
@@ -14,18 +13,32 @@ import (
 	"runtime"
 	"sync"
 	"time"
+	"strconv"
 )
 
 var (
 	metricsPat     = regexp.MustCompile(`\/metrics\/(.*)\??`)
-	workers        = flag.Int("workers", 2, "Number of workers to process the storing of metrics.")
-	port           = flag.String("port", "8080", "Port for HTTP server to bind to.")
+	workers int
+	port string
 	registerLocker sync.Mutex
 )
 
 func init() {
-	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	port = os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "8000"
+	}
+	workerStr := os.Getenv("LOCAL_WORKERS")
+	if len(workerStr) == 0 {
+		workers = 2
+	} else {
+		w, err := strconv.Atoi(workerStr)
+		if err != nil {
+			workers = 2
+		}
+		workers = w
+	}
 }
 
 type LogRequest struct {
@@ -34,24 +47,24 @@ type LogRequest struct {
 }
 
 func main() {
-	fmt.Printf("at=start-l2met port=%s\n", *port)
+	fmt.Printf("at=start-l2met port=%s\n", port)
 	register := make(map[store.BKey]*store.Bucket)
 	inbox := make(chan *LogRequest, 1000)
 	outbox := make(chan *store.Bucket, 1000)
 
 	go report(inbox, outbox, register)
-	for i := 0; i < *workers; i++ {
+	for i := 0; i < workers; i++ {
 		go accept(inbox, register)
 	}
 	go transfer(register, outbox)
-	for i := 0; i < *workers; i++ {
+	for i := 0; i < workers; i++ {
 		go outlet(outbox)
 	}
 
 	receiver := func(w http.ResponseWriter, r *http.Request) { receiveLogs(w, r, inbox) }
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 	http.HandleFunc("/logs", receiver)
-	err := http.ListenAndServe(":"+*port, nil)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
 		os.Exit(1)

@@ -147,6 +147,7 @@ func (b *Bucket) Add(otherM *Bucket) {
 }
 
 func (b *Bucket) Partition() string {
+	defer utils.MeasureT(time.Now(), "compute-partition")
 	tab := crc64.MakeTable(crc64.ISO)
 	check := crc64.Checksum([]byte(b.String()), tab)
 	partition := check % maxPartitions

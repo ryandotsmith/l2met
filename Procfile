@@ -1,2 +1,2 @@
 web: l2met
-librato: librato_outlet
+librato_outlet: librato_outlet

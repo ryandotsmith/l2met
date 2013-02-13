@@ -23,6 +23,7 @@ var (
 	port           string
 	registerLocker sync.Mutex
 	numPartitions  uint64
+	reqBuffer int
 )
 
 func init() {
@@ -51,6 +52,14 @@ func init() {
 		}
 	}
 
+	reqBuffer = 1000
+	tmp = os.Getenv("REQUEST_BUFFER")
+	if len(tmp) != 0 {
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			reqBuffer = n
+		}
+	}
 }
 
 type LogRequest struct {

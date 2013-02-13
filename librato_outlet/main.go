@@ -45,7 +45,6 @@ func init() {
 		}
 	}
 
-
 	tmp = os.Getenv("NUM_OUTLET_PARTITIONS")
 	numPartitions, err = strconv.ParseUint(tmp, 10, 64)
 	if err != nil {

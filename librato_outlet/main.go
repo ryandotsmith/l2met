@@ -2,11 +2,8 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"hash/crc64"
 	"l2met/store"
 	"l2met/utils"
 	"log"
@@ -88,7 +85,7 @@ var (
 
 func main() {
 	var err error
-	partitionId, err = lockPartition()
+	partitionId, err = utils.LockPartition(pg, "librato_outlet", maxPartitions)
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}
@@ -130,36 +127,6 @@ func main() {
 
 	// Print chanel metrics & live forever.
 	report(inbox, lms, outbox)
-}
-
-// Lock a partition to work.
-func lockPartition() (int, error) {
-	tab := crc64.MakeTable(crc64.ISO)
-
-	for {
-		for p := 0; p < maxPartitions; p++ {
-			pId := fmt.Sprintf("librato_outlet.%d", p)
-			check := crc64.Checksum([]byte(pId), tab)
-
-			rows, err := pg.Query("select pg_try_advisory_lock($1)", check)
-			if err != nil {
-				continue
-			}
-			for rows.Next() {
-				var result sql.NullBool
-				rows.Scan(&result)
-				if result.Valid && result.Bool {
-					fmt.Printf("at=%q partition=%d max=%d\n",
-						"acquired-lock", p, maxPartitions)
-					rows.Close()
-					return p, nil
-				}
-			}
-			rows.Close()
-		}
-		time.Sleep(time.Second * 10)
-	}
-	return 0, errors.New("Unable to lock partition.")
 }
 
 func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {

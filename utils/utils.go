@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/crc64"
 	"net/http"
 	"os"
 	"strings"
@@ -86,4 +88,33 @@ func ParseToken(r *http.Request) (string, error) {
 	}
 
 	return parts[1], nil
+}
+
+func LockPartition(pg *sql.DB, ns string, max int) (int, error) {
+	tab := crc64.MakeTable(crc64.ISO)
+
+	for {
+		for p := 0; p < max; p++ {
+			pId := fmt.Sprintf("%s.%d", ns, p)
+			check := crc64.Checksum([]byte(pId), tab)
+
+			rows, err := pg.Query("select pg_try_advisory_lock($1)", check)
+			if err != nil {
+				continue
+			}
+			for rows.Next() {
+				var result sql.NullBool
+				rows.Scan(&result)
+				if result.Valid && result.Bool {
+					fmt.Printf("at=%q partition=%d max=%d\n",
+						"acquired-lock", p, max)
+					rows.Close()
+					return p, nil
+				}
+			}
+			rows.Close()
+		}
+		time.Sleep(time.Second * 10)
+	}
+	return 0, errors.New("Unable to lock partition.")
 }

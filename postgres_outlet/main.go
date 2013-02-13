@@ -42,20 +42,20 @@ func init() {
 }
 
 func main() {
-  var err error
-  outbox := make(chan *store.Bucket, 1000)
+	var err error
+	outbox := make(chan *store.Bucket, 1000)
 
-  // acquire partition lock
-  partitionId, err = lockPartition()
-  if err != nil {
-    log.Fatal("Unable to lock partition.")
-  }
+	// acquire partition lock
+	partitionId, err = lockPartition()
+	if err != nil {
+		log.Fatal("Unable to lock partition.")
+	}
 
-  // schedule redis reader
-  go scheduleFetch(outbox)
+	// schedule redis reader
+	go scheduleFetch(outbox)
 
-  // read from outbox
-  // dump into postgres
+	// read from outbox
+	// dump into postgres
 }
 
 // Lock a partition to work.
@@ -89,51 +89,19 @@ func lockPartition() (int, error) {
 }
 
 func scheduleFetch(outbox chan<- *store.Bucket) {
-  for t := range time.Tick(time.Second) {
-    if t.Second() % processInterval == 0 {
-      fetch(t, outbox)
-    }
-  }
+	for t := range time.Tick(time.Second) {
+		if t.Second()%processInterval == 0 {
+			fetch(t, outbox)
+		}
+	}
 }
 
 func fetch(t time.Time, outbox chan<- *store.Bucket) {
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
 	defer utils.MeasureT(time.Now(), "postgres_outlet.fetch")
-	for bucket := range scanBuckets(t) {
+
+	mailbox := fmt.Sprintf("postgres_outlet.%d", partitionId)
+	for bucket := range store.ScanBuckets(mailbox) {
 		outbox <- bucket
 	}
-}
-
-func scanBuckets(t time.Time) chan *store.Bucket {
-	rc := redisPool.Get()
-	defer rc.Close()
-	buckets := make(chan *store.Bucket)
-
-	go func(ch chan *store.Bucket) {
-		defer utils.MeasureT(time.Now(), "redis.scan-buckets")
-		defer close(ch)
-		p := strconv.Itoa(partitionId)
-		mailbox := "postgres_outlet.:" + p
-		rc.Send("MULTI")
-		rc.Send("SMEMBERS", mailbox)
-		rc.Send("DEL", mailbox)
-		reply, err := redis.Values(rc.Do("EXEC"))
-		if err != nil {
-			fmt.Printf("at=%q error=%s\n", "redset-smembers", err)
-			return
-		}
-		var delCount int64
-		var members []string
-		redis.Scan(reply, &members, &delCount)
-		for _, member := range members {
-			k, err := store.ParseKey(member)
-			if err != nil {
-				fmt.Printf("at=parse-key error=%s\n", err)
-				continue
-			}
-			ch <- &store.Bucket{Key: *k}
-		}
-	}(buckets)
-
-	return buckets
 }

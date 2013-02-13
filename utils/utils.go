@@ -115,6 +115,7 @@ func LockPartition(pg *sql.DB, ns string, max uint64) (uint64, error) {
 			}
 			rows.Close()
 		}
+		fmt.Printf("at=%q\n", "waiting-for-partition-lock")
 		time.Sleep(time.Second * 10)
 	}
 	return 0, errors.New("Unable to lock partition.")

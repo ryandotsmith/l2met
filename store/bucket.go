@@ -138,6 +138,38 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 	return buckets
 }
 
+func ScanBuckets(mailbox string) <-chan *Bucket {
+	rc := redisPool.Get()
+	defer rc.Close()
+	buckets := make(chan *Bucket)
+
+	go func(ch chan *Bucket) {
+		defer utils.MeasureT(time.Now(), "redis.scan-buckets")
+		defer close(ch)
+		rc.Send("MULTI")
+		rc.Send("SMEMBERS", mailbox)
+		rc.Send("DEL", mailbox)
+		reply, err := redis.Values(rc.Do("EXEC"))
+		if err != nil {
+			fmt.Printf("at=%q error=%s\n", "redset-smembers", err)
+			return
+		}
+		var delCount int64
+		var members []string
+		redis.Scan(reply, &members, &delCount)
+		for _, member := range members {
+			k, err := ParseKey(member)
+			if err != nil {
+				fmt.Printf("at=parse-key error=%s\n", err)
+				continue
+			}
+			ch <- &Bucket{Key: *k}
+		}
+	}(buckets)
+
+	return buckets
+}
+
 func (b *Bucket) Add(otherM *Bucket) {
 	b.Lock()
 	defer b.Unlock()

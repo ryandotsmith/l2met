@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"hash/crc64"
 	"l2met/store"
 	"l2met/utils"
@@ -187,43 +186,10 @@ func scheduleFetch(inbox chan<- *store.Bucket) {
 func fetch(t time.Time, inbox chan<- *store.Bucket) {
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
 	defer utils.MeasureT(time.Now(), "librato_outlet.fetch")
-	for bucket := range scanBuckets(t) {
+	mailbox := fmt.Sprintf("librato_outlet.%d", partitionId)
+	for bucket := range store.ScanBuckets(mailbox) {
 		inbox <- bucket
 	}
-}
-
-func scanBuckets(t time.Time) chan *store.Bucket {
-	rc := redisPool.Get()
-	defer rc.Close()
-	buckets := make(chan *store.Bucket)
-
-	go func(ch chan *store.Bucket) {
-		defer utils.MeasureT(time.Now(), "redis.scan-buckets")
-		defer close(ch)
-		p := strconv.Itoa(partitionId)
-		mailbox := "librato:" + p
-		rc.Send("MULTI")
-		rc.Send("SMEMBERS", mailbox)
-		rc.Send("DEL", mailbox)
-		reply, err := redis.Values(rc.Do("EXEC"))
-		if err != nil {
-			fmt.Printf("at=%q error=%s\n", "redset-smembers", err)
-			return
-		}
-		var delCount int64
-		var members []string
-		redis.Scan(reply, &members, &delCount)
-		for _, member := range members {
-			k, err := store.ParseKey(member)
-			if err != nil {
-				fmt.Printf("at=parse-key error=%s\n", err)
-				continue
-			}
-			ch <- &store.Bucket{Key: *k}
-		}
-	}(buckets)
-
-	return buckets
 }
 
 func scheduleConvert(inbox <-chan *store.Bucket, lms chan<- *LM) {

@@ -23,7 +23,7 @@ var (
 	port           string
 	registerLocker sync.Mutex
 	numPartitions  uint64
-	reqBuffer int
+	reqBuffer      int
 )
 
 func init() {

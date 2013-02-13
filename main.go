@@ -42,15 +42,15 @@ func init() {
 		port = "8000"
 	}
 
+	workers = 2
 	tmp = os.Getenv("LOCAL_WORKERS")
-	n := 2
 	if len(tmp) != 0 {
-		n, err = strconv.Atoi(tmp)
-		if err != nil {
-			n = 2
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			workers = n
 		}
 	}
-	workers = n
+
 }
 
 type LogRequest struct {

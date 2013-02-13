@@ -61,9 +61,10 @@ type Bucket struct {
 }
 
 func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
-	buckets := make(chan *Bucket, 10)
+	buckets := make(chan *Bucket, 1000)
 	go func(c chan<- *Bucket) {
 		defer close(c)
+		defer utils.MeasureT(time.Now(), "new-bucket")
 		lp := logplex.NewReader(rdr)
 		for {
 			packet, err := lp.ReadMsg()
@@ -74,8 +75,6 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 				fmt.Printf("at=logplex-error err=%s\n", err)
 				return
 			}
-			utils.Measure("received-log-line")
-			utils.Measure(token + "-received-log-line")
 			d, err := encoding.ParseMsgData(packet.Msg)
 			if err != nil {
 				continue
@@ -114,8 +113,6 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 			b := &Bucket{Key: k}
 			b.Vals = append(b.Vals, val)
 			c <- b
-			utils.Measure(token + "-received-measurement")
-			utils.Measure("received-measurement")
 		}
 	}(buckets)
 	return buckets

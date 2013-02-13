@@ -112,7 +112,6 @@ func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogReques
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
-	defer utils.MeasureT(time.Now(), token+"-http-receive")
 
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {

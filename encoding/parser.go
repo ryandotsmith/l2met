@@ -2,11 +2,9 @@ package encoding
 
 import (
 	"errors"
-	"l2met/utils"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -29,7 +27,6 @@ func ParseMsgData(msg []byte) (map[string]string, error) {
 }
 
 func DecodeArray(b []byte, dest *[]float64) error {
-	defer utils.MeasureT(time.Now(), "encoding.decode-array")
 	if len(b) < 2 {
 		return errors.New("l2met/parser: Not able to decode array.")
 	}

@@ -1,5 +1,18 @@
 package main
 
+import (
+	"database/sql"
+	"fmt"
+	"l2met/encoding"
+	"l2met/store"
+	"l2met/utils"
+	"log"
+	"os"
+	"runtime"
+	"strconv"
+	"time"
+)
+
 var (
 	partitionId     int
 	maxPartitions   int
@@ -46,7 +59,7 @@ func main() {
 	outbox := make(chan *store.Bucket, 1000)
 
 	// acquire partition lock
-	partitionId, err = lockPartition()
+	partitionId, err = utils.LockPartition(pg, "postgres_outlet", maxPartitions)
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}
@@ -54,38 +67,20 @@ func main() {
 	// schedule redis reader
 	go scheduleFetch(outbox)
 
-	// read from outbox
+	// read from the outbox
 	// dump into postgres
+	for i := 0; i < workers; i++ {
+		go handleBuckets(outbox)
+	}
+
+	// Print chanel metrics & live forever.
+	report(outbox)
 }
 
-// Lock a partition to work.
-func lockPartition() (int, error) {
-	tab := crc64.MakeTable(crc64.ISO)
-
-	for {
-		for p := 0; p < maxPartitions; p++ {
-			pId := fmt.Sprintf("postgres_outlet.%d", p)
-			check := crc64.Checksum([]byte(pId), tab)
-
-			rows, err := pg.Query("select pg_try_advisory_lock($1)", check)
-			if err != nil {
-				continue
-			}
-			for rows.Next() {
-				var result sql.NullBool
-				rows.Scan(&result)
-				if result.Valid && result.Bool {
-					fmt.Printf("at=%q partition=%d max=%d\n",
-						"acquired-lock", p, maxPartitions)
-					rows.Close()
-					return p, nil
-				}
-			}
-			rows.Close()
-		}
-		time.Sleep(time.Second * 10)
+func report(o chan *store.Bucket) {
+	for _ = range time.Tick(time.Second * 5) {
+		utils.MeasureI("postgres_outlet.outbox", int64(len(o)))
 	}
-	return 0, errors.New("Unable to lock partition.")
 }
 
 func scheduleFetch(outbox chan<- *store.Bucket) {
@@ -104,4 +99,56 @@ func fetch(t time.Time, outbox chan<- *store.Bucket) {
 	for bucket := range store.ScanBuckets(mailbox) {
 		outbox <- bucket
 	}
+}
+
+func handleBuckets(outbox <-chan *store.Bucket) {
+	for bucket := range outbox {
+		err := writeToPostgres(bucket)
+		if err != nil {
+			log.Printf("measure=%q\n", "pg-write-failure")
+			continue
+		}
+	}
+}
+
+func writeToPostgres(bucket *store.Bucket) error {
+	var err error
+
+	tx, err := pg.Begin()
+	if err != nil {
+		return err
+	}
+
+	bucket.Get()
+	vals := string(encoding.EncodeArray(bucket.Vals))
+	row := tx.QueryRow(`
+    SELECT id
+    FROM buckets
+    WHERE token = $1 AND measure = $2 AND source = $3 AND time = $4
+  `, bucket.Key.Token, bucket.Key.Name, bucket.Key.Source, bucket.Key.Time)
+
+	var id sql.NullInt64
+	row.Scan(&id)
+
+	if id.Valid {
+		_, err = tx.Exec("UPDATE buckets SET vals = $1::FLOAT8[] WHERE id = $2", vals, id)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	} else {
+		_, err = tx.Exec(`
+      INSERT INTO buckets(token, measure, source, time, vals)
+      VALUES($1, $2, $3, $4, $5::FLOAT8[])
+    `, bucket.Key.Token, bucket.Key.Name, bucket.Key.Source, bucket.Key.Time, vals)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	tx.Commit()
+	return err
 }

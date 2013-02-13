@@ -90,11 +90,12 @@ func ParseToken(r *http.Request) (string, error) {
 	return parts[1], nil
 }
 
-func LockPartition(pg *sql.DB, ns string, max int) (int, error) {
+func LockPartition(pg *sql.DB, ns string, max uint64) (uint64, error) {
 	tab := crc64.MakeTable(crc64.ISO)
 
 	for {
-		for p := 0; p < max; p++ {
+		var p uint64
+		for p = 0; p < max; p++ {
 			pId := fmt.Sprintf("%s.%d", ns, p)
 			check := crc64.Checksum([]byte(pId), tab)
 

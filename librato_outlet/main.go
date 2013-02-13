@@ -16,43 +16,40 @@ import (
 )
 
 var (
-	partitionId     int
-	maxPartitions   int
+	partitionId     uint64
+	numPartitions   uint64
 	workers         int
 	processInterval int
 )
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	var strmp string
+	var tmp string
 	var err error
 
-	strmp = os.Getenv("LOCAL_WORKERS")
-	if len(strmp) == 0 {
-		workers = 2
-	} else {
-		n, err := strconv.Atoi(strmp)
-		if err != nil {
-			n = 2
+	workers = 2
+	tmp = os.Getenv("LOCAL_WORKERS")
+	if len(tmp) != 0 {
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			workers = n
 		}
-		workers = n
 	}
 
-	strmp = os.Getenv("LIBRATO_INTERVAL")
-	if len(strmp) == 0 {
-		processInterval = 5
-	} else {
-		n, err := strconv.Atoi(strmp)
-		if err != nil {
-			n = 5
+	processInterval = 5
+	tmp = os.Getenv("LIBRATO_INTERVAL")
+	if len(tmp) != 0 {
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			processInterval = n
 		}
-		processInterval = n
 	}
 
-	tmp := os.Getenv("MAX_LIBRATO_PROCS")
-	maxPartitions, err = strconv.Atoi(tmp)
+
+	tmp = os.Getenv("NUM_OUTLET_PARTITIONS")
+	numPartitions, err = strconv.ParseUint(tmp, 10, 64)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Unable to read NUM_OUTLET_PARTITIONS")
 	}
 
 	http.DefaultTransport = &http.Transport{
@@ -85,7 +82,7 @@ var (
 
 func main() {
 	var err error
-	partitionId, err = utils.LockPartition(pg, "librato_outlet", maxPartitions)
+	partitionId, err = utils.LockPartition(pg, "librato_outlet", numPartitions)
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}

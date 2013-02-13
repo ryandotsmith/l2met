@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -21,24 +22,35 @@ var (
 	workers        int
 	port           string
 	registerLocker sync.Mutex
+	numPartitions  uint64
 )
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	var tmp string
+	var err error
+
+	tmp = os.Getenv("NUM_OUTLET_PARTITIONS")
+	numPartitions, err = strconv.ParseUint(tmp, 10, 64)
+	if err != nil {
+		log.Fatal("Unable to read NUM_OUTLET_PARTITIONS")
+	}
+
 	port = os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "8000"
 	}
-	workerStr := os.Getenv("LOCAL_WORKERS")
-	if len(workerStr) == 0 {
-		workers = 2
-	} else {
-		w, err := strconv.Atoi(workerStr)
+
+	tmp = os.Getenv("LOCAL_WORKERS")
+	n := 2
+	if len(tmp) != 0 {
+		n, err = strconv.Atoi(tmp)
 		if err != nil {
-			workers = 2
+			n = 2
 		}
-		workers = w
 	}
+	workers = n
 }
 
 type LogRequest struct {
@@ -139,7 +151,7 @@ func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket
 
 func outlet(outbox <-chan *store.Bucket) {
 	for b := range outbox {
-		err := b.Put()
+		err := b.Put(numPartitions)
 		if err != nil {
 			fmt.Printf("error=%s\n", err)
 		}

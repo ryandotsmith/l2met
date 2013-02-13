@@ -11,7 +11,6 @@ import (
 	"l2met/encoding"
 	"l2met/utils"
 	"math"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,23 +18,7 @@ import (
 	"time"
 )
 
-const (
-	keySep = "→"
-)
-
-var (
-	maxPartitions uint64
-)
-
-func init() {
-	var err error
-	tmp := os.Getenv("MAX_LIBRATO_PROCS")
-	maxPartitions, err = strconv.ParseUint(tmp, 10, 64)
-	if err != nil {
-		fmt.Printf("error=%q err=%s\n", "Unable to read MAX_LIBRATO_PROCS.", err)
-		os.Exit(1)
-	}
-}
+const keySep = "→"
 
 type BKey struct {
 	Token  string
@@ -178,11 +161,11 @@ func (b *Bucket) Add(otherM *Bucket) {
 	}
 }
 
-func (b *Bucket) Partition() uint64 {
+func (b *Bucket) Partition(partitions uint64) uint64 {
 	defer utils.MeasureT(time.Now(), "compute-partition")
 	tab := crc64.MakeTable(crc64.ISO)
 	check := crc64.Checksum([]byte(b.String()), tab)
-	return check % maxPartitions
+	return check % partitions
 }
 
 // time:token:name:source
@@ -217,7 +200,7 @@ func (b *Bucket) Get() error {
 	return nil
 }
 
-func (b *Bucket) Put() error {
+func (b *Bucket) Put(partitions uint64) error {
 	defer utils.MeasureT(time.Now(), "bucket.put")
 	startLock := time.Now()
 	b.Lock()
@@ -225,7 +208,7 @@ func (b *Bucket) Put() error {
 	t := time.Since(startLock) / time.Millisecond
 	utils.MeasureI("bucket-lock-acquired", int64(t))
 	vals := b.Vals
-	partition := b.Partition()
+	partition := b.Partition(partitions)
 	key := b.String()
 	b.Unlock()
 	t = time.Since(inLock) / time.Millisecond

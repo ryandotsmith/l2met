@@ -148,7 +148,6 @@ func scheduleFetch(inbox chan<- *store.Bucket) {
 
 func fetch(t time.Time, inbox chan<- *store.Bucket) {
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
-	defer utils.MeasureT(time.Now(), "librato_outlet.fetch")
 	mailbox := fmt.Sprintf("librato_outlet.%d", partitionId)
 	for bucket := range store.ScanBuckets(mailbox) {
 		inbox <- bucket
@@ -162,7 +161,6 @@ func scheduleConvert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 }
 
 func convert(b *store.Bucket, lms chan<- *LM) {
-	defer utils.MeasureT(time.Now(), "librato_outlet.convert")
 	err := b.Get()
 	if err != nil {
 		fmt.Printf("error=%s\n", err)
@@ -204,14 +202,12 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 	for {
 		select {
 		case <-ticker:
-			purgeBatch := time.Now()
 			for k, v := range batchMap {
 				if len(v) > 0 {
 					outbox <- v
 				}
 				delete(batchMap, k)
 			}
-			utils.MeasureT(purgeBatch, "purge-time-batch")
 		case lm := <-lms:
 			_, present := batchMap[lm.Token]
 			if !present {
@@ -221,10 +217,8 @@ func batch(lms <-chan *LM, outbox chan<- []*LM) {
 				batchMap[lm.Token] = append(batchMap[lm.Token], lm)
 			}
 			if len(batchMap[lm.Token]) == cap(batchMap[lm.Token]) {
-				purgeBatch := time.Now()
 				outbox <- batchMap[lm.Token]
 				delete(batchMap, lm.Token)
-				utils.MeasureT(purgeBatch, "purge-cap-batch")
 			}
 		}
 	}
@@ -274,7 +268,7 @@ func post(outbox <-chan []*LM) {
 			}
 			if resp.StatusCode/100 == 2 {
 				resp.Body.Close()
-				utils.Measure("librato-http-post")
+				fmt.Printf("measure=%q\n", "librato-http-post")
 				break
 			} else {
 				resp.Body.Close()

@@ -102,8 +102,6 @@ func handleBuckets(outbox <-chan *store.Bucket) {
 }
 
 func writeToPostgres(bucket *store.Bucket) error {
-	var err error
-
 	tx, err := pg.Begin()
 	if err != nil {
 		return err

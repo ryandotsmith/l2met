@@ -114,10 +114,10 @@ func writeToPostgres(bucket *store.Bucket) error {
 
 	vals := string(encoding.EncodeArray(bucket.Vals))
 	row := tx.QueryRow(`
-    SELECT id
-    FROM buckets
-    WHERE token = $1 AND measure = $2 AND source = $3 AND time = $4
-  `, bucket.Key.Token, bucket.Key.Name, bucket.Key.Source, bucket.Key.Time)
+    	SELECT id
+    	FROM buckets
+    	WHERE token = $1 AND measure = $2 AND source = $3 AND time = $4`,
+		bucket.Key.Token, bucket.Key.Name, bucket.Key.Source, bucket.Key.Time)
 
 	var id sql.NullInt64
 	row.Scan(&id)

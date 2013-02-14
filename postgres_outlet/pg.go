@@ -2,32 +2,27 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/bmizerany/pq"
+	"log"
 	"os"
 )
 
-var (
-	pg *sql.DB
-)
+var pg *sql.DB
 
 func init() {
 	url := os.Getenv("DATABASE_URL")
 	if len(url) == 0 {
-		fmt.Printf("error=\"must set DATABASE_URL\"\n")
-		os.Exit(1)
+		log.Fatal("Must set DATABASE_URL.")
 	}
 
 	pgurl, err := pq.ParseURL(url)
 	if err != nil {
-		fmt.Printf("error=\"unable to parse DATABASE_URL\"\n")
-		os.Exit(1)
+		log.Fatal("Unable to parse DATABASE_URL.")
 	}
 
 	pg, err = sql.Open("postgres", pgurl)
 	if err != nil {
-		fmt.Printf("error=%s\n", err)
-		os.Exit(1)
+		log.Fatal("Unable to open connection to PostgreSQL.")
 	}
 
 	pg.Exec("set application_name = 'l2met-next_postgres'")

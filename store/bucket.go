@@ -217,12 +217,15 @@ func (b *Bucket) Put(partitions uint64) error {
 
 	defer utils.MeasureT(time.Now(), "redis.push")
 	rkey := fmt.Sprintf("librato_outlet.%d", partition)
+	pkey := fmt.Sprintf("postgres_outlet.%d", partition)
 
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, vals)
 	rc.Send("EXPIRE", key, 300)
 	rc.Send("SADD", rkey, key)
 	rc.Send("EXPIRE", rkey, 300)
+	rc.Send("SADD", pkey, key)
+	rc.Send("EXPIRE", pkey, 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {
 		return err

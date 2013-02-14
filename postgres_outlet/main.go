@@ -14,43 +14,39 @@ import (
 )
 
 var (
-	partitionId     int
-	maxPartitions   int
+	partitionId     uint64
+	numPartitions   uint64
 	workers         int
 	processInterval int
 )
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	var strmp string
+	var tmp string
 	var err error
 
-	strmp = os.Getenv("LOCAL_WORKERS")
-	if len(strmp) == 0 {
-		workers = 2
-	} else {
-		n, err := strconv.Atoi(strmp)
-		if err != nil {
-			n = 2
+	workers = 2
+	tmp = os.Getenv("LOCAL_WORKERS")
+	if len(tmp) != 0 {
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			workers = n
 		}
-		workers = n
 	}
 
-	strmp = os.Getenv("POSTGRES_INTERVAL")
-	if len(strmp) == 0 {
-		processInterval = 5
-	} else {
-		n, err := strconv.Atoi(strmp)
-		if err != nil {
-			n = 5
+	tmp = os.Getenv("POSTGRES_INTERVAL")
+	processInterval = 5
+	if len(tmp) != 0 {
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			processInterval = n
 		}
-		processInterval = n
 	}
 
-	tmp := os.Getenv("MAX_POSTGRES_PROCS")
-	maxPartitions, err = strconv.Atoi(tmp)
+	tmp = os.Getenv("NUM_OUTLET_PARTITIONS")
+	numPartitions, err = strconv.ParseUint(tmp, 10, 64)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Unable to read NUM_OUTLET_PARTITIONS")
 	}
 }
 
@@ -59,7 +55,7 @@ func main() {
 	outbox := make(chan *store.Bucket, 1000)
 
 	// acquire partition lock
-	partitionId, err = utils.LockPartition(pg, "postgres_outlet", maxPartitions)
+	partitionId, err = utils.LockPartition(pg, "postgres_outlet", numPartitions)
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}

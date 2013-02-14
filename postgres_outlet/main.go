@@ -107,7 +107,11 @@ func writeToPostgres(bucket *store.Bucket) error {
 		return err
 	}
 
-	bucket.Get()
+	err = bucket.Get()
+	if err != nil {
+		return err
+	}
+
 	vals := string(encoding.EncodeArray(bucket.Vals))
 	row := tx.QueryRow(`
     SELECT id

@@ -159,7 +159,6 @@ func (b *Bucket) Add(otherM *Bucket) {
 }
 
 func (b *Bucket) Partition(partitions uint64) uint64 {
-	defer utils.MeasureT(time.Now(), "compute-partition")
 	tab := crc64.MakeTable(crc64.ISO)
 	check := crc64.Checksum([]byte(b.String()), tab)
 	return check % partitions
@@ -199,23 +198,15 @@ func (b *Bucket) Get() error {
 
 func (b *Bucket) Put(partitions uint64) error {
 	defer utils.MeasureT(time.Now(), "bucket.put")
-	startLock := time.Now()
+
 	b.Lock()
-	inLock := time.Now()
-	t := time.Since(startLock) / time.Millisecond
-	utils.MeasureI("bucket-lock-acquired", int64(t))
 	vals := b.Vals
 	partition := b.Partition(partitions)
 	key := b.String()
 	b.Unlock()
-	t = time.Since(inLock) / time.Millisecond
-	utils.MeasureI("bucket-lock-released", int64(t))
 
-	defer utils.MeasureT(time.Now(), "redis.push")
 	rc := redisPool.Get()
 	defer rc.Close()
-
-	defer utils.MeasureT(time.Now(), "redis.push")
 	rkey := fmt.Sprintf("librato_outlet.%d", partition)
 
 	rc.Send("MULTI")

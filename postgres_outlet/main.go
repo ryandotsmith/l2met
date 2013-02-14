@@ -52,19 +52,13 @@ func init() {
 
 func main() {
 	var err error
-	outbox := make(chan *store.Bucket, 1000)
-
-	// acquire partition lock
 	partitionId, err = utils.LockPartition(pg, "postgres_outlet", numPartitions)
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}
 
-	// schedule redis reader
+	outbox := make(chan *store.Bucket, 1000)
 	go scheduleFetch(outbox)
-
-	// read from the outbox
-	// dump into postgres
 	for i := 0; i < workers; i++ {
 		go handleBuckets(outbox)
 	}

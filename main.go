@@ -108,7 +108,6 @@ func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogReques
 	}
 	token, err := utils.ParseToken(r)
 	if err != nil {
-		utils.MeasureE("http-auth", err)
 		http.Error(w, "Invalid Request", 400)
 		return
 	}

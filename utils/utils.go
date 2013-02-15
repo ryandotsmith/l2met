@@ -35,11 +35,6 @@ func MeasureI(n string, i int64) {
 	fmt.Printf("measure=%q val=%d\n", n, i)
 }
 
-func MeasureE(n string, e error) {
-	n = appName + "." + n
-	fmt.Printf("measure=%q error=%s\n", n, e)
-}
-
 func MeasureT(t time.Time, n string) {
 	n = appName + "." + n
 	fmt.Printf("measure=%q val=%d\n", n, time.Since(t)/time.Millisecond)

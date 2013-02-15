@@ -83,7 +83,7 @@ func scheduleFetch(outbox chan<- *store.Bucket) {
 
 func fetch(t time.Time, outbox chan<- *store.Bucket) {
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
-	defer utils.MeasureT(time.Now(), "postgres_outlet.fetch")
+	defer utils.MeasureT("l2met-kernel-production.postgres_outlet.fetch", time.Now())
 
 	mailbox := fmt.Sprintf("postgres_outlet.%d", partitionId)
 	for bucket := range store.ScanBuckets(mailbox) {

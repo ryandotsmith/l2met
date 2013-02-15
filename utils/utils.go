@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"strconv"
 	"errors"
 	"fmt"
 	"hash/crc32"
@@ -23,6 +24,36 @@ func init() {
 		fmt.Println("Must set APP_NAME.")
 		os.Exit(1)
 	}
+}
+
+func EnvUint64(name string, defaultVal uint64) uint64 {
+	tmp := os.Getenv(name)
+	if len(tmp) != 0 {
+		n, err := strconv.ParseUint(tmp, 10, 64)
+		if err == nil {
+			return n
+		}
+	}
+	return defaultVal
+}
+
+func EnvString(name string, defaultVal string) string {
+	tmp := os.Getenv(name)
+	if len(tmp) != 0 {
+		return tmp
+	}
+	return defaultVal
+}
+
+func EnvInt(name string, defaultVal int) int {
+	tmp := os.Getenv(name)
+	if len(tmp) != 0 {
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			return n
+		}
+	}
+	return defaultVal
 }
 
 func MeasureI(n string, i int64) {

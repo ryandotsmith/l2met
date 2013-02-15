@@ -7,12 +7,10 @@ import (
 	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
 	"runtime"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -28,38 +26,10 @@ var (
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	var tmp string
-	var err error
-
-	tmp = os.Getenv("NUM_OUTLET_PARTITIONS")
-	numPartitions, err = strconv.ParseUint(tmp, 10, 64)
-	if err != nil {
-		log.Fatal("Unable to read NUM_OUTLET_PARTITIONS")
-	}
-
-	port = os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "8000"
-	}
-
-	workers = 2
-	tmp = os.Getenv("LOCAL_WORKERS")
-	if len(tmp) != 0 {
-		n, err := strconv.Atoi(tmp)
-		if err == nil {
-			workers = n
-		}
-	}
-
-	reqBuffer = 1000
-	tmp = os.Getenv("REQUEST_BUFFER")
-	if len(tmp) != 0 {
-		n, err := strconv.Atoi(tmp)
-		if err == nil {
-			reqBuffer = n
-		}
-	}
+	port = utils.EnvString("PORT", "8000")
+	workers = utils.EnvInt("LOCAL_WORKERS", 2)
+	reqBuffer = utils.EnvInt("REQUEST_BUFFER", 1000)
+	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
 }
 
 type LogRequest struct {

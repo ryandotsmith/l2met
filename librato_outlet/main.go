@@ -9,7 +9,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"runtime"
 	"strconv"
 	"time"
@@ -24,32 +23,10 @@ var (
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	var tmp string
-	var err error
 
-	workers = 2
-	tmp = os.Getenv("LOCAL_WORKERS")
-	if len(tmp) != 0 {
-		n, err := strconv.Atoi(tmp)
-		if err == nil {
-			workers = n
-		}
-	}
-
-	processInterval = 5
-	tmp = os.Getenv("LIBRATO_INTERVAL")
-	if len(tmp) != 0 {
-		n, err := strconv.Atoi(tmp)
-		if err == nil {
-			processInterval = n
-		}
-	}
-
-	tmp = os.Getenv("NUM_OUTLET_PARTITIONS")
-	numPartitions, err = strconv.ParseUint(tmp, 10, 64)
-	if err != nil {
-		log.Fatal("Unable to read NUM_OUTLET_PARTITIONS")
-	}
+	workers = utils.EnvInt("LOCAL_WORKERS", 2)
+	processInterval = utils.EnvInt("LIBRATO_INTERVAL", 5)
+	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
 
 	http.DefaultTransport = &http.Transport{
 		DisableKeepAlives: true,

@@ -25,11 +25,6 @@ func init() {
 	}
 }
 
-func Measure(n string) {
-	n = appName + "." + n
-	fmt.Printf("measure=%q\n", n)
-}
-
 func MeasureI(n string, i int64) {
 	n = appName + "." + n
 	fmt.Printf("measure=%q val=%d\n", n, i)

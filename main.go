@@ -22,6 +22,7 @@ var (
 	registerLocker sync.Mutex
 	numPartitions  uint64
 	reqBuffer      int
+	flushInterval  int
 )
 
 func init() {
@@ -29,6 +30,7 @@ func init() {
 	port = utils.EnvString("PORT", "8000")
 	workers = utils.EnvInt("LOCAL_WORKERS", 2)
 	reqBuffer = utils.EnvInt("REQUEST_BUFFER", 1000)
+	flushInterval = utils.EnvInt("FLUSH_INTERVAL", 1)
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
 }
 
@@ -112,7 +114,7 @@ func accept(inbox <-chan *LogRequest, register map[store.BKey]*store.Bucket) {
 }
 
 func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket) {
-	for _ = range time.Tick(time.Second * 2) {
+	for _ = range time.Tick(time.Second * time.Duration(flushInterval)) {
 		for k := range register {
 			registerLocker.Lock()
 			if m, ok := register[k]; ok {

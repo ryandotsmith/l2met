@@ -209,15 +209,15 @@ func (b *Bucket) Put(partitions uint64) error {
 	rc := redisPool.Get()
 	defer rc.Close()
 	libratoMailBox := fmt.Sprintf("librato_outlet.%d", partition)
-	//PGMailBox := fmt.Sprintf("postgres_outlet.%d", partition)
+	pgMailBox := fmt.Sprintf("postgres_outlet.%d", partition)
 
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, vals)
 	rc.Send("EXPIRE", key, 300)
 	rc.Send("SADD", libratoMailBox, key)
 	rc.Send("EXPIRE", libratoMailBox, 300)
-	//rc.Send("SADD", PGMailBox, key)
-	//rc.Send("EXPIRE", PGMailBox, 300)
+	rc.Send("SADD", pgMailBox, key)
+	rc.Send("EXPIRE", pgMailBox, 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {
 		return err

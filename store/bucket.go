@@ -160,8 +160,8 @@ func (b *Bucket) Add(otherM *Bucket) {
 	}
 }
 
-func (b *Bucket) Partition(partitions uint64) uint64 {
-	check := crc64.Checksum([]byte(b.String()), PartitionTable)
+func (b *Bucket) Partition(id []byte, partitions uint64) uint64 {
+	check := crc64.Checksum(id, PartitionTable)
 	return check % partitions
 }
 
@@ -202,8 +202,8 @@ func (b *Bucket) Put(partitions uint64) error {
 
 	b.Lock()
 	vals := b.Vals
-	partition := b.Partition(partitions)
 	key := b.String()
+	partition := b.Partition([]byte(key), partitions)
 	b.Unlock()
 
 	rc := redisPool.Get()

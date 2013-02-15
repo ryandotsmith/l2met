@@ -20,6 +20,8 @@ import (
 
 const keySep = "→"
 
+var PartitionTable = crc64.MakeTable(crc64.ISO)
+
 type BKey struct {
 	Token  string
 	Name   string
@@ -159,8 +161,7 @@ func (b *Bucket) Add(otherM *Bucket) {
 }
 
 func (b *Bucket) Partition(partitions uint64) uint64 {
-	tab := crc64.MakeTable(crc64.ISO)
-	check := crc64.Checksum([]byte(b.String()), tab)
+	check := crc64.Checksum([]byte(b.String()), PartitionTable)
 	return check % partitions
 }
 

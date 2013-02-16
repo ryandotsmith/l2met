@@ -14,7 +14,7 @@ type Metric struct {
 }
 
 func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Metric, error) {
-  defer utils.MeasureT("get-metrics", time.Now())
+	defer utils.MeasureT("get-metrics", time.Now())
 
 	rows, err := pg.Query("select * from get_buckets($1, $2, $3, $4, $5)",
 		token, name, resolution, min, max)
@@ -27,9 +27,9 @@ func GetMetrics(token, name string, resolution int64, min, max time.Time) ([]*Me
 	var metrics []*Metric
 	for rows.Next() {
 		var tmp []byte
-    k := BKey{}
+		k := BKey{}
 		rows.Scan(&k.Name, &k.Source, &k.Time, &tmp)
-    b := Bucket{ Key: k }
+		b := Bucket{Key: k}
 
 		if len(tmp) == 0 {
 			b.Vals = []float64{}

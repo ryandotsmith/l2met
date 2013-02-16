@@ -11,9 +11,9 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
-  "strconv"
 )
 
 var (
@@ -140,7 +140,7 @@ func outlet(outbox <-chan *store.Bucket) {
 }
 
 func getMetrics(w http.ResponseWriter, r *http.Request) {
-  defer utils.MeasureT("http-metrics", time.Now())
+	defer utils.MeasureT("http-metrics", time.Now())
 
 	// Support CORS.
 	w.Header().Set("Access-Control-Allow-Origin", "*")

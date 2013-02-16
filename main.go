@@ -146,6 +146,9 @@ func getMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	if r.Method == "OPTIONS" {
+		return
+	}
 
 	names := metricsPat.FindStringSubmatch(r.URL.Path)
 	if len(names) < 2 {

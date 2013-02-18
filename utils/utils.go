@@ -56,9 +56,9 @@ func EnvInt(name string, defaultVal int) int {
 	return defaultVal
 }
 
-func MeasureI(n string, i int64) {
-	n = appName + "." + n
-	fmt.Printf("measure=%q val=%d\n", n, i)
+func MeasureI(measurement string, val int64) {
+	m := fmt.Sprintf("%s.%s", appName, measurement)
+	fmt.Printf("measure=%q val=%d\n", m, val)
 }
 
 func MeasureT(measurement string, t time.Time) {

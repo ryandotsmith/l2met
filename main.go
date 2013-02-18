@@ -75,7 +75,7 @@ func report(inbox chan *LogRequest, outbox chan *store.Bucket, register map[stor
 }
 
 func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogRequest) {
-	defer utils.MeasureT("l2met-kernel-production.http-receiver", time.Now())
+	defer utils.MeasureT("http-receiver", time.Now())
 	if r.Method != "POST" {
 		http.Error(w, "Invalid Request", 400)
 		return

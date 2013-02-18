@@ -61,8 +61,9 @@ func MeasureI(n string, i int64) {
 	fmt.Printf("measure=%q val=%d\n", n, i)
 }
 
-func MeasureT(name string, t time.Time) {
-	fmt.Printf("measure=%q val=%d\n", name, time.Since(t)/time.Millisecond)
+func MeasureT(measurement string, t time.Time) {
+	m := fmt.Sprintf("%s.%s", appName, measurement)
+	fmt.Printf("measure=%q val=%d\n", m, time.Since(t)/time.Millisecond)
 }
 
 func WriteJsonBytes(w http.ResponseWriter, status int, b []byte) {

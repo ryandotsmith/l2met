@@ -66,7 +66,7 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 	buckets := make(chan *Bucket, 1000)
 	go func(c chan<- *Bucket) {
 		defer close(c)
-		defer utils.MeasureT("l2met-kernel-production.new-bucket", time.Now())
+		defer utils.MeasureT("new-bucket", time.Now())
 		lp := logplex.NewReader(rdr)
 		for {
 			packet, err := lp.ReadMsg()
@@ -126,7 +126,7 @@ func ScanBuckets(mailbox string) <-chan *Bucket {
 	buckets := make(chan *Bucket)
 
 	go func(ch chan *Bucket) {
-		defer utils.MeasureT("l2met-kernel-production.redis.scan-buckets", time.Now())
+		defer utils.MeasureT("redis.scan-buckets", time.Now())
 		defer close(ch)
 		rc.Send("MULTI")
 		rc.Send("SMEMBERS", mailbox)
@@ -177,7 +177,7 @@ func (b *Bucket) String() (res string) {
 }
 
 func (b *Bucket) Get() error {
-	defer utils.MeasureT("l2met-kernel-production.bucket.get", time.Now())
+	defer utils.MeasureT("bucket.get", time.Now())
 
 	rc := redisPool.Get()
 	defer rc.Close()
@@ -198,7 +198,7 @@ func (b *Bucket) Get() error {
 }
 
 func (b *Bucket) Put(partitions uint64) error {
-	defer utils.MeasureT("l2met-kernel-production.bucket.put", time.Now())
+	defer utils.MeasureT("bucket.put", time.Now())
 
 	b.Lock()
 	vals := b.Vals

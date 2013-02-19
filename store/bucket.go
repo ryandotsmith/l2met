@@ -121,13 +121,13 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 }
 
 func ScanBuckets(mailbox string) <-chan *Bucket {
-	rc := redisPool.Get()
-	defer rc.Close()
 	buckets := make(chan *Bucket)
 
 	go func(ch chan *Bucket) {
 		defer utils.MeasureT("redis.scan-buckets", time.Now())
 		defer close(ch)
+
+		rc := redisPool.Get()
 		rc.Send("MULTI")
 		rc.Send("SMEMBERS", mailbox)
 		rc.Send("DEL", mailbox)
@@ -136,6 +136,8 @@ func ScanBuckets(mailbox string) <-chan *Bucket {
 			fmt.Printf("at=%q error=%s\n", "redset-smembers", err)
 			return
 		}
+		rc.Close()
+
 		var delCount int64
 		var members []string
 		redis.Scan(reply, &members, &delCount)

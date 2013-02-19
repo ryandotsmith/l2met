@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+var libratoUrl = "https://metrics-api.librato.com/v1/metrics"
+
 var (
 	partitionId     uint64
 	numPartitions   uint64
@@ -51,10 +53,6 @@ type LM struct {
 type LP struct {
 	Gauges []*LM `json:"gauges"`
 }
-
-var (
-	libratoUrl = "https://metrics-api.librato.com/v1/metrics"
-)
 
 func main() {
 	var err error

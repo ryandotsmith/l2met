@@ -21,6 +21,8 @@ var (
 	numPartitions   uint64
 	workers         int
 	processInterval int
+	globalTokenUser string
+	globalTokenPass string
 )
 
 func init() {
@@ -29,6 +31,8 @@ func init() {
 	workers = utils.EnvInt("LOCAL_WORKERS", 2)
 	processInterval = utils.EnvInt("LIBRATO_INTERVAL", 5)
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
+	globalTokenUser = utils.EnvString("LIBRATO_USER", "")
+	globalTokenPass = utils.EnvString("LIBRATO_TOKEN", "")
 
 	http.DefaultTransport = &http.Transport{
 		DisableKeepAlives: true,
@@ -208,7 +212,16 @@ func post(outbox <-chan []*LM) {
 
 		sampleMetric := metrics[0]
 		token := store.Token{Id: sampleMetric.Token}
-		token.Get()
+
+		// If a global user/token is provided, use the token for all metrics.
+		// This enable a databaseless librato_outlet.
+		if len(globalTokenUser) == 0 || len(globalTokenPass) == 0 {
+			token.Get()
+		} else {
+			token.User = globalTokenUser
+			token.Pass = globalTokenPass
+		}
+
 		payload := new(LP)
 		payload.Gauges = metrics
 

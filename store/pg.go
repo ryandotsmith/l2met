@@ -51,3 +51,8 @@ func init() {
 		os.Exit(1)
 	}
 }
+
+func PingPostgres() error {
+	_, err := pg.Exec("select now()")
+	return err
+}

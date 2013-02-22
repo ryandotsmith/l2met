@@ -56,13 +56,23 @@ func main() {
 	}
 
 	receiver := func(w http.ResponseWriter, r *http.Request) { receiveLogs(w, r, inbox) }
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
+	http.HandleFunc("/health", healthCheck)
 	http.HandleFunc("/logs", receiver)
 	http.HandleFunc("/metrics/", getMetrics)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
 		os.Exit(1)
+	}
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	if store.PingRedis() != nil {
+		http.Error(w, "Redis is unavailable.", 500)
+	}
+
+	if store.PingPostgres() != nil {
+		http.Error(w, "Postgres is unavailable.", 500)
 	}
 }
 

@@ -35,3 +35,10 @@ func init() {
 		},
 	}
 }
+
+func PingRedis() error {
+	rc := redisPool.Get()
+	defer rc.Close()
+	_, err := rc.Do("PING")
+	return err
+}

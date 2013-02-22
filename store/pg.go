@@ -53,6 +53,6 @@ func init() {
 }
 
 func PingPostgres() error {
-	_, err := pg.Exec("select now()")
+	_, err := pg.Query("select now()")
 	return err
 }

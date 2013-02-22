@@ -67,11 +67,17 @@ func main() {
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
-	if store.PingRedis() != nil {
+	var err error
+
+	err = store.PingRedis()
+	if err != nil {
+		fmt.Printf("error=%q\n", err)
 		http.Error(w, "Redis is unavailable.", 500)
 	}
 
-	if store.PingPostgres() != nil {
+	err = store.PingPostgres()
+	if err != nil {
+		fmt.Printf("error=%q\n", err)
 		http.Error(w, "Postgres is unavailable.", 500)
 	}
 }

@@ -67,6 +67,7 @@ func main() {
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
+	/*
 	if store.PingRedis() != nil {
 		http.Error(w, "Redis is unavailable.", 500)
 	}
@@ -74,6 +75,7 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 	if store.PingPostgres() != nil {
 		http.Error(w, "Postgres is unavailable.", 500)
 	}
+	*/
 }
 
 func report(inbox chan *LogRequest, outbox chan *store.Bucket, register map[store.BKey]*store.Bucket) {

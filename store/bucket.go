@@ -128,6 +128,8 @@ func ScanBuckets(mailbox string) <-chan *Bucket {
 		defer close(ch)
 
 		rc := redisPool.Get()
+		defer rc.Close()
+
 		rc.Send("MULTI")
 		rc.Send("SMEMBERS", mailbox)
 		rc.Send("DEL", mailbox)
@@ -136,7 +138,6 @@ func ScanBuckets(mailbox string) <-chan *Bucket {
 			fmt.Printf("at=%q error=%s\n", "redset-smembers", err)
 			return
 		}
-		rc.Close()
 
 		var delCount int64
 		var members []string

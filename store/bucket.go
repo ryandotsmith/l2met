@@ -212,7 +212,7 @@ func (b *Bucket) Put(partitions uint64) error {
 	rc := redisPool.Get()
 	defer rc.Close()
 	libratoMailBox := fmt.Sprintf("librato_outlet.%d", partition)
-	pgMailBox := fmt.Sprintf("postgres_outlet.%d", partition)
+	//pgMailBox := fmt.Sprintf("postgres_outlet.%d", partition)
 
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, vals)

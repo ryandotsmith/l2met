@@ -219,8 +219,8 @@ func (b *Bucket) Put(partitions uint64) error {
 	rc.Send("EXPIRE", key, 300)
 	rc.Send("SADD", libratoMailBox, key)
 	rc.Send("EXPIRE", libratoMailBox, 300)
-	rc.Send("SADD", pgMailBox, key)
-	rc.Send("EXPIRE", pgMailBox, 300)
+	//rc.Send("SADD", pgMailBox, key)
+	//rc.Send("EXPIRE", pgMailBox, 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {
 		return err

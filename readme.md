@@ -156,7 +156,9 @@ If you are a Herokai, there is no need to setup this software. We have a product
 
 ### Heroku Setup
 
-Create a Heroku app.
+You can run l2met in a multi-tenant mode or a single-user mode. The multi-tenant mode enable multiple drains with unique librato accounts. The single-user mode exposes 1 drain and maps to 1 librato account. The Heroku Setup assumes single-user mode.
+
+#### Create a Heroku app.
 
 ```bash
 $ git clone git://github.com/ryandotsmith/l2met.git
@@ -165,24 +167,36 @@ $ heroku create your-l2met --buildpack git://github.com/kr/heroku-buildpack-go.g
 $ git push heroku master
 ```
 
-Add database services.
+#### Add database services.
 
 ```bash
-$ heroku addons:add heroku-postgresql:dev
 $ heroku addons:add redisgreen:basic
+$ heroku config:set REDIS_URL=$(heroku config -s | grep "^REDISGREEN_URL" | sed 's/REDISGREEN_URL=//')
 ```
 
-Setup PostgreSQL schema.
+#### Update Heroku config.
 
 ```bash
-$ heroku pg:promote
-$ heroku pg:psql
-\i ./sql/schema.sql
+$ heroku config:set APP_NAME=your-l2met LOCAL_WORKERS=2
+$ heroku config:set LIBRATO_USER=me@domain.com LIBRATO_TOKEN=abc123
 ```
 
-Update Heroku config.
+#### Scale processes.
 
 ```bash
-$ heroku config:add APP_NAME=your-l2met
-$ heroku config:add NUM_LIBRATO_WORKERS=1
+$ heroku scale web=1 librato_outlet=1
+```
+
+If you wish to run more than 1 outlet, you will need to adjust a config variable in addition to scaling the process. For example, if you are running 2 librato_outlets:
+
+```bash
+$ heroku config:set NUM_OUTLET_PARTITIONS=2
+$ heroku scale librato_outlet=2
+```
+
+#### Test
+
+```bash
+$ echo 'hello world' | log-shuttle \
+	-drain="https://l2met:`uuid`@my-new-l2met.herokuapp.com/logs"
 ```

@@ -76,11 +76,11 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	/*
-	err = store.PingPostgres()
-	if err != nil {
-		fmt.Printf("error=%q\n", err)
-		http.Error(w, "Postgres is unavailable.", 500)
-	}
+		err = store.PingPostgres()
+		if err != nil {
+			fmt.Printf("error=%q\n", err)
+			http.Error(w, "Postgres is unavailable.", 500)
+		}
 	*/
 }
 

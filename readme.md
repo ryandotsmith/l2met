@@ -1,17 +1,25 @@
 # l2met
 
-Convert your log stream into charts and actionable alerts in less than 1 minute
-with 0 software installation.
+Convert a formatted log stream into metrics.
 
+* [Synopsis](#synopsis)
 * [Log Conventions](#log-conventions)
 * [API](#api)
 * [Setup](#setup)
 
+## Synopsis
+
+L2met receives HTTP requests that contain a body of rfc5424 formatted data. Commonly data is drained into l2met by [logplex](https://github.com/heroku/logplex) or [log-shuttle](https://github.com/ryandotsmith/log-shuttle).
+
+Once data is delivered, l2met extracts and parses the individual log lines using the [log conventions](#log-conventions) and then stores the data in redis so that outlets can read the data and build metrics.
+
+![img](http://f.cl.ly/items/16340s2c1Y3P0a2U3j0v/l2met-arch.png)
+
 ## Log Conventions
 
-L2met uses convention over configuration to build metrics.
+L2met uses convention over configuration to build metrics. There are two basic metric types: Coutners & Lists.
 
-### Counter Metric
+### Counters
 
 Metrics Produced:
 
@@ -21,9 +29,9 @@ Metrics Produced:
 measure="app.module.function"
 ```
 
-### Sample Metric
+### Lists
 
-Samples are useful for building metrics around time based functions. For instance, the elapsed duration of a function call. Or you can measure the value of an in memory resource.
+Lists are useful for building metrics around time based functions. For instance, the elapsed duration of a function call. Or you can measure the value of an in memory resource.
 
 Metrics Produced:
 
@@ -197,6 +205,8 @@ $ heroku scale librato_outlet=2
 #### Test
 
 ```bash
-$ echo 'hello world' | log-shuttle \
-	-drain="https://l2met:`uuid`@my-new-l2met.herokuapp.com/logs"
+$ export LOGPLEX_URL=https://:`uuid`@your-l2met.herokuapp.com/logs
+$ echo 'measure=hello-from-l2met' | log-shuttle
 ```
+
+Now you should be able to see `hello-from-l2met` in your librato metrics web ui.

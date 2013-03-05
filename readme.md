@@ -197,6 +197,6 @@ $ heroku scale librato_outlet=2
 #### Test
 
 ```bash
-$ echo 'hello world' | log-shuttle \
-	-drain="https://l2met:`uuid`@my-new-l2met.herokuapp.com/logs"
+$ export LOGPLEX_URL=https://:`uuid`@your-l2met.herokuapp.com/logs
+$ echo 'measure=hello-your-l2met' | log-shuttle
 ```

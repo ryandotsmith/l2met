@@ -23,7 +23,6 @@ var (
 	processInterval int
 	globalTokenUser string
 	globalTokenPass string
-	lockTTL         uint64
 )
 
 func init() {
@@ -34,7 +33,6 @@ func init() {
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
 	globalTokenUser = utils.EnvString("LIBRATO_USER", "")
 	globalTokenPass = utils.EnvString("LIBRATO_TOKEN", "")
-	lockTTL = utils.EnvUint64("LOCK_TTL", 10)
 
 	http.DefaultTransport = &http.Transport{
 		DisableKeepAlives: true,
@@ -62,7 +60,7 @@ type LP struct {
 
 func main() {
 	var err error
-	partitionId, err = utils.LockPartition("librato_outlet", numPartitions, lockTTL)
+	partitionId, err = utils.LockPartition(pg, "librato_outlet", numPartitions)
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}

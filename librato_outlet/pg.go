@@ -8,14 +8,16 @@ import (
 )
 
 var (
-	pg *sql.DB
+	postgresEnabled = true
+	pg              *sql.DB
 )
 
 func init() {
 	url := os.Getenv("DATABASE_URL")
 	if len(url) == 0 {
-		fmt.Printf("error=\"must set DATABASE_URL\"\n")
-		os.Exit(1)
+		postgresEnabled = false
+		fmt.Println("Postgres has been disabled.")
+		return
 	}
 
 	pgurl, err := pq.ParseURL(url)

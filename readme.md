@@ -13,7 +13,7 @@ L2met receives HTTP requests that contain a body of rfc5424 formatted data. Data
 
 Once data is delivered, l2met extracts and parses the individual log lines using the [log conventions](#log-conventions) and then stores the data in redis so that outlets can read the data and build metrics.
 
-![img](http://f.cl.ly/items/16340s2c1Y3P0a2U3j0v/l2met-arch.png)
+![img](http://f.cl.ly/items/132r2d2w2B04422S0t3s/l2met-arch.png)
 
 ## Log Conventions
 

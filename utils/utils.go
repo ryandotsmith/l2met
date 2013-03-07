@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"net/http"
 	"os"
 	"strconv"
@@ -108,59 +107,4 @@ func ParseToken(r *http.Request) (string, error) {
 	}
 
 	return parts[1], nil
-}
-
-func LockPartition(ns string, max, lockTTL uint64) (uint64, error) {
-	for {
-		var p uint64
-		for p = 0; p < max; p++ {
-			value := fmt.Sprintf("%s.%d", ns, p)
-			rc := redisPool.Get()
-			reply, err := redis.Int(rc.Do("SADD", "partitions", value))
-			if err != nil {
-				fmt.Printf("error=%q\n", err)
-				rc.Close()
-				continue
-			}
-
-			if reply == 0 {
-				fmt.Printf("Unable to acquire lock.\n")
-				rc.Close()
-				continue
-			}
-			reply, err = redis.Int(rc.Do("expire", value, lockTTL))
-
-			if err != nil {
-				fmt.Printf("error=%q\n", err)
-				rc.Close()
-				continue
-			}
-
-			//Heartbeat is intentionally unstoppable.
-			//We assume that the heartbeat continues as long
-			//as the program has not crashed, or locked up
-			go func() {
-				last := time.Now().Unix()
-
-				for {
-					//We want to at least get one heartbeat per
-					//interval, so we are dividing the lock_ttl by 4
-					time.Sleep(time.Duration(lockTTL * 250))
-					if (time.Now().Unix() - last) > int64((time.Second * time.Duration(lockTTL))) {
-						panic("Lock has been lost.")
-					}
-					reply, err := redis.Int(rc.Do("expire", value, lockTTL))
-					if (-1 == reply) || err != nil {
-						panic(fmt.Sprintf("Unable to set expire on lock. error=%s\n", err))
-					}
-					last = time.Now().Unix()
-				}
-			}()
-
-			return p, nil
-		}
-		fmt.Printf("at=%q\n", "waiting-for-partition-lock")
-		time.Sleep(time.Second * 10)
-	}
-	return 0, errors.New("Unable to lock partition.")
 }

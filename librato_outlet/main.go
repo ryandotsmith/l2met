@@ -34,7 +34,7 @@ func init() {
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
 	globalTokenUser = utils.EnvString("LIBRATO_USER", "")
 	globalTokenPass = utils.EnvString("LIBRATO_TOKEN", "")
-	lockTTL = utils.EnvUint64("LOCK_TTL", 1)
+	lockTTL = utils.EnvUint64("LOCK_TTL", 30)
 
 	http.DefaultTransport = &http.Transport{
 		DisableKeepAlives: true,
@@ -61,11 +61,6 @@ type LP struct {
 }
 
 func main() {
-	var err error
-	partitionId, err = utils.LockPartition("librato_outlet", numPartitions, lockTTL)
-	if err != nil {
-		log.Fatal("Unable to lock partition.")
-	}
 	// The inbox is used to hold empty buckets that are
 	// waiting to be processed. We buffer the chanel so
 	// as not to slow down the fetch routine. We can
@@ -128,8 +123,12 @@ func scheduleFetch(inbox chan<- *store.Bucket) {
 }
 
 func fetch(t time.Time, inbox chan<- *store.Bucket) {
+	pid, err := utils.LockPartition("librato_outlet", numPartitions, lockTTL)
+	if err != nil {
+		log.Fatal("Unable to lock partition.")
+	}
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
-	mailbox := fmt.Sprintf("librato_outlet.%d", partitionId)
+	mailbox := fmt.Sprintf("librato_outlet.%d", pid)
 	for bucket := range store.ScanBuckets(mailbox) {
 		inbox <- bucket
 	}

@@ -25,16 +25,10 @@ func init() {
 	workers = utils.EnvInt("LOCAL_WORKERS", 2)
 	processInterval = utils.EnvInt("POSTGRES_INTERVAL", 5)
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
-	lockTTL = utils.EnvUint64("LOCK_TTL", 10)
+	lockTTL = utils.EnvUint64("LOCK_TTL", 30)
 }
 
 func main() {
-	var err error
-	partitionId, err = utils.LockPartition("postgres_outlet", numPartitions, lockTTL)
-	if err != nil {
-		log.Fatal("Unable to lock partition.")
-	}
-
 	outbox := make(chan *store.Bucket, 1000)
 	go scheduleFetch(outbox)
 	for i := 0; i < workers; i++ {
@@ -63,7 +57,12 @@ func fetch(t time.Time, outbox chan<- *store.Bucket) {
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
 	defer utils.MeasureT("postgres_outlet.fetch", time.Now())
 
-	mailbox := fmt.Sprintf("postgres_outlet.%d", partitionId)
+	pid, err := utils.LockPartition("postgres_outlet", numPartitions, lockTTL)
+	if err != nil {
+		log.Fatal("Unable to lock partition.")
+	}
+
+	mailbox := fmt.Sprintf("postgres_outlet.%d", pid)
 	for bucket := range store.ScanBuckets(mailbox) {
 		outbox <- bucket
 	}

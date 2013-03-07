@@ -166,6 +166,10 @@ If you are a Herokai, there is no need to setup this software. We have a product
 
 You can run l2met in a multi-tenant mode or a single-user mode. The multi-tenant mode enable multiple drains with unique librato accounts. The single-user mode exposes 1 drain and maps to 1 librato account. The Heroku Setup assumes single-user mode.
 
+#### Creaet Librato Account
+
+Once you have created the account, visit your [settings](https://metrics.librato.com/account) page to grab you username and token. Keep this page open as you will need this data later in the setup.
+
 #### Create a Heroku app.
 
 ```bash

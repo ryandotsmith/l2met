@@ -217,8 +217,10 @@ $ heroku drains:add https://l2met:`uuid`@your-l2met.herokuapp.com/logs -a your-a
 #### Test
 
 ```bash
-$ export LOGPLEX_URL=https://:`uuid`@your-l2met.herokuapp.com/logs
-$ echo 'measure=hello-from-l2met' | log-shuttle
+$ curl "https://your-l2met.herokuapp.com/logs" \
+	-X POST \
+	-u 'l2met:123' \
+	-d "66 <13>1 2000-01-01T00:44:30+00:00 token app web.1 - - measure=hello"
 ```
 
-Now you should be able to see `hello-from-l2met` in your librato metrics web ui.
+Now you should be able to see `hello` in your librato metrics web ui.

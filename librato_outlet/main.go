@@ -34,7 +34,7 @@ func init() {
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
 	globalTokenUser = utils.EnvString("LIBRATO_USER", "")
 	globalTokenPass = utils.EnvString("LIBRATO_TOKEN", "")
-	lockTTL = utils.EnvUint64("LOCK_TTL", 10)
+	lockTTL = utils.EnvUint64("LOCK_TTL", 1)
 
 	http.DefaultTransport = &http.Transport{
 		DisableKeepAlives: true,

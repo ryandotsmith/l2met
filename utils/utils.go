@@ -124,6 +124,7 @@ func LockPartition(ns string, max, lockTTL uint64) (uint64, error) {
 			}
 
 			if reply == 0 {
+				fmt.Printf("Unable to acquire lock.\n")
 				rc.Close()
 				continue
 			}
@@ -135,14 +136,14 @@ func LockPartition(ns string, max, lockTTL uint64) (uint64, error) {
 				continue
 			}
 
-			//Heartbeat is intentionally unstoppable. 
-			//We assume that the heartbeat continues as long 
+			//Heartbeat is intentionally unstoppable.
+			//We assume that the heartbeat continues as long
 			//as the program has not crashed, or locked up
 			go func() {
 				last := time.Now().Unix()
 
 				for {
-					//We want to at least get one heartbeat per 
+					//We want to at least get one heartbeat per
 					//interval, so we are dividing the lock_ttl by 4
 					time.Sleep(time.Duration(lockTTL * 250))
 					if (time.Now().Unix() - last) > int64((time.Second * time.Duration(lockTTL))) {

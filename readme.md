@@ -17,7 +17,7 @@ Once data is delivered, l2met extracts and parses the individual log lines using
 
 ## Log Conventions
 
-L2met uses convention over configuration to build metrics. There are two basic metric types: Coutners & Lists.
+L2met uses convention over configuration to build metrics. There are two basic metric types: Counters & Lists.
 
 ### Counters
 
@@ -166,7 +166,7 @@ If you are a Herokai, there is no need to setup this software. We have a product
 
 You can run l2met in a multi-tenant mode or a single-user mode. The multi-tenant mode enable multiple drains with unique librato accounts. The single-user mode exposes 1 drain and maps to 1 librato account. The Heroku Setup assumes single-user mode.
 
-#### Creaet Librato Account
+#### Create Librato Account
 
 Once you have created the account, visit your [settings](https://metrics.librato.com/account) page to grab you username and token. Keep this page open as you will need this data later in the setup.
 
@@ -180,6 +180,8 @@ $ git push heroku master
 ```
 
 #### Add database services.
+
+I prefer redisgreen, however there are cheaper alternatives. Whichever provider you choose, ensure that you have set REDIS_URL properly.
 
 ```bash
 $ heroku addons:add redisgreen:basic

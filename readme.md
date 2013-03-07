@@ -206,6 +206,14 @@ $ heroku config:set NUM_OUTLET_PARTITIONS=2
 $ heroku scale librato_outlet=2
 ```
 
+#### Add drain to your Heroku app(s)
+
+Now that you have created an l2met app, you can drain logs from other heroku apps into l2met.
+
+```bash
+$ heroku drains:add https://l2met:`uuid`@your-l2met.herokuapp.com/logs -a your-app-that-needs-l2met
+```
+
 #### Test
 
 ```bash

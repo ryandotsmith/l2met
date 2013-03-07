@@ -10,7 +10,7 @@ import (
 func LockPartition(ns string, max, ttl uint64) (uint64, error) {
 	for {
 		for p := uint64(0); p < max; p++ {
-			name := fmt.Sprintf("%s.%d", ns, p)
+			name := fmt.Sprintf("lock.%s.%d", ns, p)
 			locked, err := writeLock(name, ttl)
 			if err != nil {
 				return 0, err

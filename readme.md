@@ -216,11 +216,18 @@ $ heroku drains:add https://l2met:`uuid`@your-l2met.herokuapp.com/logs -a your-a
 
 #### Test
 
+Install [log-shuttle](https://github.com/ryandotsmith/log-shuttle).
+
 ```bash
-$ curl "https://your-l2met.herokuapp.com/logs" \
-	-X POST \
-	-u 'l2met:123' \
-	-d "66 <13>1 2000-01-01T00:44:30+00:00 token app web.1 - - measure=hello"
+$ curl -o log-shuttle "https://s3.amazonaws.com/32k.io/bin/log-shuttle"
+$ chmod +x log-shuttle
 ```
 
-Now you should be able to see `hello` in your librato metrics web ui.
+Send data to l2met.
+
+```bash
+$ export LOGPLEX_URL=https://l2met:123@your-l2met.herokuapp.com/logs
+$ echo 'measure="hello-from-your-l2met"' | log-shuttle
+```
+
+Now you should be able to see `hello-from-your-l2met` in your librato metrics web ui.

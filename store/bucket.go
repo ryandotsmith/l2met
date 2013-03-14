@@ -91,7 +91,7 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 			default:
 				m, ok := d["measure"]
 				if !ok {
-					return
+					continue
 				}
 				measure = m
 			}

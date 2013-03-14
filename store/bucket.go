@@ -86,6 +86,9 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 			switch {
 			case string(packet.User) == "router":
 				measure = "router"
+				if host, ok := d["host"]; ok {
+					measure = host + "." + measure
+				}
 			case string(packet.User) == "runtime":
 				measure = "runtime"
 			default:

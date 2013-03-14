@@ -109,7 +109,7 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 			t = utils.RoundTime(t, time.Minute)
 
 			for k, v := range d {
-				val, err = strconv.ParseFloat(v, 64)
+				val, err := strconv.ParseFloat(v, 64)
 				if err != nil {
 					continue
 				}

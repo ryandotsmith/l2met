@@ -32,7 +32,6 @@ Metrics Produced:
 * myapp.view.last
 * myapp.view.count
 * myapp.view.sum
-
 * myapp.db.min
 * myapp.db.median
 * myapp.db.perc95

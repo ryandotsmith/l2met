@@ -18,7 +18,6 @@ func init() {
 }
 
 var redisPool *redis.Pool
-
 func init() {
 	var err error
 	host, password, err := utils.ParseRedisUrl()

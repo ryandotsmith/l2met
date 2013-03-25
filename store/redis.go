@@ -23,7 +23,7 @@ func init() {
 		os.Exit(1)
 	}
 	redisPool = &redis.Pool{
-		MaxIdle:     10,
+		MaxIdle:     60,
 		IdleTimeout: 10 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.DialTimeout("tcp", server, time.Second, time.Second, time.Second)

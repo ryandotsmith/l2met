@@ -7,6 +7,16 @@ import (
 	"log"
 )
 
+// Since each worker will most likely
+// be using a redis connection, we can optimize our
+// connection establishment operations by having a pool
+// that is equal in size to the number of workers.
+// We add 10 to the workers because: why not?
+var maxConn int
+func init() {
+	maxConn = utils.EnvInt("LOCAL_WORKERS", 2) + 10
+}
+
 var redisPool *redis.Pool
 
 func init() {
@@ -16,7 +26,7 @@ func init() {
 		log.Fatal(err)
 	}
 	redisPool = &redis.Pool{
-		MaxIdle:     60,
+		MaxIdle:     maxConn,
 		IdleTimeout: 10 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.DialTimeout("tcp", host, time.Second, time.Second, time.Second)

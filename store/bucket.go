@@ -82,21 +82,9 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 				continue
 			}
 
-			var measure string
-			switch {
-			case string(packet.User) == "router":
-				measure = "router"
-				if host, ok := d["host"]; ok {
-					measure = host + "." + measure
-				}
-			case string(packet.User) == "runtime":
-				measure = "runtime"
-			default:
-				m, ok := d["measure"]
-				if !ok {
-					continue
-				}
-				measure = m
+			measure, ok := d["measure"]
+			if !ok {
+				continue
 			}
 
 			source, ok := d["source"]
@@ -111,23 +99,19 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 			}
 			t = utils.RoundTime(t, time.Minute)
 
-			for k, v := range d {
-				v = strings.Replace(v, "ms", "", -1)
-				val, err := strconv.ParseFloat(v, 64)
-				if err != nil {
-					continue
+			val := float64(1)
+			tmpVal, present := d["val"]
+			if present {
+				v, err := strconv.ParseFloat(tmpVal, 64)
+				if err == nil {
+					val = v
 				}
-				var name string
-				if k == "val" {
-					name = measure
-				} else {
-					name = measure + "." + k
-				}
-				k := BKey{Token: token, Name: name, Source: source, Time: t}
-				b := &Bucket{Key: k}
-				b.Vals = append(b.Vals, val)
-				c <- b
 			}
+
+			k := BKey{Token: token, Name: measure, Source: source, Time: t}
+			b := &Bucket{Key: k}
+			b.Vals = append(b.Vals, val)
+			c <- b
 		}
 	}(buckets)
 	return buckets

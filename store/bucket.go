@@ -117,15 +117,12 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 	return buckets
 }
 
-func ScanBuckets(mailbox string) <-chan *Bucket {
+func ScanBuckets(rc redis.Conn, mailbox string) <-chan *Bucket {
 	buckets := make(chan *Bucket)
 
 	go func(ch chan *Bucket) {
 		defer utils.MeasureT("redis.scan-buckets", time.Now())
 		defer close(ch)
-
-		rc := redisPool.Get()
-		defer rc.Close()
 
 		rc.Send("MULTI")
 		rc.Send("SMEMBERS", mailbox)
@@ -176,11 +173,8 @@ func (b *Bucket) String() (res string) {
 	return
 }
 
-func (b *Bucket) Get() error {
+func (b *Bucket) Get(rc redis.Conn) error {
 	defer utils.MeasureT("bucket.get", time.Now())
-
-	rc := redisPool.Get()
-	defer rc.Close()
 
 	//Fill in the vals.
 	reply, err := redis.Values(rc.Do("LRANGE", b.String(), 0, -1))
@@ -197,7 +191,7 @@ func (b *Bucket) Get() error {
 	return nil
 }
 
-func (b *Bucket) Put(partitions uint64) error {
+func (b *Bucket) Put(rc redis.Conn, partitions uint64) error {
 	defer utils.MeasureT("bucket.put", time.Now())
 
 	b.Lock()
@@ -206,8 +200,6 @@ func (b *Bucket) Put(partitions uint64) error {
 	partition := b.Partition([]byte(key), partitions)
 	b.Unlock()
 
-	rc := redisPool.Get()
-	defer rc.Close()
 	libratoMailBox := fmt.Sprintf("librato_outlet.%d", partition)
 	//pgMailBox := fmt.Sprintf("postgres_outlet.%d", partition)
 

@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"io/ioutil"
 	"l2met/store"
 	"l2met/utils"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -25,6 +27,7 @@ var (
 	numPartitions     uint64
 	reqBuffer         int
 	flushInterval     int
+	maxRedisConn      int
 )
 
 func init() {
@@ -35,6 +38,29 @@ func init() {
 	reqBuffer = utils.EnvInt("REQUEST_BUFFER", 1000)
 	flushInterval = utils.EnvInt("FLUSH_INTERVAL", 1)
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
+	maxRedisConn = utils.EnvInt("OUTLET_C", 2) + 10
+}
+
+var redisPool *redis.Pool
+
+func init() {
+	var err error
+	host, password, err := utils.ParseRedisUrl()
+	if err != nil {
+		log.Fatal(err)
+	}
+	redisPool = &redis.Pool{
+		MaxIdle:     maxRedisConn,
+		IdleTimeout: 10 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.DialTimeout("tcp", host, time.Second, time.Second, time.Second)
+			if err != nil {
+				return nil, err
+			}
+			c.Do("AUTH", password)
+			return c, err
+		},
+	}
 }
 
 type LogRequest struct {
@@ -69,7 +95,9 @@ func main() {
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
-	err := store.PingRedis()
+	var err error
+	rc := redisPool.Get()
+	_, err = rc.Do("PING")
 	if err != nil {
 		fmt.Printf("error=%q\n", err)
 		http.Error(w, "Redis is unavailable.", 500)
@@ -144,10 +172,12 @@ func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket
 
 func outlet(outbox <-chan *store.Bucket) {
 	for b := range outbox {
-		err := b.Put(numPartitions)
+		rc := redisPool.Get()
+		err := b.Put(rc, numPartitions)
 		if err != nil {
 			fmt.Printf("error=%s\n", err)
 		}
+		rc.Close()
 	}
 }
 

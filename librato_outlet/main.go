@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"l2met/store"
 	"l2met/utils"
 	"log"
@@ -24,6 +25,7 @@ var (
 	globalTokenUser string
 	globalTokenPass string
 	lockTTL         uint64
+	maxRedisConn    int
 )
 
 func init() {
@@ -35,6 +37,7 @@ func init() {
 	globalTokenUser = utils.EnvString("LIBRATO_USER", "")
 	globalTokenPass = utils.EnvString("LIBRATO_TOKEN", "")
 	lockTTL = utils.EnvUint64("LOCK_TTL", 30)
+	maxRedisConn = utils.EnvInt("OUTLET_C", 2) + 10
 
 	http.DefaultTransport = &http.Transport{
 		DisableKeepAlives: true,
@@ -44,6 +47,28 @@ func init() {
 				return c, err
 			}
 			return c, c.SetDeadline(time.Now().Add(time.Second * 7))
+		},
+	}
+}
+
+var redisPool *redis.Pool
+
+func init() {
+	var err error
+	host, password, err := utils.ParseRedisUrl()
+	if err != nil {
+		log.Fatal(err)
+	}
+	redisPool = &redis.Pool{
+		MaxIdle:     maxRedisConn,
+		IdleTimeout: 10 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.DialTimeout("tcp", host, time.Second, time.Second, time.Second)
+			if err != nil {
+				return nil, err
+			}
+			c.Do("AUTH", password)
+			return c, err
 		},
 	}
 }
@@ -115,33 +140,37 @@ func report(i chan *store.Bucket, l chan *LM, o chan []*LM) {
 // (load the vals into the bucket) and processed.
 func scheduleFetch(inbox chan<- *store.Bucket) {
 	for t := range time.Tick(time.Second) {
+		rc := redisPool.Get()
 		// Start working on the new minute right away.
 		if t.Second()%processInterval == 0 {
-			fetch(t, inbox)
+			fetch(rc, t, inbox)
 		}
+		rc.Close()
 	}
 }
 
-func fetch(t time.Time, inbox chan<- *store.Bucket) {
+func fetch(rc redis.Conn, t time.Time, inbox chan<- *store.Bucket) {
 	pid, err := utils.LockPartition("librato_outlet", numPartitions, lockTTL)
 	if err != nil {
 		log.Fatal("Unable to lock partition.")
 	}
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
 	mailbox := fmt.Sprintf("librato_outlet.%d", pid)
-	for bucket := range store.ScanBuckets(mailbox) {
+	for bucket := range store.ScanBuckets(rc, mailbox) {
 		inbox <- bucket
 	}
 }
 
 func scheduleConvert(inbox <-chan *store.Bucket, lms chan<- *LM) {
 	for b := range inbox {
-		convert(b, lms)
+		rc := redisPool.Get()
+		convert(rc, b, lms)
+		rc.Close()
 	}
 }
 
-func convert(b *store.Bucket, lms chan<- *LM) {
-	err := b.Get()
+func convert(rc redis.Conn, b *store.Bucket, lms chan<- *LM) {
+	err := b.Get(rc)
 	if err != nil {
 		fmt.Printf("error=%s\n", err)
 		return

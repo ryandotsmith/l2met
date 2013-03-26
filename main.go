@@ -106,25 +106,26 @@ func receiveLogs(w http.ResponseWriter, r *http.Request, inbox chan<- *LogReques
 
 func accept(inbox <-chan *LogRequest, register map[store.BKey]*store.Bucket) {
 	for lreq := range inbox {
+		startAccept := time.Now()
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		for bucket := range store.NewBucket(lreq.Token, rdr) {
 			registerLocker.Lock()
 			k := bucket.Key
 			_, present := register[k]
 			if !present {
-				fmt.Printf("at=%q minute=%d name=%s\n",
-					"add-to-register", bucket.Key.Time.Minute(), bucket.Key.Name)
 				register[k] = bucket
 			} else {
 				register[k].Add(bucket)
 			}
 			registerLocker.Unlock()
 		}
+		utils.MeasureT("http-accept", startAccept)
 	}
 }
 
 func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket) {
 	for _ = range time.Tick(time.Second * time.Duration(flushInterval)) {
+		startTransfer := time.Now()
 		for k := range register {
 			registerLocker.Lock()
 			if m, ok := register[k]; ok {
@@ -135,6 +136,7 @@ func transfer(register map[store.BKey]*store.Bucket, outbox chan<- *store.Bucket
 				registerLocker.Unlock()
 			}
 		}
+		utils.MeasureT("http-transfer", startTransfer)
 	}
 }
 

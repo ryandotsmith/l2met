@@ -5,14 +5,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"l2met/utils"
-	"time"
 )
 
 var msgPat = regexp.MustCompile(`( *)([a-zA-Z0-9\_\-\.]+)=?(([a-zA-Z0-9\.\-\_\.]+)|("([^\"]+)"))?`)
 
 func ParseMsgData(msg []byte) (map[string]string, error) {
-	defer utils.MeasureT("encoding.parse-msg-data", time.Now())
 	d := make(map[string]string)
 	pairs := msgPat.FindAllStringSubmatch(string(msg), -1)
 	for i := range pairs {

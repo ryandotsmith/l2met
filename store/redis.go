@@ -15,7 +15,7 @@ import (
 var maxConn int
 
 func init() {
-	maxConn = utils.EnvInt("LOCAL_WORKERS", 2) + 10
+	maxConn = utils.EnvInt("OUTLET_C", 2) + 10
 }
 
 var redisPool *redis.Pool

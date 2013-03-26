@@ -2,9 +2,9 @@ package store
 
 import (
 	"github.com/garyburd/redigo/redis"
-	"time"
 	"l2met/utils"
 	"log"
+	"time"
 )
 
 // Since each worker will most likely
@@ -13,11 +13,13 @@ import (
 // that is equal in size to the number of workers.
 // We add 10 to the workers because: why not?
 var maxConn int
+
 func init() {
 	maxConn = utils.EnvInt("LOCAL_WORKERS", 2) + 10
 }
 
 var redisPool *redis.Pool
+
 func init() {
 	var err error
 	host, password, err := utils.ParseRedisUrl()

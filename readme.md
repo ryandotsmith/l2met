@@ -174,7 +174,7 @@ $ heroku config:set REDIS_URL=$(heroku config -s | grep "^REDISGREEN_URL" | sed 
 #### Update Heroku config.
 
 ```bash
-$ heroku config:set APP_NAME=your-l2met LOCAL_WORKERS=2
+$ heroku config:set APP_NAME=your-l2met
 $ heroku config:set LIBRATO_USER=me@domain.com LIBRATO_TOKEN=abc123
 ```
 

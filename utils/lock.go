@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"time"
 	"log"
+	"time"
 )
 
 var rc redis.Conn

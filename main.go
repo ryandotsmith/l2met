@@ -17,19 +17,19 @@ import (
 )
 
 var (
-	metricsPat     = regexp.MustCompile(`\/metrics\/(.*)\??`)
-	workers        int
-	port           string
-	registerLocker sync.Mutex
-	numPartitions  uint64
-	reqBuffer      int
-	flushInterval  int
+	metricsPat         = regexp.MustCompile(`\/metrics\/(.*)\??`)
+	reciverConcurrency int
+	port               string
+	registerLocker     sync.Mutex
+	numPartitions      uint64
+	reqBuffer          int
+	flushInterval      int
 )
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	port = utils.EnvString("PORT", "8000")
-	workers = utils.EnvInt("LOCAL_WORKERS", 2)
+	reciverConcurrency = utils.EnvInt("RECEIVER_C", 2)
 	reqBuffer = utils.EnvInt("REQUEST_BUFFER", 1000)
 	flushInterval = utils.EnvInt("FLUSH_INTERVAL", 1)
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
@@ -47,11 +47,11 @@ func main() {
 	outbox := make(chan *store.Bucket, reqBuffer)
 
 	go report(inbox, outbox, register)
-	for i := 0; i < workers; i++ {
+	for i := 0; i < reciverConcurrency; i++ {
 		go accept(inbox, register)
 	}
 	go transfer(register, outbox)
-	for i := 0; i < workers; i++ {
+	for i := 0; i < reciverConcurrency; i++ {
 		go outlet(outbox)
 	}
 

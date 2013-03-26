@@ -63,7 +63,7 @@ type Bucket struct {
 }
 
 func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
-	buckets := make(chan *Bucket, 1000)
+	buckets := make(chan *Bucket, 10000)
 	go func(c chan<- *Bucket) {
 		defer close(c)
 		defer utils.MeasureT("new-bucket", time.Now())

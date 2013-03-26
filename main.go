@@ -53,7 +53,7 @@ func init() {
 		MaxIdle:     maxRedisConn,
 		IdleTimeout: 10 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialTimeout("tcp", host, time.Second, time.Second, time.Second)
+			c, err := redis.Dial("tcp", host)
 			if err != nil {
 				return nil, err
 			}

@@ -66,7 +66,6 @@ func NewBucket(token string, rdr *bufio.Reader) <-chan *Bucket {
 	buckets := make(chan *Bucket, 10000)
 	go func(c chan<- *Bucket) {
 		defer close(c)
-		defer utils.MeasureT("new-bucket", time.Now())
 		lp := logplex.NewReader(rdr)
 		for {
 			packet, err := lp.ReadMsg()
@@ -121,7 +120,6 @@ func ScanBuckets(rc redis.Conn, mailbox string) <-chan *Bucket {
 	buckets := make(chan *Bucket)
 
 	go func(ch chan *Bucket) {
-		defer utils.MeasureT("redis.scan-buckets", time.Now())
 		defer close(ch)
 
 		rc.Send("MULTI")

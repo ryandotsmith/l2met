@@ -37,7 +37,7 @@ func init() {
 	globalTokenUser = utils.EnvString("LIBRATO_USER", "")
 	globalTokenPass = utils.EnvString("LIBRATO_TOKEN", "")
 	lockTTL = utils.EnvUint64("LOCK_TTL", 30)
-	maxRedisConn = utils.EnvInt("OUTLET_C", 2) + 10
+	maxRedisConn = utils.EnvInt("LOCAL_WORKERS", 2) + 10
 
 	http.DefaultTransport = &http.Transport{
 		DisableKeepAlives: true,

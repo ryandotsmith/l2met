@@ -44,6 +44,12 @@ func initRedisPool(server, pass string, maxConn int) *redis.Pool {
 }
 
 func (s *RedisStore) Health() bool {
+	rc := s.redisPool.Get()
+	defer rc.Close()
+	_, err := rc.Do("PING")
+	if err != nil {
+		return false
+	}
 	return true
 }
 

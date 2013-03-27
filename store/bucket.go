@@ -190,8 +190,6 @@ func (b *Bucket) Get(rc redis.Conn) error {
 }
 
 func (b *Bucket) Put(rc redis.Conn, partitions uint64) error {
-	defer utils.MeasureT("bucket.put", time.Now())
-
 	b.Lock()
 	vals := b.Vals
 	key := b.String()
@@ -199,15 +197,13 @@ func (b *Bucket) Put(rc redis.Conn, partitions uint64) error {
 	b.Unlock()
 
 	libratoMailBox := fmt.Sprintf("librato_outlet.%d", partition)
-	//pgMailBox := fmt.Sprintf("postgres_outlet.%d", partition)
 
+	defer utils.MeasureT("bucket.put", time.Now())
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, vals)
 	rc.Send("EXPIRE", key, 300)
 	rc.Send("SADD", libratoMailBox, key)
 	rc.Send("EXPIRE", libratoMailBox, 300)
-	//rc.Send("SADD", pgMailBox, key)
-	//rc.Send("EXPIRE", pgMailBox, 300)
 	_, err := rc.Do("EXEC")
 	if err != nil {
 		return err

@@ -38,7 +38,7 @@ func init() {
 	reqBuffer = utils.EnvInt("REQUEST_BUFFER", 1000)
 	flushInterval = utils.EnvInt("FLUSH_INTERVAL", 1)
 	numPartitions = utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
-	maxRedisConn = utils.EnvInt("OUTLET_C", 2) + 10
+	maxRedisConn = utils.EnvInt("OUTLET_C", 2) + 100
 }
 
 var redisPool *redis.Pool

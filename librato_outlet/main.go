@@ -142,7 +142,8 @@ func fetch(t time.Time, inbox chan<- *bucket.Bucket) {
 		log.Fatal("Unable to lock partition.")
 	}
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
-	mailbox := fmt.Sprintf("librato_outlet.%d", pid)
+	//TODO(ryandotsmith): Ensure consistent keys are being written.
+	mailbox := fmt.Sprintf("outlet.%d", pid)
 	for bucket := range rs.Scan(mailbox) {
 		inbox <- bucket
 	}

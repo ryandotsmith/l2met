@@ -87,6 +87,7 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 	value := b.Vals
 	b.Unlock()
 
+	//TODO(ryandotsmith): Ensure consistent keys are being written.
 	partition := s.bucketPartition("outlet", []byte(key))
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, value)

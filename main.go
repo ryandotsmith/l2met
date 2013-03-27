@@ -27,7 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	store := store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
+	rs := store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
 
 	// Initialize our receiver.
 	recv := receiver.NewReceiver()
@@ -36,11 +36,11 @@ func main() {
 	recv.FlushInterval = utils.EnvInt("FLUSH_INTERVAL", 1)
 	recv.NumOutlets = utils.EnvInt("OUTLET_C", 2)
 	recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 2)
-	recv.Store = store
+	recv.Store = rs
 	recv.Start()
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		healthCheck(w, r, store)
+		healthCheck(w, r, rs)
 	})
 
 	http.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {

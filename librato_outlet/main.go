@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"l2met/bucket"
+	"l2met/store"
 	"l2met/token"
 	"l2met/utils"
 	"log"
@@ -51,14 +52,14 @@ func init() {
 	}
 }
 
-var store *bucket.Store
+var rs *store.RedisStore
 
 func init() {
 	server, pass, err := utils.ParseRedisUrl()
 	if err != nil {
 		log.Fatal(err)
 	}
-	store = bucket.NewStore(server, pass, numPartitions, maxRedisConn)
+	rs = store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
 }
 
 type LM struct {
@@ -142,7 +143,7 @@ func fetch(t time.Time, inbox chan<- *bucket.Bucket) {
 	}
 	fmt.Printf("at=start_fetch minute=%d\n", t.Minute())
 	mailbox := fmt.Sprintf("librato_outlet.%d", pid)
-	for bucket := range store.Scan(mailbox) {
+	for bucket := range rs.Scan(mailbox) {
 		inbox <- bucket
 	}
 }
@@ -154,7 +155,7 @@ func scheduleConvert(inbox <-chan *bucket.Bucket, lms chan<- *LM) {
 }
 
 func convert(b *bucket.Bucket, lms chan<- *LM) {
-	err := store.Get(b)
+	err := rs.Get(b)
 	if err != nil {
 		fmt.Printf("error=%s\n", err)
 		return

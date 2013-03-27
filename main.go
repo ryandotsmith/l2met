@@ -29,7 +29,6 @@ func main() {
 	}
 	rs := store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
 
-	// Initialize our receiver.
 	recv := receiver.NewReceiver()
 	recv.MaxOutbox = utils.EnvInt("REQUEST_BUFFER", 1000)
 	recv.MaxInbox = utils.EnvInt("REQUEST_BUFFER", 1000)
@@ -42,7 +41,6 @@ func main() {
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		healthCheck(w, r, rs)
 	})
-
 	http.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
 		recvLogs(w, r, recv)
 	})
@@ -50,10 +48,10 @@ func main() {
 	port := utils.EnvString("PORT", "8000")
 	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		fmt.Printf("at=error error=\"Unable to start http server.\"\n")
+		fmt.Printf("error=%s msg=%q\n", err, "Unable to start http server.")
 		os.Exit(1)
 	}
-	fmt.Printf("at=start-l2met port=%s\n", port)
+	fmt.Printf("at=l2met-initialized port=%s\n", port)
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request, s store.Store) {

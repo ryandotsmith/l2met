@@ -1,9 +1,10 @@
-package bucket
+package store
 
 import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"hash/crc64"
+	"l2met/bucket"
 	"l2met/encoding"
 	"l2met/utils"
 	"time"
@@ -11,13 +12,13 @@ import (
 
 var PartitionTable = crc64.MakeTable(crc64.ISO)
 
-type Store struct {
+type RedisStore struct {
 	redisPool     *redis.Pool
 	maxPartitions uint64
 }
 
-func NewStore(server, pass string, maxPartitions uint64, maxConn int) *Store {
-	return &Store{
+func NewRedisStore(server, pass string, maxPartitions uint64, maxConn int) *RedisStore {
+	return &RedisStore{
 		maxPartitions: maxPartitions,
 		redisPool:     initRedisPool(server, pass, maxConn),
 	}
@@ -42,13 +43,13 @@ func initRedisPool(server, pass string, maxConn int) *redis.Pool {
 	}
 }
 
-func (s *Store) RedisHealth() bool {
+func (s *RedisStore) Health() bool {
 	return true
 }
 
-func (s *Store) Scan(partition string) <-chan *Bucket {
-	retBuckets := make(chan *Bucket)
-	go func(out chan *Bucket) {
+func (s *RedisStore) Scan(partition string) <-chan *bucket.Bucket {
+	retBuckets := make(chan *bucket.Bucket)
+	go func(out chan *bucket.Bucket) {
 		rc := s.redisPool.Get()
 		defer rc.Close()
 		defer close(out)
@@ -64,18 +65,18 @@ func (s *Store) Scan(partition string) <-chan *Bucket {
 		var members []string
 		redis.Scan(reply, &members, &delCount)
 		for _, member := range members {
-			id, err := ParseId(member)
+			id, err := bucket.ParseId(member)
 			if err != nil {
 				fmt.Printf("at=%q error=%s\n", "bucket-store-parse-key", err)
 				continue
 			}
-			out <- &Bucket{Id: id}
+			out <- &bucket.Bucket{Id: id}
 		}
 	}(retBuckets)
 	return retBuckets
 }
 
-func (s *Store) Put(b *Bucket) error {
+func (s *RedisStore) Put(b *bucket.Bucket) error {
 	defer utils.MeasureT("bucket.put", time.Now())
 
 	rc := s.redisPool.Get()
@@ -99,7 +100,7 @@ func (s *Store) Put(b *Bucket) error {
 	return nil
 }
 
-func (s *Store) Get(b *Bucket) error {
+func (s *RedisStore) Get(b *bucket.Bucket) error {
 	defer utils.MeasureT("bucket.get", time.Now())
 
 	rc := s.redisPool.Get()
@@ -120,7 +121,7 @@ func (s *Store) Get(b *Bucket) error {
 	return nil
 }
 
-func (s *Store) bucketPartition(prefix string, b []byte) string {
+func (s *RedisStore) bucketPartition(prefix string, b []byte) string {
 	check := crc64.Checksum(b, PartitionTable)
 	return fmt.Sprintf("%s.%d", prefix, check%s.maxPartitions)
 }

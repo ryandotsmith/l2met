@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"l2met/bucket"
 	"l2met/receiver"
+	"l2met/store"
 	"l2met/utils"
 	"log"
 	"net/http"
@@ -27,7 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	store := bucket.NewStore(server, pass, numPartitions, maxRedisConn)
+	store := store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
 
 	// Initialize our receiver.
 	recv := receiver.NewReceiver()
@@ -56,8 +56,8 @@ func main() {
 	fmt.Printf("at=start-l2met port=%s\n", port)
 }
 
-func healthCheck(w http.ResponseWriter, r *http.Request, s *bucket.Store) {
-	ok := s.RedisHealth()
+func healthCheck(w http.ResponseWriter, r *http.Request, s store.Store) {
+	ok := s.Health()
 	if !ok {
 		msg := "Redis is unavailable."
 		fmt.Printf("error=%q\n", msg)

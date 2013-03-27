@@ -3,11 +3,12 @@ package receiver
 import (
 	"bufio"
 	"bytes"
-	"time"
-	"l2met/bucket"
-	"l2met/utils"
 	"fmt"
+	"l2met/bucket"
+	"l2met/store"
+	"l2met/utils"
 	"sync"
+	"time"
 )
 
 // We read the body of an http request and then close the request.
@@ -23,12 +24,6 @@ type LogRequest struct {
 type register struct {
 	sync.Mutex
 	m map[bucket.Id]*bucket.Bucket
-}
-
-type Store interface {
-	Put(*bucket.Bucket) error
-	Get(*bucket.Bucket) error
-	Scan(string) chan *bucket.Bucket
 }
 
 type Receiver struct {
@@ -51,7 +46,8 @@ type Receiver struct {
 	NumOutlets int
 	// How many accept routines should be running.
 	NumAcceptors int
-	Store        Store
+	// Bucket storage.
+	Store store.Store
 }
 
 func NewReceiver() *Receiver {

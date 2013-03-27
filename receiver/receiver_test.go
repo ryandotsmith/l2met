@@ -1,54 +1,14 @@
 package receiver
 
 import (
-	"testing"
 	"l2met/bucket"
-	"sync"
+	"l2met/store"
+	"testing"
 	"time"
-	"errors"
 )
 
-type InMemStore struct {
-	sync.Mutex
-	m map[bucket.Id]*bucket.Bucket
-}
-
-func NewInMemStore() *InMemStore {
-	return &InMemStore{m: make(map[bucket.Id]*bucket.Bucket)}
-}
-
-func (m *InMemStore) Scan(partition string) chan *bucket.Bucket {
-	m.Lock()
-	buckets := make(chan *bucket.Bucket, 1000)
-	go func(out chan *bucket.Bucket) {
-		defer close(out)
-		for _, bucket := range m.m {
-			out <- bucket
-		}
-	}(buckets)
-	return buckets
-}
-
-func (m *InMemStore) Get(b *bucket.Bucket) error {
-	m.Lock()
-	bucket, present := m.m[*b.Id]
-	if !present {
-		return errors.New("Bucket not in InMemStore.")
-	}
-	b = bucket
-	m.Unlock()
-	return nil
-}
-
-func (m *InMemStore) Put(b *bucket.Bucket) error {
-	m.Lock()
-	m.m[*b.Id] = b
-	m.Unlock()
-	return nil
-}
-
 func TestReceive(t *testing.T) {
-	store := NewInMemStore()
+	store := store.NewMemStore()
 
 	recv := NewReceiver()
 	recv.MaxOutbox = 100

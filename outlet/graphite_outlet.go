@@ -37,7 +37,6 @@ func (g *GraphiteOutlet) convert() {
 		if len(bucket.Id.Source) > 0 {
 			name = bucket.Id.Source + "." + name
 		}
-		fmt.Printf("convert\n")
 		g.Outbox <- &GraphitePayload{name + ".min", bucket.Min()}
 		g.Outbox <- &GraphitePayload{name + ".median", bucket.Median()}
 		g.Outbox <- &GraphitePayload{name + ".perc95", bucket.P95()}
@@ -55,7 +54,6 @@ func (g *GraphiteOutlet) outlet() {
 			continue
 		}
 		fmt.Fprintf(conn, "%s.%s %f", g.ApiToken, payload.Name, payload.Val)
-		fmt.Printf("delivered data=%s\n", payload.Name)
 		conn.Close()
 	}
 }

@@ -19,10 +19,11 @@ func main() {
 	}
 	rs := store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
 
+	rdr := &outlet.BucketReader{Store: rs, Interval: 5}
+
 	g := outlet.NewGraphiteOutlet()
-	g.Store = rs
-	g.ApiToken = ""
-	g.MaxPartitions = 1
+	g.Reader = rdr
+	g.ApiToken = utils.EnvString("GRAPHITE_API_TOKEN", "")
 	g.Start()
 	select {}
 }

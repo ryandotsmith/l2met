@@ -3,10 +3,7 @@ package outlet
 import (
 	"fmt"
 	"l2met/bucket"
-	"l2met/store"
-	"l2met/utils"
 	"net"
-	"time"
 )
 
 type GraphitePayload struct {
@@ -15,15 +12,14 @@ type GraphitePayload struct {
 }
 
 type GraphiteOutlet struct {
-	Inbox         chan *bucket.Bucket
-	Outbox        chan *GraphitePayload
-	Store         store.Store
-	ApiToken      string
-	MaxPartitions uint64
+	Inbox    chan *bucket.Bucket
+	Outbox   chan *GraphitePayload
+	ApiToken string
+	Reader   Reader
 }
 
 func (g *GraphiteOutlet) Start() {
-	go g.read()
+	go g.Reader.Start(g.Inbox)
 	go g.convert()
 	go g.outlet()
 }
@@ -35,21 +31,6 @@ func NewGraphiteOutlet() *GraphiteOutlet {
 	return g
 }
 
-
-func (g *GraphiteOutlet) read() {
-	for _ = range time.Tick(time.Second) {
-		p, err := utils.LockPartition("outlet", g.MaxPartitions, 30)
-		if err != nil {
-			continue
-		}
-		partition := fmt.Sprintf("outlet.%d", p)
-		for bucket := range g.Store.Scan(partition) {
-			fmt.Printf("sent\n")
-			g.Inbox <- bucket
-		}
-	}
-}
-
 func (g *GraphiteOutlet) convert() {
 	for bucket := range g.Inbox {
 		name := bucket.Id.Name
@@ -57,7 +38,6 @@ func (g *GraphiteOutlet) convert() {
 			name = bucket.Id.Source + "." + name
 		}
 		fmt.Printf("convert\n")
-		g.Store.Get(bucket)
 		g.Outbox <- &GraphitePayload{name + ".min", bucket.Min()}
 		g.Outbox <- &GraphitePayload{name + ".median", bucket.Median()}
 		g.Outbox <- &GraphitePayload{name + ".perc95", bucket.P95()}

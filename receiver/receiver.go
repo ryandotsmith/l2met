@@ -37,7 +37,7 @@ type Receiver struct {
 	// buckets in this channel to be flushed to redis.
 	Outbox chan *bucket.Bucket
 	// Flush buckets from register to redis. Number of seconds.
-	FlushInterval int
+	FlushInterval time.Duration
 	// Number of http request bodys to buffer.
 	// These requests are waiting to go into the accept loop.
 	MaxInbox  int
@@ -96,7 +96,7 @@ func (r *Receiver) Accept() {
 }
 
 func (r *Receiver) Transfer() {
-	for _ = range time.Tick(time.Second * time.Duration(r.FlushInterval)) {
+	for _ = range time.Tick(r.FlushInterval) {
 		for k := range r.Register.m {
 			r.Register.Lock()
 			if m, ok := r.Register.m[k]; ok {

@@ -5,6 +5,7 @@ import (
 	"l2met/store"
 	"l2met/utils"
 	"log"
+	"time"
 )
 
 func main() {
@@ -19,10 +20,12 @@ func main() {
 	}
 	rs := store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
 
+	interval := time.Millisecond * 200
+	rdr := &outlet.BucketReader{Store: rs, Interval: interval}
+
 	g := outlet.NewGraphiteOutlet()
-	g.Store = rs
-	g.ApiToken = ""
-	g.MaxPartitions = 1
+	g.Reader = rdr
+	g.ApiToken = utils.EnvString("GRAPHITE_API_TOKEN", "")
 	g.Start()
 	select {}
 }

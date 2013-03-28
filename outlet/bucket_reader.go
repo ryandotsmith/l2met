@@ -1,11 +1,11 @@
 package outlet
 
 import (
+	"fmt"
 	"l2met/bucket"
 	"l2met/store"
 	"l2met/utils"
 	"time"
-	"fmt"
 )
 
 type BucketReader struct {

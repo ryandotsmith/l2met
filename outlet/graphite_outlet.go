@@ -22,12 +22,6 @@ type GraphiteOutlet struct {
 	MaxPartitions uint64
 }
 
-func (g *GraphiteOutlet) Start() {
-	go g.read()
-	go g.convert()
-	go g.outlet()
-}
-
 func NewGraphiteOutlet() *GraphiteOutlet {
 	g := new(GraphiteOutlet)
 	g.Inbox = make(chan *bucket.Bucket, 1000)
@@ -35,6 +29,11 @@ func NewGraphiteOutlet() *GraphiteOutlet {
 	return g
 }
 
+func (g *GraphiteOutlet) Start() {
+	go g.read()
+	go g.convert()
+	go g.outlet()
+}
 
 func (g *GraphiteOutlet) read() {
 	for _ = range time.Tick(time.Second) {

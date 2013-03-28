@@ -36,6 +36,8 @@ type Receiver struct {
 	// After we flush our register of buckets, we put the
 	// buckets in this channel to be flushed to redis.
 	Outbox chan *bucket.Bucket
+	// For example, a bucket size can be 1 second or 5 minutes
+	BucketSize time.Duration
 	// Flush buckets from register to redis. Number of seconds.
 	FlushInterval time.Duration
 	// Number of http request bodys to buffer.
@@ -81,7 +83,7 @@ func (r *Receiver) Start() {
 func (r *Receiver) Accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
-		for bucket := range bucket.NewBucket(lreq.Token, rdr) {
+		for bucket := range bucket.NewBucket(lreq.Token, rdr, r.BucketSize) {
 			r.Register.Lock()
 			k := *bucket.Id
 			_, present := r.Register.m[k]

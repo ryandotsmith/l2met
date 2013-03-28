@@ -32,6 +32,7 @@ func main() {
 	recv := receiver.NewReceiver()
 	recv.MaxOutbox = utils.EnvInt("REQUEST_BUFFER", 1000)
 	recv.MaxInbox = utils.EnvInt("REQUEST_BUFFER", 1000)
+	recv.BucketSize = time.Minute
 	recv.FlushInterval = time.Second * time.Duration(utils.EnvInt("FLUSH_INTERVAL", 1))
 	recv.NumOutlets = utils.EnvInt("OUTLET_C", 2)
 	recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 2)

@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+// TODO(ryandotsmith): This is an awful hack.
+// It is typical to use a `:` to compose keys in redis,
+// however, it is possible for a Id.Name to have a `:`.
+// Thus we pick a very unlikely char to compose keys in redis.
 const keySep = "→"
 
 type Id struct {

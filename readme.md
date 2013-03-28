@@ -33,7 +33,7 @@ Metrics Produced:
 
 ## Setup
 
-You can run l2met in a multi-tenant mode or a single-user mode. The multi-tenant mode enable multiple drains with unique librato accounts. The single-user mode exposes 1 drain and maps to 1 librato account. The Heroku Setup assumes single-user mode.
+You can run l2met in a multi-tenant mode or a single-user mode. The multi-tenant mode enables multiple drains with unique librato accounts. The single-user mode exposes 1 drain and maps to 1 librato account. This setup guide assumes single-user mode.
 
 #### Create Librato Account
 
@@ -60,8 +60,7 @@ $ heroku config:set REDIS_URL=$(heroku config -s | grep "^REDISGREEN_URL" | sed 
 #### Update Heroku config.
 
 ```bash
-$ heroku config:set APP_NAME=your-l2met
-$ heroku config:set LIBRATO_USER=me@domain.com LIBRATO_TOKEN=abc123
+$ heroku config:set APP_NAME=your-l2met LIBRATO_USER=u@d.com LIBRATO_TOKEN=abc
 ```
 
 #### Scale processes.

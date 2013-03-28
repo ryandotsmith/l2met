@@ -14,12 +14,12 @@ var PartitionTable = crc64.MakeTable(crc64.ISO)
 
 type RedisStore struct {
 	redisPool     *redis.Pool
-	maxPartitions uint64
+	MaxPartitions uint64
 }
 
 func NewRedisStore(server, pass string, maxPartitions uint64, maxConn int) *RedisStore {
 	return &RedisStore{
-		maxPartitions: maxPartitions,
+		MaxPartitions: maxPartitions,
 		redisPool:     initRedisPool(server, pass, maxConn),
 	}
 }
@@ -130,5 +130,5 @@ func (s *RedisStore) Get(b *bucket.Bucket) error {
 
 func (s *RedisStore) bucketPartition(prefix string, b []byte) string {
 	check := crc64.Checksum(b, PartitionTable)
-	return fmt.Sprintf("%s.%d", prefix, check%s.maxPartitions)
+	return fmt.Sprintf("%s.%d", prefix, check%s.MaxPartitions)
 }

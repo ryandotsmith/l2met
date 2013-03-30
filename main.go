@@ -32,12 +32,11 @@ func main() {
 	recv := receiver.NewReceiver()
 	recv.MaxOutbox = utils.EnvInt("REQUEST_BUFFER", 1000)
 	recv.MaxInbox = utils.EnvInt("REQUEST_BUFFER", 1000)
-	recv.BucketSize = time.Minute
-	recv.FlushInterval = time.Second * time.Duration(utils.EnvInt("FLUSH_INTERVAL", 1))
-	recv.NumOutlets = utils.EnvInt("OUTLET_C", 2)
-	recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 2)
+	recv.FlushInterval = time.Millisecond * 200
+	recv.NumOutlets = utils.EnvInt("OUTLET_C", 100)
+	recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 100)
 	recv.Store = rs
-	recv.Start()
+	recv.Start(time.Millisecond * 200)
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		healthCheck(w, r, rs)
@@ -83,5 +82,5 @@ func recvLogs(w http.ResponseWriter, r *http.Request, recv *receiver.Receiver) {
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
-	recv.Receive(token, b)
+	recv.Receive(token, b, r.URL.Query())
 }

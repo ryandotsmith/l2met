@@ -23,7 +23,8 @@ type Bucket struct {
 	Vals []float64 `json:"vals,omitempty"`
 }
 
-func NewBucket(token string, rdr *bufio.Reader, bSize time.Duration) <-chan *Bucket {
+//TODO(ryandotsmith): NewBucket should be broken up. This func is too big.
+func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan *Bucket {
 	//TODO(ryandotsmith): Can we eliminate the magical number?
 	buckets := make(chan *Bucket, 10000)
 	go func(c chan<- *Bucket) {
@@ -58,7 +59,15 @@ func NewBucket(token string, rdr *bufio.Reader, bSize time.Duration) <-chan *Buc
 				fmt.Printf("at=time-error error=%s\n", err)
 				continue
 			}
-			t = utils.RoundTime(t, bSize)
+			bucketSize, present := opts["bucket-size"]
+			if present {
+				switch bucketSize[0] {
+				case "1000":
+					t = utils.RoundTime(t, time.Second)
+				default:
+					t = utils.RoundTime(t, time.Minute)
+				}
+			}
 
 			val := float64(1)
 			tmpVal, present := d["val"]

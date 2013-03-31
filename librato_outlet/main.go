@@ -31,22 +31,24 @@ func init() {
 }
 
 func main() {
+	concurrency := utils.EnvInt("LOCAL_WORKERS", 2)
+	numPartitions := utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
 	server, pass, err := utils.ParseRedisUrl()
 	if err != nil {
 		log.Fatal(err)
 	}
-	rs := store.NewRedisStore(server, pass, 1, 1024)
+	rs := store.NewRedisStore(server, pass, numPartitions, concurrency*2)
 
 	rdr := outlet.NewBucketReader()
-	rdr.NumScanners = 300
-	rdr.NumOutlets = 300
+	rdr.NumScanners = concurrency
+	rdr.NumOutlets = concurrency
 	rdr.Store = rs
-	rdr.Interval = time.Millisecond * 500
+	rdr.Interval = time.Second * utils.EnvDuration("LIBRATO_INTERVAL", 10)
 
 	l := outlet.NewLibratoOutlet()
 	l.Reader = rdr
-	l.NumOutlets = 300
-	l.NumConverters = 300
+	l.NumOutlets = concurrency
+	l.NumConverters = concurrency
 	l.Retries = 2
 	l.User = utils.EnvString("LIBRATO_USER", "")
 	l.Pass = utils.EnvString("LIBRATO_TOKEN", "")

@@ -19,6 +19,8 @@ type Bucket struct {
 	sync.Mutex
 	// The identity of a bucket is used in registers and as keys in redis.
 	Id *Id
+	// time.Minte bucket or time.Second * 5 bucket.
+	Resolution time.Duration
 	// A slice of all the measurements for a bucket.
 	Vals []float64 `json:"vals,omitempty"`
 }
@@ -59,15 +61,16 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 				fmt.Printf("at=time-error error=%s\n", err)
 				continue
 			}
-			bucketSize, present := opts["bucket-size"]
-			if present {
-				switch bucketSize[0] {
-				case "1000":
-					t = utils.RoundTime(t, time.Second)
-				default:
-					t = utils.RoundTime(t, time.Minute)
-				}
+
+			resTmp, ok := opts["bucket-size"]
+			if !ok {
+				resTmp = []string{"60000"}
 			}
+			resolution, err := strconv.Atoi(resTmp[0])
+			if err != nil {
+				continue
+			}
+			t = utils.RoundTime(t, time.Millisecond * time.Duration(resolution))
 
 			val := float64(1)
 			tmpVal, present := d["val"]
@@ -79,7 +82,7 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 			}
 
 			k := &Id{Token: token, Name: measure, Source: source, Time: t}
-			b := &Bucket{Id: k}
+			b := &Bucket{Id: k, Resolution: time.Duration(resolution)}
 			b.Vals = append(b.Vals, val)
 			c <- b
 		}

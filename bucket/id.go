@@ -47,8 +47,8 @@ func ParseId(s string) (*Id, error) {
 	id.Resolution = time.Duration(res)
 	id.Token = parts[2]
 	id.Name = parts[3]
-	if len(parts) > 4 {
-		id.Source = parts[5]
+	if len(parts) == 5 {
+		id.Source = parts[4]
 	}
 	return id, nil
 }

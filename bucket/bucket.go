@@ -68,7 +68,7 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 			if err != nil {
 				continue
 			}
-			t = utils.RoundTime(t, time.Millisecond * time.Duration(resolution))
+			t = utils.RoundTime(t, time.Millisecond*time.Duration(resolution))
 
 			val := float64(1)
 			tmpVal, present := d["val"]

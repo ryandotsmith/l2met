@@ -14,11 +14,11 @@ import (
 const keySep = "→"
 
 type Id struct {
-	Token  string
-	Name   string
-	Source string
+	Time       time.Time
 	Resolution time.Duration
-	Time   time.Time
+	Token      string
+	Name       string
+	Source     string
 }
 
 func ParseId(s string) (*Id, error) {
@@ -27,7 +27,7 @@ func ParseId(s string) (*Id, error) {
 		return nil, errors.New("bucket: Unable to parse bucket key.")
 	}
 
-	t, err := strconv.ParseInt(parts[0], 10, 54)
+	t, err := strconv.ParseInt(parts[0], 10, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func ParseId(s string) (*Id, error) {
 		return nil, err
 	}
 
-	res, err := strconv.ParseInt(parts[1], 10, 54)
+	res, err := strconv.ParseInt(parts[1], 10, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func ParseId(s string) (*Id, error) {
 	id.Resolution = time.Duration(res)
 	id.Token = parts[2]
 	id.Name = parts[3]
-	if len(parts) == 5 {
+	if len(parts) > 4 {
 		id.Source = parts[4]
 	}
 	return id, nil

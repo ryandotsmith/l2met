@@ -155,10 +155,10 @@ func (l *LibratoOutlet) postWithRetry(tok *token.Token, body *bytes.Buffer) erro
 	for i := 0; i <= l.Retries; i++ {
 		if err := l.post(tok, body); err != nil {
 			fmt.Printf("error=%s attempt=%d\n", err, i)
-			continue
 			if i == l.Retries {
 				return err
 			}
+			continue
 		}
 		return nil
 	}

@@ -3,6 +3,7 @@
 Convert a formatted log stream into metrics.
 
 * [Synopsis](#synopsis)
+* [Features](#features)
 * [Log Conventions](#log-conventions)
 * [Setup](#setup)
 
@@ -30,6 +31,20 @@ Metrics Produced:
 * db.latency.last
 * db.latency.count
 * db.latency.sum
+
+## Features
+
+* [High resolution buckets](#high-resolution-bucket)
+* Librato Outlet
+* Graphite Outlet
+
+### High resolution buckets
+
+By default, l2met will hold measurements in 1 minute buckets. This means that data visible in librato and graphite have a granularity of 1 minute. However, It is possible to to achieve a greater level of resolution. For example, you can get 1 second level resolution by appending a query parameter to your drain url. Notice that the resolution is specified in milliseconds.
+
+```
+https://user:token@l2met.herokuapp.com/logs?resolution=1000
+```
 
 ## Setup
 

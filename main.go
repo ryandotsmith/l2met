@@ -36,7 +36,7 @@ func main() {
 	recv.NumOutlets = utils.EnvInt("OUTLET_C", 100)
 	recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 100)
 	recv.Store = rs
-	recv.Start(time.Millisecond * 200)
+	recv.Start()
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		healthCheck(w, r, rs)

@@ -66,7 +66,7 @@ func (r *Receiver) Receive(token string, b []byte, opts map[string][]string) {
 	r.Inbox <- &LogRequest{token, b, opts}
 }
 
-func (r *Receiver) Start(tick time.Duration) {
+func (r *Receiver) Start() {
 	// Parsing the log data can be expensive. Make use
 	// of parallelism.
 	for i := 0; i < r.NumAcceptors; i++ {
@@ -76,7 +76,7 @@ func (r *Receiver) Start(tick time.Duration) {
 	for i := 0; i < r.NumOutlets; i++ {
 		go r.Outlet()
 	}
-	r.TransferTicker = time.NewTicker(tick)
+	r.TransferTicker = time.NewTicker(r.FlushInterval)
 	// The transfer is not a concurrent process.
 	// It removes buckets from the register to the outbox.
 	go r.Transfer()

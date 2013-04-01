@@ -60,7 +60,7 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 				continue
 			}
 
-			resTmp, ok := opts["bucket-size"]
+			resTmp, ok := opts["resolution"]
 			if !ok {
 				resTmp = []string{"60000"}
 			}

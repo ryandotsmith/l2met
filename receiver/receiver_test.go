@@ -55,7 +55,7 @@ func TestReceiveOpts(t *testing.T) {
 	recv.Start(time.Nanosecond)
 	defer recv.Stop()
 
-	opts := map[string][]string{"bucket-size": []string{"1000"}}
+	opts := map[string][]string{"resolution": []string{"1000"}}
 	msg := []byte("81 <190>1 2013-03-27T00:00:01+00:00 hostname token shuttle - - measure=hello val=99\n")
 	recv.Receive("123", msg, opts)
 	time.Sleep(time.Millisecond)

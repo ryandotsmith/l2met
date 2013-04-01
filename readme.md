@@ -34,7 +34,7 @@ Metrics Produced:
 
 ## Features
 
-* [High resolution buckets](#high-resolution-bucket)
+* [High resolution buckets](#high-resolution-buckets)
 * Librato Outlet
 * Graphite Outlet
 

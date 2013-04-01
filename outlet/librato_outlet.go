@@ -53,11 +53,11 @@ type LibratoOutlet struct {
 	Pass          string
 }
 
-func NewLibratoOutlet() *LibratoOutlet {
+func NewLibratoOutlet(mi, mc, mo int) *LibratoOutlet {
 	l := new(LibratoOutlet)
-	l.Inbox = make(chan *bucket.Bucket, 10000)
-	l.Conversions = make(chan *LibratoPayload, 10000)
-	l.Outbox = make(chan []*LibratoPayload, 10000)
+	l.Inbox = make(chan *bucket.Bucket, mi)
+	l.Conversions = make(chan *LibratoPayload, mc)
+	l.Outbox = make(chan []*LibratoPayload, mo)
 	return l
 }
 

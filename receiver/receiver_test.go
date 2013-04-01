@@ -10,10 +10,9 @@ import (
 func makeReceiver() (store.Store, *Receiver) {
 	store := store.NewMemStore()
 
-	recv := NewReceiver()
-	recv.MaxOutbox = 100
-	recv.MaxInbox = 100
-	recv.FlushInterval = 1
+	maxOutbox := 100
+	maxInbox := 100
+	recv := NewReceiver(maxInbox, maxOutbox)
 	recv.NumOutlets = 2
 	recv.NumAcceptors = 2
 	recv.Store = store
@@ -23,13 +22,14 @@ func makeReceiver() (store.Store, *Receiver) {
 
 func TestReceive(t *testing.T) {
 	store, recv := makeReceiver()
-	recv.Start(time.Nanosecond)
+	recv.FlushInterval = time.Millisecond
+	recv.Start()
 	defer recv.Stop()
 
 	opts := map[string][]string{}
 	msg := []byte("81 <190>1 2013-03-27T20:02:24+00:00 hostname token shuttle - - measure=hello val=99\n")
 	recv.Receive("123", msg, opts)
-	time.Sleep(time.Millisecond)
+	time.Sleep(recv.FlushInterval * 2)
 
 	var buckets []*bucket.Bucket
 	for bucket := range store.Scan("not important") {
@@ -52,13 +52,14 @@ func TestReceive(t *testing.T) {
 
 func TestReceiveOpts(t *testing.T) {
 	store, recv := makeReceiver()
-	recv.Start(time.Nanosecond)
+	recv.FlushInterval = time.Millisecond
+	recv.Start()
 	defer recv.Stop()
 
 	opts := map[string][]string{"resolution": []string{"1000"}}
 	msg := []byte("81 <190>1 2013-03-27T00:00:01+00:00 hostname token shuttle - - measure=hello val=99\n")
 	recv.Receive("123", msg, opts)
-	time.Sleep(time.Millisecond)
+	time.Sleep(recv.FlushInterval * 2)
 
 	var buckets []*bucket.Bucket
 	for bucket := range store.Scan("not important") {

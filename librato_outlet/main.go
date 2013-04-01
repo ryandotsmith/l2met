@@ -39,13 +39,13 @@ func main() {
 	}
 	rs := store.NewRedisStore(server, pass, numPartitions, concurrency*2)
 
-	rdr := outlet.NewBucketReader()
+	rdr := outlet.NewBucketReader(1000)
 	rdr.NumScanners = concurrency
 	rdr.NumOutlets = concurrency
 	rdr.Store = rs
 	rdr.Interval = time.Millisecond * 500
 
-	l := outlet.NewLibratoOutlet()
+	l := outlet.NewLibratoOutlet(1000, 1000, 1000)
 	l.Reader = rdr
 	l.NumOutlets = concurrency
 	l.NumConverters = concurrency

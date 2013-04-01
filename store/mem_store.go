@@ -25,6 +25,7 @@ func (m *MemStore) MaxPartitions() uint64 {
 
 func (m *MemStore) Scan(partition string) <-chan *bucket.Bucket {
 	m.Lock()
+	//TODO(ryandotsmith): Can we eliminate the magical number?
 	buckets := make(chan *bucket.Bucket, 1000)
 	go func(out chan *bucket.Bucket) {
 		defer close(out)

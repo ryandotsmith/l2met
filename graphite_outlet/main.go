@@ -23,7 +23,7 @@ func main() {
 	interval := time.Millisecond * 200
 	rdr := &outlet.BucketReader{Store: rs, Interval: interval}
 
-	g := outlet.NewGraphiteOutlet()
+	g := outlet.NewGraphiteOutlet(1000, 1000)
 	g.Reader = rdr
 	g.ApiToken = utils.EnvString("GRAPHITE_API_TOKEN", "")
 	g.Start()

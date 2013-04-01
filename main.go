@@ -29,9 +29,8 @@ func main() {
 	}
 	rs := store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
 
-	recv := receiver.NewReceiver()
-	recv.MaxOutbox = utils.EnvInt("REQUEST_BUFFER", 1000)
-	recv.MaxInbox = utils.EnvInt("REQUEST_BUFFER", 1000)
+	reqBuf := utils.EnvInt("REQUEST_BUFFER", 1000)
+	recv := receiver.NewReceiver(reqBuf, reqBuf)
 	recv.FlushInterval = time.Millisecond * 200
 	recv.NumOutlets = utils.EnvInt("OUTLET_C", 100)
 	recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 100)

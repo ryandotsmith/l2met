@@ -19,9 +19,9 @@ type BucketReader struct {
 	Outbox    chan *bucket.Bucket
 }
 
-func NewBucketReader() *BucketReader {
+func NewBucketReader(mi int) *BucketReader {
 	rdr := new(BucketReader)
-	rdr.Inbox = make(chan *bucket.Bucket, 10000)
+	rdr.Inbox = make(chan *bucket.Bucket, mi)
 	return rdr
 }
 

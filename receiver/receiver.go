@@ -42,10 +42,6 @@ type Receiver struct {
 	Outbox chan *bucket.Bucket
 	// Flush buckets from register to redis. Number of seconds.
 	FlushInterval time.Duration
-	// Number of http request bodys to buffer.
-	// These requests are waiting to go into the accept loop.
-	MaxInbox  int
-	MaxOutbox int
 	// How many outlet routines should be running.
 	NumOutlets int
 	// How many accept routines should be running.
@@ -54,10 +50,10 @@ type Receiver struct {
 	Store store.Store
 }
 
-func NewReceiver() *Receiver {
+func NewReceiver(mo, mi int) *Receiver {
 	r := new(Receiver)
-	r.Inbox = make(chan *LogRequest, r.MaxInbox)
-	r.Outbox = make(chan *bucket.Bucket, r.MaxOutbox)
+	r.Inbox = make(chan *LogRequest, mi)
+	r.Outbox = make(chan *bucket.Bucket, mo)
 	r.Register = &register{m: make(map[bucket.Id]*bucket.Bucket)}
 	return r
 }

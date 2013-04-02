@@ -76,7 +76,7 @@ func (r *Receiver) Start() {
 	// The transfer is not a concurrent process.
 	// It removes buckets from the register to the outbox.
 	go r.Transfer()
-	//go r.report()
+	go r.report()
 }
 
 func (r *Receiver) Stop() {

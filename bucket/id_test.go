@@ -1,8 +1,8 @@
 package bucket
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestParseId(t *testing.T) {

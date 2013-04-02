@@ -9,14 +9,14 @@ import (
 )
 
 type BucketReader struct {
-	Store     store.Store
-	Interval  time.Duration
-	Partition string
-	Ttl       uint64
-	NumOutlets int
+	Store       store.Store
+	Interval    time.Duration
+	Partition   string
+	Ttl         uint64
+	NumOutlets  int
 	NumScanners int
-	Inbox     chan *bucket.Bucket
-	Outbox    chan *bucket.Bucket
+	Inbox       chan *bucket.Bucket
+	Outbox      chan *bucket.Bucket
 }
 
 func NewBucketReader(mi int) *BucketReader {

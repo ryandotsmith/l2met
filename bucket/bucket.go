@@ -10,6 +10,7 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -72,13 +73,10 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 					bucket.Vals = []float64{val}
 					c <- bucket
 				default:
-					if len(k) < len("measure.") {
+					if !strings.HasPrefix(k, "measure.") {
 						break
 					}
-					if k[0:len("measure.")] != "measure." {
-						break
-					}
-					name := k[len("measure."):len(k)]
+					name := k[8:]
 					val := parseVal(v)
 					id := &Id{ts, res, tok, name, src}
 					bucket := &Bucket{Id: id}

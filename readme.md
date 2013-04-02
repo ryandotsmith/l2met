@@ -35,6 +35,7 @@ Metrics Produced:
 ## Features
 
 * [High resolution buckets](#high-resolution-buckets)
+* [Multi-metrics](#multi-metrics)
 * Librato Outlet
 * Graphite Outlet
 
@@ -45,6 +46,23 @@ By default, l2met will hold measurements in 1 minute buckets. This means that da
 ```
 https://user:token@l2met.herokuapp.com/logs?resolution=1000
 ```
+
+### Multi-metrics
+
+We want to be able to specify multiple measurements on a single line so as not to have to pay the (albeit low) overhead of writing to stdout. However, we don't want to take every k=v under the sun. L2met has always forced you to think about the things your are measuring and this feature does not regress in that regard.
+
+Example:
+
+```
+echo 'measure=hello val=10 measure.world=10' | log-shuttle
+```
+
+This will result in 2 buckets:
+
+bucket1 = {name=hello, vals=[10], ...}
+bucket2 = {name=world vals=[10], ...}
+
+Thus you can measure multiple things provided the key is prefixed with `measure.`.
 
 ## Setup
 

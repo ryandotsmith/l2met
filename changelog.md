@@ -1,3 +1,7 @@
+## 0.3 2013-04-02
+
+* [Multi-metrics](https://github.com/ryandotsmith/l2met#multi-metrics)
+
 ## 0.2 2013-04-01
 
 * PR [#34](https://github.com/ryandotsmith/l2met/pull/34)

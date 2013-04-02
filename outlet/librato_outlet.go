@@ -162,7 +162,8 @@ func (l *LibratoOutlet) postWithRetry(tok *token.Token, body *bytes.Buffer) erro
 		}
 		return nil
 	}
-	panic("impossible")
+	//Should not be possible.
+	return errors.New("Unable to post.")
 }
 
 func (l *LibratoOutlet) post(tok *token.Token, body *bytes.Buffer) error {

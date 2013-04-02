@@ -60,8 +60,8 @@ echo 'measure=hello val=10 measure.world=10' | log-shuttle
 
 This will result in 2 buckets:
 
-* bucket1 = {name=hello, vals=[10], ...}
-* bucket2 = {name=world vals=[10], ...}
+1. {name=hello, vals=[10], ...}
+2. {name=world, vals=[10], ...}
 
 Thus you can measure multiple things provided the key is prefixed with `measure.`.
 
@@ -77,11 +77,11 @@ Example:
 path=/logs host=test.l2met.net connect=1ms service=2ms bytes=0
 ```
 
-Would produce the bucket:
+Would produce the following buckets:
 
-* bucket1 = {name="test.l2met.net.connect" vals=[1]}
-* bucket2 = {name="test.l2met.net.service" vals=[2]}
-* bucket3 = {name="test.l2met.net.bytes" vals=[0]}
+1. {name=router.connect source=test.l2met.net.connect vals=[1]}
+2. {name=router.service source=test.l2met.net.service vals=[2]}
+3. {name=router.bytes   source=test.l2met.net.bytes   vals=[0]}
 
 ## Setup
 

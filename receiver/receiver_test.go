@@ -124,10 +124,11 @@ func TestReceiveRouter(t *testing.T) {
 	defer recv.Stop()
 
 	opts := map[string][]string{"resolution": []string{"1000"}}
-	msg := []byte("112 <190>1 2013-03-27T00:00:01+00:00 router token shuttle - - host=test.l2met.net service=10ms connect=10ms bytes=45")
+	msg := []byte("112 <190>1 2013-03-27T00:00:01+00:00 shuttle router token - - host=test.l2met.net service=10ms connect=10ms bytes=45")
 	recv.Receive("123", msg, opts)
 	time.Sleep(recv.FlushInterval * 2)
 
+	//There are 3 measurements in our logline.
 	var buckets []*bucket.Bucket
 	for b := range store.Scan("not important") {
 		buckets = append(buckets, b)
@@ -147,5 +148,15 @@ func TestReceiveRouter(t *testing.T) {
 	expectedSum := float64(65)
 	if actualSum != expectedSum {
 		t.Errorf("expected=%d actual=%d\n", expectedSum, actualSum)
+	}
+
+	//The name of the metric will be router.service, router.connect.
+	//The source will include the host.
+	expectedSrc := "test.l2met.net"
+	for i := range buckets {
+		actualSrc := buckets[i].Id.Source
+		if  actualSrc != expectedSrc {
+			t.Errorf("expected=%s actual=%s\n", expectedSrc, actualSrc)
+		}
 	}
 }

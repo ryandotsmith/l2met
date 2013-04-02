@@ -52,13 +52,30 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 				continue
 			}
 
+			//The resolution determines how long a bucket is
+			//left to linger. E.g. a bucket with 1 second resolution
+			//will hang around for 1 second and provide metrics
+			//with 1 second resolution.
+			resQuery, ok := opts["resolution"]
+			if !ok {
+				resQuery = []string{"60000"}
+			}
+			resTmp, err := strconv.Atoi(resQuery[0])
+			if err != nil {
+				continue
+			}
+			res := time.Duration(resTmp)
+			ts = utils.RoundTime(ts, time.Millisecond*res)
+			//Src can be overridden by the heroku router messages.
+			src := logData["source"]
+
 			//Special case the Heroku router.
 			//In this case, we will massage logData
 			//to include connect, service, and bytes.
 			if string(logLine.User) == "router" {
-				prefix := "measure."
+				prefix := "measure.router."
 				if len(logData["host"]) > 0 {
-					prefix += (logData["host"] + ".")
+					src = logData["host"]
 				}
 				if len(logData["connect"]) > 0 {
 					logData[prefix+"connect"] = strings.Replace(logData["connect"], "ms", "", -1)
@@ -70,18 +87,6 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 					logData[prefix+"bytes"] = logData["bytes"]
 				}
 			}
-
-			resQuery, ok := opts["resolution"]
-			if !ok {
-				resQuery = []string{"60000"}
-			}
-			resTmp, err := strconv.Atoi(resQuery[0])
-			if err != nil {
-				continue
-			}
-			res := time.Duration(resTmp)
-			ts = utils.RoundTime(ts, time.Millisecond*res)
-			src := logData["source"]
 
 			for k, v := range logData {
 				switch k {
@@ -95,7 +100,7 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 					if !strings.HasPrefix(k, "measure.") {
 						break
 					}
-					name := k[8:]
+					name := k[8:] // len("measure.") == 8
 					val := parseVal(v)
 					id := &Id{ts, res, tok, name, src}
 					bucket := &Bucket{Id: id}
@@ -108,6 +113,8 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 	return buckets
 }
 
+// If we can parse a number from the string,
+// we will return that number. Return 1 otherwise.
 func parseVal(s string) float64 {
 	val := float64(1)
 	if len(s) > 0 {

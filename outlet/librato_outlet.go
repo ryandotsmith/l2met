@@ -212,5 +212,5 @@ func fi(x int) string {
 }
 
 func ft(t time.Time) int64 {
-	return t.Unix() + 59
+	return t.Unix()
 }

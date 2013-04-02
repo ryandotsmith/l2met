@@ -31,7 +31,7 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 		defer close(c)
 		lp := logplex.NewReader(rdr)
 		for {
-			packet, err := lp.ReadMsg()
+			logLine, err := lp.ReadMsg()
 			if err != nil {
 				if err == io.EOF {
 					break
@@ -39,7 +39,7 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 				fmt.Printf("at=logplex-error err=%s\n", err)
 				return
 			}
-			d, err := encoding.ParseMsgData(packet.Msg)
+			d, err := encoding.ParseMsgData(logLine.Msg)
 			if err != nil {
 				continue
 			}
@@ -54,7 +54,7 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 				source = ""
 			}
 
-			t, err := packet.Time()
+			t, err := logLine.Time()
 			if err != nil {
 				fmt.Printf("at=time-error error=%s\n", err)
 				continue

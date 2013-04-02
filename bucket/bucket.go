@@ -58,14 +58,15 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 			//with 1 second resolution.
 			resQuery, ok := opts["resolution"]
 			if !ok {
-				resQuery = []string{"60000"}
+				resQuery = []string{"60"}
 			}
 			resTmp, err := strconv.Atoi(resQuery[0])
 			if err != nil {
 				continue
 			}
-			res := time.Duration(resTmp)
-			ts = utils.RoundTime(ts, time.Millisecond*res)
+			res := time.Duration(time.Second * time.Duration(resTmp))
+			ts = utils.RoundTime(ts, res)
+
 			//Src can be overridden by the heroku router messages.
 			src := logData["source"]
 

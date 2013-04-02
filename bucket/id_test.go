@@ -3,27 +3,49 @@ package bucket
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestParseId(t *testing.T) {
-	expected, err := ParseId("1364858753→1000000000→123→hello→machine")
+	id := Id{time.Now(), time.Minute, "token", "name", "source"}
+	expected, err := ParseId(id.String())
 	if err != nil {
 		t.FailNow()
 	}
-	if expected.Source != "machine" {
-		fmt.Printf("expected=%d actual=%d\n", "machine", expected.Source)
+	if expected.Source != "source" {
+		fmt.Printf("expected=%d actual=%d\n", "source", expected.Source)
 		t.FailNow()
 	}
-	if expected.Name != "hello" {
-		fmt.Printf("expected=%d actual=%d\n", "hello", expected.Name)
+	if expected.Name != "name" {
+		fmt.Printf("expected=%d actual=%d\n", "name", expected.Name)
 		t.FailNow()
 	}
-	if expected.Token != "123" {
-		fmt.Printf("expected=%d actual=%d\n", "123", expected.Token)
+	if expected.Token != "token" {
+		fmt.Printf("expected=%d actual=%d\n", "token", expected.Token)
 		t.FailNow()
 	}
-	if expected.Resolution != 1000000000 {
-		fmt.Printf("expected=%d actual=%d\n", 1000, expected.Resolution)
+	if expected.Resolution != time.Minute {
+		fmt.Printf("expected=%d actual=%d\n", time.Minute, expected.Resolution)
+		t.FailNow()
+	}
+}
+
+func TestParseIdWithoutSource(t *testing.T) {
+	id := Id{time.Now(), time.Minute, "token", "name", ""}
+	expected, err := ParseId(id.String())
+	if err != nil {
+		t.FailNow()
+	}
+	if expected.Name != "name" {
+		fmt.Printf("expected=%d actual=%d\n", "name", expected.Name)
+		t.FailNow()
+	}
+	if expected.Token != "token" {
+		fmt.Printf("expected=%d actual=%d\n", "token", expected.Token)
+		t.FailNow()
+	}
+	if expected.Resolution != time.Minute {
+		fmt.Printf("expected=%d actual=%d\n", time.Minute, expected.Resolution)
 		t.FailNow()
 	}
 }

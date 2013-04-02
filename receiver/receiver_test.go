@@ -41,8 +41,11 @@ func TestReceive(t *testing.T) {
 	}
 
 	testBucket := buckets[0]
-	if testBucket.Id.Name != "hello" {
-		t.FailNow()
+
+	expectedName := "hello"
+	actualName := testBucket.Id.Name
+	if actualName != expectedName {
+		t.Errorf("actual=%s expected=%s\n", actualName, expectedName)
 	}
 
 	if testBucket.Sum() != 99 {
@@ -56,7 +59,7 @@ func TestReceiveOpts(t *testing.T) {
 	recv.Start()
 	defer recv.Stop()
 
-	opts := map[string][]string{"resolution": []string{"1000"}}
+	opts := map[string][]string{"resolution": []string{"1"}}
 	msg := []byte("81 <190>1 2013-03-27T00:00:01+00:00 hostname token shuttle - - measure=hello val=99\n")
 	recv.Receive("123", msg, opts)
 	time.Sleep(recv.FlushInterval * 2)
@@ -71,16 +74,17 @@ func TestReceiveOpts(t *testing.T) {
 	}
 
 	testBucket := buckets[0]
-	if testBucket.Id.Name != "hello" {
-		t.FailNow()
+
+	expectedSum := float64(99)
+	actualSum := testBucket.Sum()
+	if actualSum != expectedSum {
+		t.Errorf("actual=%d expected=%d\n", actualSum, expectedSum)
 	}
 
-	if testBucket.Sum() != 99 {
-		t.FailNow()
-	}
-
-	if testBucket.Id.Time.Second() != 1 {
-		t.FailNow()
+	expectedSecond := 1
+	actualSecond := testBucket.Id.Time.Second()
+	if actualSecond != expectedSecond {
+		t.Errorf("actual=%d expected=%d\n", actualSecond, expectedSecond)
 	}
 }
 
@@ -155,7 +159,7 @@ func TestReceiveRouter(t *testing.T) {
 	expectedSrc := "test.l2met.net"
 	for i := range buckets {
 		actualSrc := buckets[i].Id.Source
-		if  actualSrc != expectedSrc {
+		if actualSrc != expectedSrc {
 			t.Errorf("expected=%s actual=%s\n", expectedSrc, actualSrc)
 		}
 	}

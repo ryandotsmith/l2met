@@ -42,10 +42,12 @@ Metrics Produced:
 
 ### High resolution buckets
 
-By default, l2met will hold measurements in 1 minute buckets. This means that data visible in librato and graphite have a granularity of 1 minute. However, It is possible to to achieve a greater level of resolution. For example, you can get 1 second level resolution by appending a query parameter to your drain url. Notice that the resolution is specified in milliseconds.
+By default, l2met will hold measurements in 1 minute buckets. This means that data visible in librato and graphite have a granularity of 1 minute. However, It is possible to to achieve a greater level of resolution. For example, you can get 1 second level resolution by appending a query parameter to your drain url. Notice that the resolution is specified in seconds.
+
+The supported resolutions are: 1, 5, 30, 60.
 
 ```
-https://user:token@l2met.herokuapp.com/logs?resolution=1000
+https://user:token@l2met.herokuapp.com/logs?resolution=1
 ```
 
 ### Multi-metrics

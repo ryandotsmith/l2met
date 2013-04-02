@@ -49,10 +49,7 @@ func NewBucket(token string, rdr *bufio.Reader, opts map[string][]string) <-chan
 				continue
 			}
 
-			source, ok := d["source"]
-			if !ok {
-				source = ""
-			}
+			source := d["source"]
 
 			t, err := logLine.Time()
 			if err != nil {

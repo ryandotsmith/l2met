@@ -56,10 +56,19 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 			//In this case, we will massage logData
 			//to include connect, service, and bytes.
 			if string(logLine.Host) == "router" {
-				prefix := logData["host"] + ".measure."
-				logData[prefix+"connect"] = logData["connect"]
-				logData[prefix+"service"] = logData["service"]
-				logData[prefix+"bytes"] = logData["bytes"]
+				prefix := "measure."
+				if len(logData["host"]) == 0 {
+					prefix += (logData["host"] + ".")
+				}
+				if len(logData["connect"]) > 0 {
+					logData[prefix+"connect"] = strings.Replace(logData["connect"], "ms", "", -1)
+				}
+				if len(logData["service"]) > 0 {
+					logData[prefix+"service"] = strings.Replace(logData["service"], "ms", "", -1)
+				}
+				if len(logData["bytes"]) > 0 {
+					logData[prefix+"bytes"] = logData["bytes"]
+				}
 			}
 
 			resQuery, ok := opts["resolution"]

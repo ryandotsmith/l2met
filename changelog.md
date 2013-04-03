@@ -1,3 +1,8 @@
+## 0.5 2013-04-02
+
+* Updated the resolution format to be specified in minutes.
+* Improved the reporting around outlet delays.
+
 ## 0.4 2013-04-02
 
 * [Heroku Router](https://github.com/ryandotsmith/l2met#heroku-router)

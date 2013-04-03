@@ -116,7 +116,7 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 }
 
 var (
-	unitsPat = regexp.MustCompile(`\D+`)
+	unitsPat = regexp.MustCompile(`[a-zA-Z]+`)
 	valPat   = regexp.MustCompile(`\d+`)
 )
 

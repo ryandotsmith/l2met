@@ -15,10 +15,10 @@ Once data is delivered, l2met extracts and parses the individual log lines using
 
 ## Log Conventions
 
-L2met uses convention over configuration to build metrics.
+L2met uses convention over configuration to build metrics. Keys that are prefixed with measre and have numerical values will be analyzed. For example:
 
 ```ruby
-$stdout.puts("measure=db.latency val=20")
+$stdout.puts("measure.db.latency=20")
 ```
 Metrics Produced:
 

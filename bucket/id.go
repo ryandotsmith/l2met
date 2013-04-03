@@ -70,5 +70,8 @@ func (id *Id) Delay(t time.Time) int64 {
 	t0 := utils.RoundTime(id.Time, id.Resolution).Unix()
 	t1 := utils.RoundTime(t, id.Resolution).Unix()
 	base := id.Resolution / time.Second
-	return (t1 - t0) / int64(base)
+	if base != 0 {
+		return (t1 - t0) / int64(base)
+	}
+	return 0
 }

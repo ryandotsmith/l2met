@@ -80,13 +80,13 @@ func NewBucket(tok string, rdr *bufio.Reader, opts map[string][]string) <-chan *
 					src = logData["host"]
 				}
 				if len(logData["connect"]) > 0 {
-					logData[prefix+"connect"] = strings.Replace(logData["connect"], "ms", "", -1)
+					logData[prefix+"connect"] = logData["connect"]
 				}
 				if len(logData["service"]) > 0 {
-					logData[prefix+"service"] = strings.Replace(logData["service"], "ms", "", -1)
+					logData[prefix+"service"] = logData["service"]
 				}
 				if len(logData["bytes"]) > 0 {
-					logData[prefix+"bytes"] = logData["bytes"]
+					logData[prefix+"bytes"] = logData["bytes"] + "bytes"
 				}
 			}
 

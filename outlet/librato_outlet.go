@@ -95,6 +95,7 @@ func (l *LibratoOutlet) convert() {
 		}
 		//TODO(ryandotsmith): This is getting out of control.
 		//We need a succinct way to building payloads.
+		countAttr := &LibratoOutlet{Min: 0, Units "count"}
 		attrs := &LibratoAttributes{Min: 0, Units: bucket.Id.Units}
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".last", Val: ff(bucket.Last())}
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".min", Val: ff(bucket.Min())}
@@ -103,8 +104,8 @@ func (l *LibratoOutlet) convert() {
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".median", Val: ff(bucket.Median())}
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".perc95", Val: ff(bucket.P95())}
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".perc99", Val: ff(bucket.P99())}
-		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".count", Val: fi(bucket.Count())}
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".sum", Val: ff(bucket.Sum())}
+		l.Conversions <- &LibratoPayload{Attr: countAttr, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".count", Val: fi(bucket.Count())}
 		fmt.Printf("measure.bucket.conversion.delay=%d\n", bucket.Id.Delay(time.Now()))
 	}
 }

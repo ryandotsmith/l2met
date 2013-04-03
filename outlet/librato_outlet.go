@@ -96,8 +96,7 @@ func (l *LibratoOutlet) convert() {
 		l.Conversions <- &LibratoPayload{Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".perc99", Val: ff(bucket.P99())}
 		l.Conversions <- &LibratoPayload{Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".count", Val: fi(bucket.Count())}
 		l.Conversions <- &LibratoPayload{Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".sum", Val: ff(bucket.Sum())}
-		delay := time.Now().Unix() - bucket.Id.Time.Unix()
-		fmt.Printf("measure.bucket.conversion.delay=%d\n", delay)
+		fmt.Printf("measure.bucket.conversion.delay=%d\n", bucket.Id.Delay(time.Now()))
 	}
 }
 

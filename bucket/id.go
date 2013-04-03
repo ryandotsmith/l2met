@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"l2met/utils"
 )
 
 // TODO(ryandotsmith): This is an awful hack.
@@ -63,4 +64,11 @@ func (id *Id) String() string {
 		s += keySep + id.Source
 	}
 	return s
+}
+
+func (id *Id) Delay(t time.Time) int64 {
+	t0 := utils.RoundTime(id.Time, id.Resolution).Unix()
+	t1 := utils.RoundTime(t, id.Resolution).Unix()
+	base := id.Resolution / time.Second
+	return (t1 - t0) / int64(base)
 }

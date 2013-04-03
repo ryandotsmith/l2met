@@ -49,3 +49,36 @@ func TestParseIdWithoutSource(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestDelayMinutes(t *testing.T) {
+	base := time.Now()
+	id := Id{Resolution: time.Minute, Time: base}
+	actualDelay := id.Delay(base.Add(time.Minute * 2))
+	expectedDelay := int64(2)
+
+	if expectedDelay != actualDelay {
+		t.Errorf("actual=%d expected=%d\n", actualDelay, expectedDelay)
+	}
+}
+
+func TestDelaySeconds(t *testing.T) {
+	base := time.Now()
+	id := Id{Resolution: time.Second, Time: base}
+	actualDelay := id.Delay(base.Add(time.Second * 2))
+	expectedDelay := int64(2)
+
+	if expectedDelay != actualDelay {
+		t.Errorf("actual=%d expected=%d\n", actualDelay, expectedDelay)
+	}
+}
+
+func TestDelayFiveSeconds(t *testing.T) {
+	base := time.Now()
+	id := Id{Resolution: (time.Second * 5), Time: base}
+	actualDelay := id.Delay(base.Add(time.Second * 7))
+	expectedDelay := int64(2)
+
+	if expectedDelay != actualDelay {
+		t.Errorf("actual=%d expected=%d\n", actualDelay, expectedDelay)
+	}
+}

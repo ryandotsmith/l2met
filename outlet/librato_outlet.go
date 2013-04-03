@@ -95,7 +95,7 @@ func (l *LibratoOutlet) convert() {
 		}
 		//TODO(ryandotsmith): This is getting out of control.
 		//We need a succinct way to building payloads.
-		countAttr := &LibratoOutlet{Min: 0, Units "count"}
+		countAttr := &LibratoAttributes{Min: 0, Units: "count"}
 		attrs := &LibratoAttributes{Min: 0, Units: bucket.Id.Units}
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".last", Val: ff(bucket.Last())}
 		l.Conversions <- &LibratoPayload{Attr: attrs, Token: bucket.Id.Token, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".min", Val: ff(bucket.Min())}

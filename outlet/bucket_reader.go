@@ -16,10 +16,12 @@ type BucketReader struct {
 	NumScanners int
 	Inbox       chan *bucket.Bucket
 	Outbox      chan *bucket.Bucket
+	Partition   string
 }
 
 func NewBucketReader(mi int) *BucketReader {
 	rdr := new(BucketReader)
+	rdr.Partition = "bucket-reader"
 	rdr.Inbox = make(chan *bucket.Bucket, mi)
 	return rdr
 }
@@ -37,7 +39,7 @@ func (r *BucketReader) scan() {
 		//TODO(ryandotsmith): It is a shame that we have to lock
 		//for each interval. It would be great if we could get a lock
 		//and work for like 1,000 intervals and then relock.
-		p, err := utils.LockPartition("bucket-reader", r.Store.MaxPartitions(), r.Ttl)
+		p, err := utils.LockPartition(r.Partition, r.Store.MaxPartitions(), r.Ttl)
 		if err != nil {
 			continue
 		}
@@ -55,7 +57,7 @@ func (r *BucketReader) scan() {
 				}
 			}
 		}
-		utils.UnlockPartition(fmt.Sprintf("bucket-reader.%d", p))
+		utils.UnlockPartition(fmt.Sprintf("%s.%d", r.Partition, p))
 	}
 }
 func (r *BucketReader) outlet() {

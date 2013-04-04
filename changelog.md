@@ -1,5 +1,11 @@
 Each version of l2met corresponds to a git tag.
 
+## 0.6
+
+2013-04-04
+
+* [Bucket Attrs](https://github.com/ryandotsmith/l2met#bucket-attrs)
+
 ## 0.5
 
 2013-04-02

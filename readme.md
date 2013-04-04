@@ -37,6 +37,7 @@ Metrics Produced:
 * [High resolution buckets](#high-resolution-buckets)
 * [Multi-metrics](#multi-metrics)
 * [Heroku Router](#heroku-router)
+* [Bucket attrs](#bucket-attrs)
 * Librato Outlet
 * Graphite Outlet
 
@@ -84,6 +85,18 @@ Would produce the following buckets:
 1. {name=router.connect source=test.l2met.net.connect vals=[1]}
 2. {name=router.service source=test.l2met.net.service vals=[2]}
 3. {name=router.bytes   source=test.l2met.net.bytes   vals=[0]}
+
+### Bucket Attrs
+
+L2met supports associating units with numbers by appending on a non-digit sequence after the digits. For example:
+
+```
+measure.db.get=1ms
+```
+
+This will create the following bucket:
+
+bucket = {name="measure.db.get", vals=[1], units="ms"}
 
 ## Setup
 

@@ -11,7 +11,6 @@ import (
 type BucketReader struct {
 	Store       store.Store
 	Interval    time.Duration
-	Partition   string
 	Ttl         uint64
 	NumOutlets  int
 	NumScanners int
@@ -38,7 +37,7 @@ func (r *BucketReader) scan() {
 		//TODO(ryandotsmith): It is a shame that we have to lock
 		//for each interval. It would be great if we could get a lock
 		//and work for like 1,000 intervals and then relock.
-		p, err := utils.LockPartition(r.Partition, r.Store.MaxPartitions(), r.Ttl)
+		p, err := utils.LockPartition("bucket-reader", r.Store.MaxPartitions(), r.Ttl)
 		if err != nil {
 			continue
 		}

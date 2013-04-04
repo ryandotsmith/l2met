@@ -54,7 +54,7 @@ func (r *BucketReader) scan() {
 				r.Store.Putback(partition, bucket.Id)
 			}
 		}
-		utils.UnlockPartition(partition)
+		utils.UnlockPartition(fmt.Sprintf("bucket-reader.%d", p))
 	}
 }
 func (r *BucketReader) outlet() {

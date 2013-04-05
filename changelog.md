@@ -1,5 +1,11 @@
 Each version of l2met corresponds to a git tag.
 
+## 0.7
+
+2013-04-05
+
+* Fix regression related to parsing floating point numbers.
+
 ## 0.6
 
 2013-04-04

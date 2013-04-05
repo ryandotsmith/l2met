@@ -88,15 +88,25 @@ Would produce the following buckets:
 
 ### Bucket Attrs
 
-L2met supports associating units with numbers by appending on a non-digit sequence after the digits. For example:
+Most outlet providers allow meta-data to be associated with measurements. Bucket attrs is the l2met feature that allows you to interact with this meta-data.
+
+#### Units
+
+L2met supports associating units with numbers by appending on a non-digit sequence after the digits. L2met will assign all measurements a units of *y* unless specified. You can specify a unit by prepending `/[a-zA-z]+/` after the digit. For instance:
 
 ```
-measure.db.get=1ms
+measure.db.get=1ms measure.web.get=1
 ```
 
-This will create the following bucket:
+This will create the following buckets:
 
-bucket = {name="measure.db.get", vals=[1], units="ms"}
+1. {name="measure.db.get", vals=[1], units="ms"}
+2. {name="measure.web.get", vals=[1], units="y"}
+
+#### Min Y Value
+
+Librato charts allow charts to have a min y value. L2met sets this to 0. It cant not be overriden at this time. Open a GH issue if this is a problem for you.
+
 
 ## Setup
 

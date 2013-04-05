@@ -54,7 +54,7 @@ func ParseId(s string) (*Id, error) {
 	id.Units = parts[5]
 	if len(parts) > 6 {
 		id.Source = parts[6]
-  }
+	}
 	return id, nil
 }
 

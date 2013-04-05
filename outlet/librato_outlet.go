@@ -26,8 +26,8 @@ type LibratoPayload struct {
 	Time   int64              `json:"measure_time"`
 	Val    string             `json:"value"`
 	Source string             `json:"source,omitempty"`
-	User   string 			  `json:",omitempty"`
-	Pass   string 			  `json:",omitempty"`
+	User   string             `json:",omitempty"`
+	Pass   string             `json:",omitempty"`
 	Attr   *LibratoAttributes `json:"attributes,omitempty"`
 }
 

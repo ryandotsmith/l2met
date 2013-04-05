@@ -5,12 +5,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/kr/fernet"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+)
+
+// These variables are related to verifying
+// and decrypting authentication headers.
+var (
+	OneHundredYears = time.Hour * 24 * 365 * 100
+	authSecret1     = fernet.MustDecodeKey(os.Getenv("AUTH_SECRET1"))
+	authSecret2     = fernet.MustDecodeKey(os.Getenv("AUTH_SECRET2"))
 )
 
 var (
@@ -121,19 +130,27 @@ func ParseAuth(r *http.Request) (user, pass string, err error) {
 		return
 	}
 
-	parts := strings.Split(string(userPass), ":")
-	switch len(parts) {
-	case 1: // new format
-		// decode into username and password
-		// store username/password with token as key
-		user = ""
-		pass = ""
-	case 2: // old format
+	if string(userPass[0:6]) == "l2met:" {
+		parts := strings.Split(string(userPass), ":")
 		user = parts[0]
 		pass = parts[1]
-	default:
-		err = errors.New("Password not supplied.")
+		return
 	}
 
+	if s := authSecret1.VerifyAndDecrypt(userPass, OneHundredYears); s != nil {
+		parts := strings.Split(string(s), ":")
+		user = parts[0]
+		pass = parts[1]
+		return
+	}
+
+	if s := authSecret2.VerifyAndDecrypt(userPass, OneHundredYears); s != nil {
+		parts := strings.Split(string(s), ":")
+		user = parts[0]
+		pass = parts[1]
+		return
+	}
+
+	err = errors.New("End of authentication chain reached.")
 	return
 }

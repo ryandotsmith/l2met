@@ -102,7 +102,7 @@ func ParseRedisUrl() (string, string, error) {
 	return u.Host, password, nil
 }
 
-func ParseAuth(r *http.Request) (user string, pass string, err error) {
+func ParseAuth(r *http.Request) (user, pass string, err error) {
 	header, ok := r.Header["Authorization"]
 	if !ok {
 		err = errors.New("Authorization header not set.")
@@ -123,14 +123,14 @@ func ParseAuth(r *http.Request) (user string, pass string, err error) {
 
 	parts := strings.Split(string(userPass), ":")
 	switch len(parts) {
-	case 1: // new formula
+	case 1: // new format
 		// decode into username and password
 		// store username/password with token as key
 		user = ""
 		pass = ""
 	case 2: // old format
-		user = ""
-		pass = ""
+		user = parts[0]
+		pass = parts[1]
 	default:
 		err = errors.New("Password not supplied.")
 	}

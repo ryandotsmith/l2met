@@ -103,7 +103,8 @@ func NewBucket(user, pass string, rdr *bufio.Reader, opts map[string][]string) <
 				switch k {
 				case "measure":
 					units, val := parseVal(logData["val"])
-					id := &Id{ts, res, user, pass, v, units, src}
+					name := prefix + v
+					id := &Id{ts, res, user, pass, name, units, src}
 					bucket := &Bucket{Id: id}
 					bucket.Vals = []float64{val}
 					c <- bucket

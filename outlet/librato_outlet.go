@@ -161,7 +161,11 @@ func (l *LibratoOutlet) outlet() {
 			tok.Pass = l.Pass
 		// If user is l2met find credentials from postgres
 		case sample.User == "l2met":
-			tok.Id = l.Pass
+			//The token is constructed from the HTTP request
+			//with user="l2met" and password="token.id"
+			//TODO(ryandotsmith): Remove this path once all incoming
+			//requests are using dbless-auth
+			tok.Id = sample.Pass
 			tok.Get()
 		// you're using librato credentials
 		default:

@@ -5,21 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/kr/fernet"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-)
-
-// These variables are related to verifying
-// and decrypting authentication headers.
-var (
-	OneHundredYears = time.Hour * 24 * 365 * 100
-	authSecret1     = fernet.MustDecodeKey(os.Getenv("AUTH_SECRET1"))
-	authSecret2     = fernet.MustDecodeKey(os.Getenv("AUTH_SECRET2"))
 )
 
 var (
@@ -130,41 +121,9 @@ func ParseAuth(r *http.Request) (user, pass string, err error) {
 		return
 	}
 
-	//We assume that if the user field of the http basic authentication
-	//header is set to l2met, then we are dealing with the legacy, database
-	//backed authentication mechanism.
-	//TODO(ryandotsmith): Deprecate database backed authentication.
-	if string(userPass[0:6]) == "l2met:" {
-		parts := strings.Split(string(userPass), ":")
-		user = parts[0]
-		pass = parts[1]
-		return
-	}
+	parts := strings.Split(string(userPass), ":")
+	user = parts[0]
+	pass = parts[1]
 
-	//If we have gotten here, we have a signed, db-less authentication request
-	//If we can verify and decrypt, then we will pass the decrypted credentials
-	//to the caller. Most of the time, the username and password will be
-	//credentials to outlet providers. (e.g. Librato creds or Graphite creds)
-	//We care about the validity of those credentials here. If they are wrong,
-	//the metrics will be dropped at the outlet. Keep an eye on http
-	//authentication errors from the log output of the outlets.
-	if s := authSecret1.VerifyAndDecrypt(userPass, OneHundredYears); s != nil {
-		parts := strings.Split(string(s), ":")
-		user = parts[0]
-		pass = parts[1]
-		return
-	}
-
-	//A second authSecret is used so that we can support
-	//multiple shared secrets at a time. This will make it easy
-	//to roll shared secrets.
-	if s := authSecret2.VerifyAndDecrypt(userPass, OneHundredYears); s != nil {
-		parts := strings.Split(string(s), ":")
-		user = parts[0]
-		pass = parts[1]
-		return
-	}
-
-	err = errors.New("End of authentication chain reached.")
 	return
 }

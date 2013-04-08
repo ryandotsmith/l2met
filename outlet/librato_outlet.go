@@ -10,6 +10,7 @@ import (
 	"l2met/token"
 	"l2met/utils"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -202,7 +203,11 @@ func (l *LibratoOutlet) post(tok *token.Token, body *bytes.Buffer) error {
 		return err
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.SetBasicAuth(tok.User, tok.Pass)
+	escapedUser, err := url.QueryUnescape(tok.User)
+	if err != nil {
+		return err
+	}
+	req.SetBasicAuth(escapedUser, tok.Pass)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

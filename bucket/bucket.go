@@ -71,6 +71,15 @@ func NewBucket(user, pass string, rdr *bufio.Reader, opts map[string][]string) <
 			//Src can be overridden by the heroku router messages.
 			src := logData["source"]
 
+			//You can prefix all measurments by adding the
+			//prefix option on your drain url.
+			var prefix string
+			if prefixQuery, ok := opts["prefix"]; ok {
+				if len(prefixQuery[0]) > 0 {
+					prefix = prefixQuery[0] + "."
+				}
+			}
+
 			//Special case the Heroku router.
 			//In this case, we will massage logData
 			//to include connect, service, and bytes.
@@ -102,7 +111,7 @@ func NewBucket(user, pass string, rdr *bufio.Reader, opts map[string][]string) <
 					if !strings.HasPrefix(k, "measure.") {
 						break
 					}
-					name := k[8:] // len("measure.") == 8
+					name := prefix + k[8:] // len("measure.") == 8
 					units, val := parseVal(v)
 					id := &Id{ts, res, user, pass, name, units, src}
 					bucket := &Bucket{Id: id}

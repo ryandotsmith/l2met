@@ -61,7 +61,6 @@ Metrics Produced:
 * prod.db.latency.last
 * prod.db.latency.count
 * prod.db.latency.sum
-
 * prod.view.latency.min
 * prod.view.latency.median
 * prod.view.latency.perc95

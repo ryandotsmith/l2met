@@ -15,11 +15,23 @@ Once data is delivered, l2met extracts and parses the individual log lines using
 
 ## Log Conventions
 
-L2met uses convention over configuration to build metrics. Keys that are prefixed with measre and have numerical values will be analyzed. For example:
+L2met uses convention over configuration to build metrics. Keys that are prefixed with measre and have numerical values will be analyzed. L2met uses a loosely defined key=val log structure.
+
+### Keywords:
+
+There are only a few keywords that l2met will parse.
+
+* measure.*
+* source
+
+Any key that begins with measure. will be considered for a measurement. You can add a source key to further identify the measurement.
+
+A simple example:
 
 ```ruby
 $stdout.puts("measure.db.latency=20")
 ```
+
 Metrics Produced:
 
 * db.latency.min
@@ -31,6 +43,34 @@ Metrics Produced:
 * db.latency.last
 * db.latency.count
 * db.latency.sum
+
+An example using [multi-metrics](#multi-metrics) and a source key.
+
+```ruby
+$stdout.puts("source=prod measure.db.latency=20 measure.view.latency=10")
+```
+
+Metrics Produced:
+
+* prod.db.latency.min
+* prod.db.latency.median
+* prod.db.latency.perc95
+* prod.db.latency.perc99
+* prod.db.latency.max
+* prod.db.latency.mean
+* prod.db.latency.last
+* prod.db.latency.count
+* prod.db.latency.sum
+
+* prod.view.latency.min
+* prod.view.latency.median
+* prod.view.latency.perc95
+* prod.view.latency.perc99
+* prod.view.latency.max
+* prod.view.latency.mean
+* prod.view.latency.last
+* prod.view.latency.count
+* prod.view.latency.sum
 
 ## Features
 

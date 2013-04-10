@@ -38,7 +38,6 @@ Metrics Produced:
 * [Drain Prefix](#drain-prefix)
 * [Multi-metrics](#multi-metrics)
 * [Heroku Router](#heroku-router)
-* [Drain Parameters](#drain-parameters)
 * [Bucket attrs](#bucket-attrs)
 * Librato Outlet
 * Graphite Outlet

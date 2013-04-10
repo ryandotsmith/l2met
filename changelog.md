@@ -2,9 +2,10 @@ Each version of l2met corresponds to a git tag.
 
 ## 0.8
 
-2012-04-08
+2012-04-10
 
 * First pass at Dbless Authentication. This does not include credential signing.
+* Drain prefix
 
 ## 0.7
 

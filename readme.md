@@ -35,21 +35,13 @@ Metrics Produced:
 ## Features
 
 * [High resolution buckets](#high-resolution-buckets)
+* [Drain Prefix](#drain-prefix)
 * [Multi-metrics](#multi-metrics)
 * [Heroku Router](#heroku-router)
+* [Drain Parameters](#drain-parameters)
 * [Bucket attrs](#bucket-attrs)
 * Librato Outlet
 * Graphite Outlet
-
-### High resolution buckets
-
-By default, l2met will hold measurements in 1 minute buckets. This means that data visible in librato and graphite have a granularity of 1 minute. However, It is possible to to achieve a greater level of resolution. For example, you can get 1 second level resolution by appending a query parameter to your drain url. Notice that the resolution is specified in seconds.
-
-The supported resolutions are: 1, 5, 30, 60.
-
-```
-https://user:token@l2met.herokuapp.com/logs?resolution=1
-```
 
 ### Multi-metrics
 
@@ -85,6 +77,35 @@ Would produce the following buckets:
 1. {name=router.connect source=test.l2met.net.connect vals=[1]}
 2. {name=router.service source=test.l2met.net.service vals=[2]}
 3. {name=router.bytes   source=test.l2met.net.bytes   vals=[0]}
+
+### Drain Parameters
+
+There are several configuration options that can be specified at the drain level. These options will be applied to all of the metrics coming into the drain.
+
+* Resolution
+* Prefix
+
+#### High Resolution Buckets
+
+By default, l2met will hold measurements in 1 minute buckets. This means that data visible in librato and graphite have a granularity of 1 minute. However, It is possible to to achieve a greater level of resolution. For example, you can get 1 second level resolution by appending a query parameter to your drain url. Notice that the resolution is specified in seconds.
+
+The supported resolutions are: 1, 5, 30, 60.
+
+Drain URL:
+
+```
+https://user:token@l2met.herokuapp.com/logs?resolution=1
+```
+
+#### Drain Prefix
+
+It can be useful to prepend a string to all metrics going into a drain. For instance, say you want all of your pretrics to include the environment or app name. You can acheive this by adding a drain prefix.
+
+Drain URL:
+
+```
+https://token@l2met.herokuapp.com/logs?prefix=myapp.staging
+```
 
 ### Bucket Attrs
 

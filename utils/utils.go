@@ -134,7 +134,7 @@ func ParseAuth(r *http.Request) (user, pass string, err error) {
 	//If the user is not == "l2met" then dbless-auth is requested.
 	//ATM we assume the first part (user field) contains a base64 encoded
 	//representation of the outlet credentials.
-	if len(parts[0]) > 0 && len(parts[1]) == 0 {
+	if len(parts[0]) > 0 {
 		var decodedPart []byte
 		decodedPart, err = base64.StdEncoding.DecodeString(parts[0])
 		outletCreds := strings.Split(string(decodedPart), ":")

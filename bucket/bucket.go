@@ -101,6 +101,9 @@ func NewBucket(user, pass string, rdr *bufio.Reader, opts map[string][]string) <
 
 			for k, v := range logData {
 				switch k {
+				//TODO(ryandotsmith): this case is measre=something val=x
+				//It is deprecated and not mentioned in the docs.
+				//We should remove this sometime in the near future.
 				case "measure":
 					units, val := parseVal(logData["val"])
 					name := prefix + v

@@ -1,30 +1,27 @@
 package outlet
 
 import (
+	"fmt"
 	"l2met/bucket"
 	"l2met/store"
 	"l2met/utils"
+	"math"
 	"net/http"
-	"time"
 	"strconv"
+	"time"
 )
 
 type HttpOutlet struct {
 	Store store.Store
 }
 
-type Metric struct {
-	Name   string  `json:"name"`
-	Mean   float64 `json:"mean"`
-	Median float64 `json:"median"`
-	Count  int     `json:"count"`
-}
-
 func (h *HttpOutlet) ServeReadBucket(w http.ResponseWriter, r *http.Request) {
 	// need to extract: token, source, name, time
 	// https://l2met:token@l2met.net/buckets/:name
-	tok, err := utils.ParseToken(r)
+	user, pass, err := utils.ParseAuth(r)
 	if err != nil {
+		fmt.Printf("authentication-error=%s\n", err)
+		http.Error(w, "Inavalid Authentication", 401)
 		return
 	}
 
@@ -35,44 +32,38 @@ func (h *HttpOutlet) ServeReadBucket(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Request. Name is required.", 400)
 		return
 	}
-	limitStr := q.Get("limit")
-	if len(limitStr) == 0{
-		limitStr = "5"
+
+	countTmp := q.Get("count")
+	if len(countTmp) == 0 {
+		countTmp = "60"
 	}
-	limit, err := strconv.Atoi(limitStr)
+	count, err := strconv.Atoi(countTmp)
 	if err != nil {
-		http.Error(w, "Invalid Request. Limit must be an int.", 400)
+		http.Error(w, "Invalid Request. Count must be an int.", 400)
 		return
 	}
-	resolution := q.Get("resolution")
-	if len(resolution) == 0 {
-		resolution = "second"
+
+	tolTmp := q.Get("tol")
+	if len(tolTmp) == 0 {
+		tolTmp = "60"
+	}
+	tol, err := strconv.Atoi(tolTmp)
+	if err != nil {
+		http.Error(w, "Invalid Request. Tollerance must be an int.", 400)
+		return
 	}
 
-	t := time.Now()
-	var metrics []*Metric
-	for i := 0; i < limit; i++ {
-		adjTime := h.adjustTime(resolution, t, i)
-		id := &bucket.Id{Token: tok, Name: name, Source: src, Time: adjTime}
-		b := &bucket.Bucket{Id: id}
-		h.Store.Get(b)
+	t := utils.RoundTime(time.Now().Add(-2*time.Second), time.Second)
+	id := &bucket.Id{User: user, Pass: pass, Name: name, Source: src, Resolution: time.Second, Time: t, Units: "u"}
+	b := &bucket.Bucket{Id: id}
+	h.Store.Get(b)
+	fmt.Printf("bucket-length=%d\n", len(b.Vals))
 
-		m := new(Metric)
-		m.Name = b.Id.Name
-		m.Mean = b.Mean()
-		m.Median = b.Median()
-		m.Count = b.Count()
-		metrics = append(metrics, m)
+	fmt.Printf("b.count=%d count=%d tol=%d\n", b.Count(), count, tol)
+	if math.Abs(float64(b.Count()-count)) <= float64(tol) {
+		utils.WriteJson(w, 200, b)
+		return
 	}
-	utils.WriteJson(w, 200, metrics)
-}
 
-func (h *HttpOutlet) adjustTime(res string, t time.Time, i int) time.Time {
-	switch res {
-	case "second":
-		return t.Add(-1 * time.Duration(i) * time.Second)
-	default:
-		return t.Add(-1 * time.Duration(i) * time.Minute)
-	}
-	panic("impossible")
+	http.Error(w, "Unable to find data that matched criteria.", 404)
 }

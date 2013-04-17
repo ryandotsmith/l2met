@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+const DefaultUnit = "u"
+
 type Bucket struct {
 	// A bucket can be locked to ensure safe memory access.
 	sync.Mutex
@@ -141,7 +143,7 @@ func parseVal(s string) (string, float64) {
 
 	units = unitsPat.FindString(s)
 	if len(units) == 0 {
-		units = "u"
+		units = DefaultUnit
 	}
 
 	val = float64(1)

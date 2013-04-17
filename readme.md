@@ -78,6 +78,7 @@ Metrics Produced:
 * [Multi-metrics](#multi-metrics)
 * [Heroku Router](#heroku-router)
 * [Bucket attrs](#bucket-attrs)
+* [HTTP Outlet](#http-outlet)
 * Librato Outlet
 * Graphite Outlet
 
@@ -166,6 +167,33 @@ This will create the following buckets:
 
 Librato charts allow charts to have a min y value. L2met sets this to 0. It cant not be overriden at this time. Open a GH issue if this is a problem for you.
 
+### HTTP Outlet
+
+The HTTP Outlet is a read API for your metrics. You can query metrics by id. Identity construction is a bit rough at this stage, but if you know what you are looking for it is quite simple. For example, if the following logs are emmited
+
+```
+measure.db.get=10ms
+```
+
+The metrics can be accessed by the following request:
+
+```bash
+$ curl http://l2met.net/metrics?name=db.get?limit=1&offset=1
+```
+
+Depending on the resolution of the drain, you will get the last bucket offset by one. The offset implies that you are reading the previous bucket with respect to time. For instance, you your resolution is 60 (1 minute) then an offset of 1 will produce the last minute's bucket.
+
+#### Metric Assertion
+
+You can further specify what you expect the metric functions to be. This is useful in that you can point pingdom directly at your l2met instance and create alerts on metrics. For example, if an alert must be made when user signups fall below 5 per minute, we could construct the following request to assert:
+
+```bash
+$ curl http://l2met.net/metrics?name=user.signup?limit=1&offset=1&count=5
+
+404
+```
+
+If there were only 4 counts of user.signup, then the query would return a 404 which would cause pingdom to send the alert.
 
 ## Setup
 

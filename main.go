@@ -47,7 +47,7 @@ func main() {
 
 	httpOutlet := new(outlet.HttpOutlet)
 	httpOutlet.Store = rs
-	http.HandleFunc("/buckets", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		httpOutlet.ServeReadBucket(w, r)
 	})
 

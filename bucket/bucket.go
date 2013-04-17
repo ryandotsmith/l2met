@@ -84,18 +84,18 @@ func NewBucket(user, pass string, rdr *bufio.Reader, opts map[string][]string) <
 			//In this case, we will massage logData
 			//to include connect, service, and bytes.
 			if string(logLine.User) == "router" {
-				prefix := "measure.router."
+				p := "measure.router."
 				if len(logData["host"]) > 0 {
 					src = logData["host"]
 				}
 				if len(logData["connect"]) > 0 {
-					logData[prefix+"connect"] = logData["connect"]
+					logData[p+"connect"] = logData["connect"]
 				}
 				if len(logData["service"]) > 0 {
-					logData[prefix+"service"] = logData["service"]
+					logData[p+"service"] = logData["service"]
 				}
 				if len(logData["bytes"]) > 0 {
-					logData[prefix+"bytes"] = logData["bytes"] + "bytes"
+					logData[p+"bytes"] = logData["bytes"] + "bytes"
 				}
 			}
 

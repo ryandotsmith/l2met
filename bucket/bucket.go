@@ -83,7 +83,7 @@ func NewBucket(user, pass string, rdr *bufio.Reader, opts map[string][]string) <
 			//Special case the Heroku router.
 			//In this case, we will massage logData
 			//to include connect, service, and bytes.
-			if string(logLine.User) == "router" {
+			if string(logLine.Pid) == "router" {
 				p := "measure.router."
 				if len(logData["host"]) > 0 {
 					src = logData["host"]

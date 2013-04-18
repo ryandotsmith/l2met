@@ -1,5 +1,12 @@
 Each version of l2met corresponds to a git tag.
 
+## 0.9
+
+2012-04-10
+
+* bugfix: heroku router log lines were not being parsed. this is fixed.
+* bugfix: heroku router and drain prefix features were incompatible.
+
 ## 0.8
 
 2012-04-10

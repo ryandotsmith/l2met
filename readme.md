@@ -185,12 +185,10 @@ Depending on the resolution of the drain, you will get the last bucket offset by
 
 #### Metric Assertion
 
-You can further specify what you expect the metric functions to be. This is useful in that you can point pingdom directly at your l2met instance and create alerts on metrics. For example, if an alert must be made when user signups fall below 5 per minute, we could construct the following request to assert:
+You can also assert what you expect the metrics to be. This is useful in that you can point pingdom directly at your l2met instance and create alerts on metrics. For example, if an alert must be made when user signups fall below 5 per minute, we could construct the following request:
 
 ```bash
 $ curl http://your-token@l2met.net/metrics?name=db.get&resolution=60&units=ms&limit=1&offset=1&count=5
-
-404
 ```
 
 If there were only 4 counts of user.signup, then the query would return a 404 which would cause pingdom to send the alert.
@@ -208,7 +206,6 @@ For example, If we wanted to test if the count was 5 +/- 2, the following reques
 ```bash
 $ curl http://your-token@l2met.net/metrics?name=db.get&resolution=60&units=ms&limit=1&offset=1&count=5&tol=2
 ```
-
 
 ## Setup
 

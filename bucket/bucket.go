@@ -201,6 +201,9 @@ func (b *Bucket) Sort() {
 }
 
 func (b *Bucket) Min() float64 {
+	if b.Count() == 0 {
+		return float64(0)
+	}
 	b.Sort()
 	return b.Vals[0]
 }
@@ -215,24 +218,36 @@ func (b *Bucket) Median() float64 {
 }
 
 func (b *Bucket) P95() float64 {
+	if b.Count() == 0 {
+		return float64(0)
+	}
 	b.Sort()
 	pos := int(math.Floor(float64(b.Count()) * 0.95))
 	return b.Vals[pos]
 }
 
 func (b *Bucket) P99() float64 {
+	if b.Count() == 0 {
+		return float64(0)
+	}
 	b.Sort()
 	pos := int(math.Floor(float64(b.Count()) * 0.99))
 	return b.Vals[pos]
 }
 
 func (b *Bucket) Max() float64 {
+	if b.Count() == 0 {
+		return float64(0)
+	}
 	b.Sort()
 	pos := b.Count() - 1
 	return b.Vals[pos]
 }
 
 func (b *Bucket) Last() float64 {
+	if b.Count() == 0 {
+		return float64(0)
+	}
 	pos := b.Count() - 1
 	return b.Vals[pos]
 }

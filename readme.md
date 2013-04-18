@@ -181,7 +181,7 @@ The metrics can be accessed by the following request:
 $ curl http://your-token@l2met.net/metrics?name=db.get&resolution=60&units=ms&limit=1&offset=1
 ```
 
-Depending on the resolution of the drain, you will get the last bucket offset by one. The offset implies that you are reading the previous bucket with respect to time. For instance, you your resolution is 60 (1 minute) then an offset of 1 will produce the last minute's bucket.
+Depending on the resolution of the drain, you will get the last bucket offset by one. The offset implies that you are reading the previous bucket with respect to time. For instance, if your resolution is 60 (1 minute) then an offset of 1 will produce the last minute's bucket.
 
 #### Metric Assertion
 

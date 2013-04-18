@@ -1,5 +1,11 @@
 Each version of l2met corresponds to a git tag.
 
+## 0.11
+
+2012-04-10
+
+* bugfix: correct http outlet resolution parsing
+
 ## 0.10
 
 2012-04-10

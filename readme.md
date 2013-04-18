@@ -169,7 +169,7 @@ Librato charts allow charts to have a min y value. L2met sets this to 0. It cant
 
 ### HTTP Outlet
 
-The HTTP Outlet is a read API for your metrics. You can query metrics by id. Id construction is a bit rough at this stage, but if you know what you are looking for reading metrics can be quite simple. For example, if the following logs are emmited
+The HTTP Outlet is a read API for your metrics. You can query metrics by id. Id construction is a bit rough at this stage, but if you know what you are looking for, reading metrics can be quite simple. For example, if the following logs are emmited
 
 ```
 measure.db.get=10ms

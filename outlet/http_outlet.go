@@ -38,7 +38,7 @@ func (h *HttpOutlet) ServeReadBucket(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Request. Name is required.", 400)
 		return
 	}
-	res, err := h.parseAssertion("tol", 60)
+	res, err := h.parseAssertion("resolution", 60)
 	if err != nil {
 		http.Error(w, "Invalid Request.", 400)
 		return

@@ -8,6 +8,7 @@ import (
 	"l2met/store"
 	"l2met/utils"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -53,6 +54,8 @@ type Receiver struct {
 	NumAcceptors int
 	// Bucket storage.
 	Store store.Store
+	//Count the number of times we accept a bucket.
+	numBuckets uint64
 }
 
 func NewReceiver(mo, mi int) *Receiver {
@@ -60,6 +63,7 @@ func NewReceiver(mo, mi int) *Receiver {
 	r.Inbox = make(chan *LogRequest, mi)
 	r.Outbox = make(chan *bucket.Bucket, mo)
 	r.Register = &register{m: make(map[bucket.Id]*bucket.Bucket)}
+	r.numBuckets = uint64(0)
 	return r
 }
 
@@ -96,6 +100,7 @@ func (r *Receiver) Accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		for bucket := range bucket.NewBucket(lreq.User, lreq.Pass, rdr, lreq.Opts) {
+			r.numBuckets += 1
 			r.Register.Lock()
 			k := *bucket.Id
 			_, present := r.Register.m[k]
@@ -137,6 +142,9 @@ func (r *Receiver) Outlet() {
 // is going wrong.
 func (r *Receiver) report() {
 	for _ = range time.Tick(time.Second * 2) {
+		na := atomic.LoadUint64(&r.numBuckets)
+		atomic.AddUint64(&r.numBuckets, -na)
+		utils.MeasureI("receiver.buckets", int64(na))
 		utils.MeasureI("receiver.inbox", int64(len(r.Inbox)))
 		utils.MeasureI("receiver.register", int64(len(r.Register.m)))
 		utils.MeasureI("receiver.outbox", int64(len(r.Outbox)))

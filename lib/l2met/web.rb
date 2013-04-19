@@ -81,7 +81,9 @@ module L2met
 
     post "/consumers/:cid/logs" do
       Utils.count(1, 'web.post')
-      Parser.unpack(params[:cid], request.env["rack.input"].read)
+      b = request.env["rack.input"].read
+      puts b
+      Parser.unpack(params[:cid], b)
       [201, Utils.enc_j(msg: "OK")]
     end
 

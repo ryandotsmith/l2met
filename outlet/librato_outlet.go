@@ -165,7 +165,11 @@ func (l *LibratoOutlet) outlet() {
 			//TODO(ryandotsmith): Remove this path once all incoming
 			//requests are using dbless-auth
 			tok.Id = sample.Pass
-			tok.Get()
+			err := tok.Get()
+			if err != nil {
+				fmt.Printf("error=%s\n", err)
+				continue
+			}
 		// you're using librato credentials
 		default:
 			tok.User = sample.User

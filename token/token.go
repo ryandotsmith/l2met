@@ -1,6 +1,8 @@
 package token
 
-import "fmt"
+import (
+	"errors"
+)
 
 type Token struct {
 	Id   string
@@ -8,14 +10,17 @@ type Token struct {
 	Pass string
 }
 
-func (t *Token) Get() {
+func (t *Token) Get() error {
 	rows, err := pg.Query("select u, p from tokens where id = $1", t.Id)
 	if err != nil {
-		fmt.Printf("error=%s\n", err)
-		return
+		return err
 	}
 	defer rows.Close()
-	rows.Next()
-	rows.Scan(&t.User, &t.Pass)
-	return
+	if rows.Next() {
+		if err := rows.Scan(&t.User, &t.Pass); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("Unable to find token")
 }

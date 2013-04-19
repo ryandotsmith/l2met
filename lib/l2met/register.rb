@@ -19,6 +19,7 @@ module L2met
     end
 
     def accept(name, val, meta)
+      puts("name=#{name} val=#{val} meta=#{meta}")
       begin
         mkey = Utils.enc_key(name, meta[:source], meta[:consumer], meta[:type])
         bucket = Utils.trunc_time(meta[:time])

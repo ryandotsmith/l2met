@@ -29,7 +29,6 @@ module L2met
     end
 
     def store_data(d)
-      puts(d)
       if d.key?("measure") and d["measure"].to_s != "true"
         return beta_store_data(d)
       end

@@ -167,7 +167,7 @@ func (l *LibratoOutlet) outlet() {
 			tok.Id = sample.Pass
 			err := tok.Get()
 			if err != nil {
-				fmt.Printf("error=%s\n", err)
+				fmt.Printf("at=token-get-error error=%s\n", err)
 				continue
 			}
 		// you're using librato credentials

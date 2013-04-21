@@ -209,7 +209,7 @@ $ curl http://your-token@l2met.net/metrics?name=db.get&resolution=60&units=ms&li
 
 ## Setup
 
-You can run l2met in a multi-tenant mode or a single-user mode. The multi-tenant mode enables multiple drains with unique librato accounts. The single-user mode exposes 1 drain and maps to 1 librato account. This setup guide assumes single-user mode.
+The easiest way to get l2met up and running is to deploy to Heroku.
 
 #### Create Librato Account
 
@@ -224,19 +224,13 @@ $ heroku create your-l2met --buildpack git://github.com/kr/heroku-buildpack-go.g
 $ git push heroku master
 ```
 
-#### Add database services.
+#### Setup Redis
 
 I prefer redisgreen, however there are cheaper alternatives. Whichever provider you choose, ensure that you have set REDIS_URL properly.
 
 ```bash
 $ heroku addons:add redisgreen:basic
-$ heroku config:set REDIS_URL=$(heroku config -s | grep "^REDISGREEN_URL" | sed 's/REDISGREEN_URL=//')
-```
-
-#### Update Heroku config.
-
-```bash
-$ heroku config:set APP_NAME=your-l2met LIBRATO_USER=u@d.com LIBRATO_TOKEN=abc
+$ heroku config:set REDIS_URL=$(heroku config:get REDISGREEN_URL)
 ```
 
 #### Scale processes.
@@ -245,35 +239,18 @@ $ heroku config:set APP_NAME=your-l2met LIBRATO_USER=u@d.com LIBRATO_TOKEN=abc
 $ heroku scale web=1 librato_outlet=1
 ```
 
-If you wish to run more than 1 outlet, you will need to adjust a config variable in addition to scaling the process. For example, if you are running 2 librato_outlets:
+#### Sending data to l2met
+
+Now that you have created an l2met app, you can drain logs from other heroku apps into l2met. To do so, will will configure our app to drain its logs into l2met.
+
+L2met will read your Librato credentials from the drain URL. Librato requries a username and password for API access and the username is an email address. Since this is not safe for URLs we need to encode the username. You can do so by using this ruby command:
 
 ```bash
-$ heroku config:set NUM_OUTLET_PARTITIONS=2
-$ heroku scale librato_outlet=2
+$ ruby -r cgi -e 'puts CGI.escape "ryan@heroku.com"'
 ```
 
-#### Add drain to your Heroku app(s)
-
-Now that you have created an l2met app, you can drain logs from other heroku apps into l2met.
+Now we can add our l2met URL as a drain on our app.
 
 ```bash
-$ heroku drains:add https://l2met:`uuid`@your-l2met.herokuapp.com/logs -a your-app-that-needs-l2met
+$ heroku drains:add https://ryan%40heroku.com:my-librato-token@my-l2met.herokuapp.com/logs -a myapp
 ```
-
-#### Test
-
-Install [log-shuttle](https://github.com/ryandotsmith/log-shuttle).
-
-```bash
-$ curl -o log-shuttle "https://s3.amazonaws.com/32k.io/bin/log-shuttle"
-$ chmod +x log-shuttle
-```
-
-Send data to l2met.
-
-```bash
-$ export LOGPLEX_URL=https://l2met:123@your-l2met.herokuapp.com/logs
-$ echo 'measure="hello-from-your-l2met"' | log-shuttle
-```
-
-Now you should be able to see `hello-from-your-l2met` in your librato metrics web ui.

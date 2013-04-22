@@ -20,8 +20,7 @@ var (
 func init() {
 	appName = os.Getenv("APP_NAME")
 	if len(appName) == 0 {
-		fmt.Println("Must set APP_NAME.")
-		os.Exit(1)
+		appName = "l2met"
 	}
 }
 

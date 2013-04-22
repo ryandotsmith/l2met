@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"encoding/base64"
 	"net/http"
 	"testing"
 )
@@ -24,6 +25,30 @@ func TestParseAuthDBToken(t *testing.T) {
 	}
 
 	if expectedPass != "token" {
+		t.Errorf("expected=%q actual=%q\n", "token", expectedPass)
+	}
+}
+
+func TestParseBase64EncodedAuth(t *testing.T) {
+	var b bytes.Buffer
+	r, err := http.NewRequest("GET", "http://does-not-matter.com", &b)
+	if err != nil {
+		t.Error(err)
+	}
+	credentials := []byte("ryan@heroku.com:abc123")
+	encodedCredentials := base64.StdEncoding.EncodeToString(credentials)
+	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(encodedCredentials)))
+	expectedUser, expectedPass, err := ParseAuth(r)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if expectedUser != "ryan@heroku.com" {
+		t.Errorf("expected=%q actual=%q\n", "l2met", expectedUser)
+	}
+
+	if expectedPass != "abc123" {
 		t.Errorf("expected=%q actual=%q\n", "token", expectedPass)
 	}
 }

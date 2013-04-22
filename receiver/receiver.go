@@ -85,7 +85,6 @@ func (r *Receiver) Start() {
 	// The transfer is not a concurrent process.
 	// It removes buckets from the register to the outbox.
 	go r.Transfer()
-	go r.report()
 }
 
 func (r *Receiver) Stop() {
@@ -140,7 +139,7 @@ func (r *Receiver) Outlet() {
 
 // Keep an eye on the lenghts of our bufferes. If they are maxed out, something
 // is going wrong.
-func (r *Receiver) report() {
+func (r *Receiver) Report() {
 	for _ = range time.Tick(time.Second * 2) {
 		na := atomic.LoadUint64(&r.numBuckets)
 		atomic.AddUint64(&r.numBuckets, -na)

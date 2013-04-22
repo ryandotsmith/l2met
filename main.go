@@ -37,6 +37,7 @@ func main() {
 	recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 100)
 	recv.Store = rs
 	recv.Start()
+	go recv.Report()
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		healthCheck(w, r, rs)

@@ -2,9 +2,15 @@ Each version of l2met corresponds to a git tag.
 
 ## 0.11
 
-2012-04-10
+2012-04-21
 
 * bugfix: correct http outlet resolution parsing
+* bugfix: correct librato outlet's use of User-Agent
+* bugfix: handle pg errors when fetching tokens
+* Improve readme
+* Make APP_NAME optional
+* Add a receiver metric that will print number of buckets processed
+* Improve test coverage
 
 ## 0.10
 

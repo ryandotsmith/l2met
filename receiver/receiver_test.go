@@ -127,8 +127,8 @@ func TestReceiveRouter(t *testing.T) {
 	recv.Start()
 	defer recv.Stop()
 
-	opts := map[string][]string{"resolution": []string{"1000"}}
-	msg := []byte("112 <190>1 2013-03-27T00:00:01+00:00 shuttle router token - - host=test.l2met.net service=10ms connect=10ms bytes=45")
+	opts := map[string][]string{"resolution": []string{"1"}}
+	msg := []byte("113 <190>1 2013-03-27T00:00:01+00:00 shuttle heroku router - - host=test.l2met.net service=10ms connect=10ms bytes=45")
 	recv.Receive("user", "pass", msg, opts)
 	time.Sleep(recv.FlushInterval * 2)
 

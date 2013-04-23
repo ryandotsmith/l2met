@@ -3,8 +3,16 @@ package utils
 import (
 	"encoding/base64"
 	"errors"
+	"github.com/kr/fernet"
 	"net/http"
+	"os"
 	"strings"
+	"time"
+)
+
+var (
+	OneHundredYears = time.Hour * 24 * 365 * 100
+	keys            = fernet.MustDecodeKeys(strings.Split(os.Getenv("SECRETS"), ":")...)
 )
 
 func ParseAuth(r *http.Request) (user, pass string, err error) {
@@ -31,6 +39,19 @@ func ParseAuth(r *http.Request) (user, pass string, err error) {
 	//In this case, the request requires db-backed authentication.
 	//the token.id is expected to be in parts[1] (password field).
 	if parts[0] == "l2met" && len(parts[1]) > 0 {
+		user = parts[0]
+		pass = parts[1]
+		return
+	}
+	//If we have gotten here, we have a signed, db-less authentication reque
+	//If we can verify and decrypt, then we will pass the decrypted credenti
+	//to the caller. Most of the time, the username and password will be
+	//credentials to outlet providers. (e.g. Librato creds or Graphite creds
+	//We care about the validity of those credentials here. If they are wron
+	//the metrics will be dropped at the outlet. Keep an eye on http
+	//authentication errors from the log output of the outlets.
+	if s := fernet.VerifyAndDecrypt(userPass, OneHundredYears, keys); s != nil {
+		parts := strings.Split(string(s), ":")
 		user = parts[0]
 		pass = parts[1]
 		return

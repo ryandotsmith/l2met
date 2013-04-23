@@ -2,8 +2,8 @@ package utils
 
 import (
 	"bytes"
-	"github.com/kr/fernet"
 	"encoding/base64"
+	"github.com/kr/fernet"
 	"net/http"
 	"testing"
 )
@@ -63,7 +63,7 @@ func TestParseEncryptedAuth(t *testing.T) {
 
 	libratoUser := "ryan@heroku.com"
 	libratoPass := "abc123"
-	tok, err := fernet.EncryptAndSign([]byte(libratoUser + ":" + libratoPass), keys[0])
+	tok, err := fernet.EncryptAndSign([]byte(libratoUser+":"+libratoPass), keys[0])
 	if err != nil {
 		t.Error(err)
 	}

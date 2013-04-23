@@ -180,7 +180,7 @@ func (l *LibratoOutlet) outlet() {
 		reqBody.Gauges = payloads
 		j, err := json.Marshal(reqBody)
 		if err != nil {
-			fmt.Printf("at=json-marshal-error error=%s\n", err)
+			fmt.Printf("at=json-marshal-error password=%s error=%s\n", tok.Pass, err)
 			continue
 		}
 

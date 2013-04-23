@@ -80,7 +80,7 @@ func recvLogs(w http.ResponseWriter, r *http.Request, recv *receiver.Receiver) {
 	}
 	user, pass, err := utils.ParseAuth(r)
 	if err != nil {
-		fmt.Printf("auth-error=%s\n", err)
+		fmt.Printf("auth-error=%s user=%s pass=%s client=%s\n", err, user, pass, r.RemoteAddr)
 		http.Error(w, "Invalid Request", 400)
 		return
 	}

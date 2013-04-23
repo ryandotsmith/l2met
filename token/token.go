@@ -2,6 +2,7 @@ package token
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Token struct {
@@ -11,6 +12,7 @@ type Token struct {
 }
 
 func (t *Token) Get() error {
+	fmt.Printf("measure.token.get=1 id=%s\n", t.Id)
 	rows, err := pg.Query("select u, p from tokens where id = $1", t.Id)
 	if err != nil {
 		return err

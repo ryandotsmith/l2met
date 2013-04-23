@@ -6,6 +6,7 @@ Convert a formatted log stream into metrics.
 * [Features](#features)
 * [Log Conventions](#log-conventions)
 * [Setup](#setup)
+* [Hacking on l2met](#hacking-on-l2met)
 
 ## Synopsis
 
@@ -252,4 +253,24 @@ Now we can add our l2met URL as a drain on our app.
 $ heroku drains:add https://ZW1haWw6dG9rZW4=@l2met.herokuapp.com/logs -a myapp
 ```
 
+## Hacking on l2met
+
+Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
+
 [![Build Status](https://drone.io/github.com/ryandotsmith/l2met/status.png)](https://drone.io/github.com/ryandotsmith/l2met/latest)
+
+```bash
+$ go version
+go version go1.0.3
+$ ./redis-server --version
+Redis server v=2.6.7 sha=00000000:0 malloc=libc bits=64
+```
+
+```bash
+$ git clone git://github.com/ryandotsmith/l2met.git
+$ cd l2met
+$ export SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
+$ export REDIS_URL=redis://localhost:6379
+$ redis-server &
+$ go test ./...
+```

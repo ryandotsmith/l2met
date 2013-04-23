@@ -251,3 +251,5 @@ Now we can add our l2met URL as a drain on our app.
 ```bash
 $ heroku drains:add https://ZW1haWw6dG9rZW4=@l2met.herokuapp.com/logs -a myapp
 ```
+
+[![Build Status](https://drone.io/github.com/ryandotsmith/l2met/status.png)](https://drone.io/github.com/ryandotsmith/l2met/latest)

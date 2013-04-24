@@ -24,7 +24,9 @@ func ParseAuth(r *http.Request) (string, string, error) {
 	if len(authField) != 2 {
 		return "", "", errors.New("Malformed header.")
 	}
-	auth, err := base64.StdEncoding.DecodeString(authField[1])
+	authParts := strings.Split(authField[1], ":")
+
+	auth, err := base64.StdEncoding.DecodeString(authParts[0])
 	if err != nil {
 		return authField[1], "", err
 	}

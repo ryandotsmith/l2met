@@ -28,7 +28,7 @@ func ParseAuth(r *http.Request) (string, string, error) {
 
 	auth, err := base64.StdEncoding.DecodeString(authParts[0])
 	if err != nil {
-		return authField[1], "", err
+		return authParts[0], "", err
 	}
 	//If we have gotten here, we have a signed, db-less authentication reque
 	//If we can verify and decrypt, then we will pass the decrypted credenti

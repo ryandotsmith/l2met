@@ -12,7 +12,7 @@ import (
 
 var (
 	OneHundredYears = time.Hour * 24 * 365 * 100
-	keys            []string
+	keys            []*fernet.Key
 )
 
 func init() {

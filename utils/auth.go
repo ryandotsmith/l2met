@@ -31,8 +31,8 @@ func ParseAuth(r *http.Request) (string, string, error) {
 	if len(authField) != 2 {
 		return "", "", errors.New("Malformed header.")
 	}
+	//Remove Basic from the authentication.
 	authParts := strings.Split(authField[1], ":")
-
 	auth, err := base64.StdEncoding.DecodeString(authParts[0])
 	if err != nil {
 		return authParts[0], "", err
@@ -54,11 +54,12 @@ func ParseAuth(r *http.Request) (string, string, error) {
 	//ATM we assume the first part (user field) contains a base64 encoded
 	//representation of the outlet credentials.
 	if len(auth) > 0 {
-		decodedAuth, err := base64.StdEncoding.DecodeString(string(auth))
+		u := strings.Split(string(auth), ":")[0]
+		decodedUser, err := base64.StdEncoding.DecodeString(u)
 		if err != nil {
-			return string(auth), "", err
+			return u, "", err
 		}
-		outletCreds := strings.Split(string(decodedAuth), ":")
+		outletCreds := strings.Split(string(decodedUser), ":")
 		//If the : is absent in parts[0], outletCreds[0] will contain the entire string in parts[0].
 		user := outletCreds[0]
 		//It is not required for the outletCreds to contain a pass.

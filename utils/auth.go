@@ -12,8 +12,15 @@ import (
 
 var (
 	OneHundredYears = time.Hour * 24 * 365 * 100
-	keys            = fernet.MustDecodeKeys(strings.Split(os.Getenv("SECRETS"), ":")...)
+	keys            []string
 )
+
+func init() {
+	if s := strings.Split(os.Getenv("SECRETS"), ":"); len(s) > 0 {
+		keys = fernet.MustDecodeKeys(s...)
+	}
+}
+
 
 func ParseAuth(r *http.Request) (string, string, error) {
 	header, ok := r.Header["Authorization"]
@@ -37,9 +44,11 @@ func ParseAuth(r *http.Request) (string, string, error) {
 	//We care about the validity of those credentials here. If they are wron
 	//the metrics will be dropped at the outlet. Keep an eye on http
 	//authentication errors from the log output of the outlets.
-	if s := fernet.VerifyAndDecrypt(auth, OneHundredYears, keys); s != nil {
-		parts := strings.Split(string(s), ":")
-		return parts[0], parts[1], nil
+	if len(keys) > 0 {
+		if s := fernet.VerifyAndDecrypt(auth, OneHundredYears, keys); s != nil {
+			parts := strings.Split(string(s), ":")
+			return parts[0], parts[1], nil
+		}
 	}
 	//If the user is not == "l2met" then dbless-auth is requested.
 	//ATM we assume the first part (user field) contains a base64 encoded

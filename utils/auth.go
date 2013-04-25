@@ -86,9 +86,10 @@ func ParseAuth(r *http.Request) (string, string, error) {
 	//ATM we assume the first part (user field) contains a base64 encoded
 	//representation of the outlet credentials.
 	if len(user) > 0 {
-		decodedUser, err := base64.StdEncoding.DecodeString(user)
+		trimmedUser := strings.Replace(user, ":", "", -1)
+		decodedUser, err := base64.StdEncoding.DecodeString(trimmedUser)
 		if err != nil {
-			return user, "", err
+			return trimmedUser, "", err
 		}
 		outletCreds := strings.Split(string(decodedUser), ":")
 		//If the : is absent in parts[0], outletCreds[0] will contain the entire string in parts[0].

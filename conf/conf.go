@@ -83,7 +83,7 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&Verbose, "v", true, "Enable verbose stastics.")
+	flag.BoolVar(&Verbose, "v", false, "Enable verbose stastics.")
 
 	p := utils.EnvInt("PORT", 8080)
 	flag.IntVar(&Port, "port", p, "HTTP server will bind to this port.")

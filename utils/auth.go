@@ -16,9 +16,18 @@ var (
 )
 
 func init() {
-	if s := strings.Split(os.Getenv("SECRETS"), ":"); len(s) > 0 {
+	if s := strings.Split(os.Getenv("SECRETS"), ":"); len(s[0]) > 0 {
 		keys = fernet.MustDecodeKeys(s...)
 	}
+}
+
+func Sign(b []byte) ([]byte, error) {
+	for i := range keys {
+		if res, err := fernet.EncryptAndSign(b, keys[i]); err == nil {
+			return res, err
+		}
+	}
+	return []byte(""), errors.New("Unable to sign payload.")
 }
 
 func parseAuthHeader(r *http.Request) (string, error) {

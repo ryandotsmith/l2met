@@ -81,10 +81,9 @@ func (l *LibratoOutlet) Start() {
 	for i := 0; i < l.NumOutlets; i++ {
 		go l.outlet()
 	}
-	go l.report()
 }
 
-func (l *LibratoOutlet) report() {
+func (l *LibratoOutlet) Report() {
 	for _ = range time.Tick(time.Second * 2) {
 		utils.MeasureI("librato-outlet.inbox", "buckets", int64(len(l.Inbox)))
 		utils.MeasureI("librato-outlet.conversions", "payloads", int64(len(l.Conversions)))

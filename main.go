@@ -24,8 +24,10 @@ func main() {
 	if conf.UsingRedis {
 		st = store.NewRedisStore(conf.RedisHost,
 			conf.RedisPass, conf.MaxPartitions, conf.MaxRedisConns)
+		fmt.Printf("at=initialized-redis-store\n")
 	} else {
 		st = store.NewMemStore()
+		fmt.Printf("at=initialized-mem-store\n")
 	}
 
 	//It is not possible to run both librato and graphite outlets
@@ -37,6 +39,9 @@ func main() {
 		outlet := outlet.NewLibratoOutlet(conf.BufferSize,
 			conf.Concurrency, conf.NumOutletRetry, rdr)
 		outlet.Start()
+		if conf.Verbose {
+			go outlet.Report()
+		}
 	case "graphite":
 		rdr := &outlet.BucketReader{Store: st, Interval: conf.FlushtInterval}
 		outlet := outlet.NewGraphiteOutlet(conf.BufferSize, rdr)
@@ -95,6 +100,25 @@ func main() {
 			fmt.Printf("error=%q\n", msg)
 			http.Error(w, msg, 500)
 		}
+	})
+
+	http.HandleFunc("/sign", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Invalid Method. Must be POST.", 400)
+			return
+		}
+		b, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
+		if err != nil {
+			http.Error(w, "Unable to read body of POST.", 400)
+			return
+		}
+		signed, err := utils.Sign(b)
+		if err != nil {
+			http.Error(w, "Invalid Request", 500)
+			return
+		}
+		fmt.Fprint(w, string(signed))
 	})
 
 	//Start the HTTP server.

@@ -23,7 +23,7 @@ func (m *MemStore) MaxPartitions() uint64 {
 	return uint64(1)
 }
 
-func (m *MemStore) Scan(partition string) <-chan *bucket.Bucket {
+func (m *MemStore) Scan() (<-chan *bucket.Bucket, error) {
 	m.Lock()
 	//TODO(ryandotsmith): Can we eliminate the magical number?
 	buckets := make(chan *bucket.Bucket, 1000)
@@ -33,7 +33,7 @@ func (m *MemStore) Scan(partition string) <-chan *bucket.Bucket {
 			out <- bucket
 		}
 	}(buckets)
-	return buckets
+	return buckets, nil
 }
 
 func (m *MemStore) Get(b *bucket.Bucket) error {

@@ -87,8 +87,8 @@ func RoundTime(t time.Time, d time.Duration) time.Time {
 	return time.Unix(0, int64((time.Duration(t.UnixNano())/d)*d))
 }
 
-func ParseRedisUrl(url string) (string, string, error) {
-	u, err := url.Parse(url)
+func ParseRedisUrl(s string) (string, string, error) {
+	u, err := url.Parse(s)
 	if err != nil {
 		return "", "", errors.New("utils: Missing REDIS_URL")
 	}

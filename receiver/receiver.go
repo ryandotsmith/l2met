@@ -58,12 +58,16 @@ type Receiver struct {
 	numBuckets uint64
 }
 
-func NewReceiver(mo, mi int) *Receiver {
+func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
 	r := new(Receiver)
-	r.Inbox = make(chan *LogRequest, mi)
-	r.Outbox = make(chan *bucket.Bucket, mo)
+	r.Inbox = make(chan *LogRequest, sz)
+	r.Outbox = make(chan *bucket.Bucket, sz)
 	r.Register = &register{m: make(map[bucket.Id]*bucket.Bucket)}
 	r.numBuckets = uint64(0)
+	r.FlushInterval = i
+	r.NumOutlets = c
+	r.NumAcceptors = c
+	r.Store = s
 	return r
 }
 

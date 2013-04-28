@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"l2met/conf"
 	"l2met/outlet"
 	"l2met/receiver"
 	"l2met/store"
 	"l2met/utils"
 	"log"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 )
@@ -19,76 +19,69 @@ func init() {
 }
 
 func main() {
-	var store *store.Store
-	if usingRedis {
-		// The number of partitions that our backends support.
-		numPartitions := utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
-		// The bucket.Store struct will initialize a redis pool for us.
-		maxRedisConn := utils.EnvInt("OUTLET_C", 2) + 100
-		// We use the store to Put buckets into redis.
-		server, pass, err := utils.ParseRedisUrl()
-		if err != nil {
-			log.Fatal(err)
-		}
-		store = store.NewRedisStore(server, pass, numPartitions, maxRedisConn)
+	//The store will be used by receivers and outlets.
+	var st store.Store
+	if conf.UsingRedis {
+		st = store.NewRedisStore(conf.RedisHost,
+			conf.RedisPass, conf.MaxPartitions, conf.MaxRedisConns)
 	} else {
-		store := store.NewMemStore()
+		st = store.NewMemStore()
 	}
 
-	if startLibratoOutlet {
-		concurrency := utils.EnvInt("LOCAL_WORKERS", 2)
-		numPartitions := utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
-
-		rdr := outlet.NewBucketReader(1000)
-		rdr.NumScanners = concurrency
-		rdr.NumOutlets = concurrency
-		rdr.Interval = time.Millisecond * 500
-		rdr.Store = store
-
-		l := outlet.NewLibratoOutlet(1000, 1000, 1000)
-		l.Reader = rdr
-		l.NumOutlets = concurrency
-		l.NumConverters = concurrency
-		l.Retries = 2
-		l.User = utils.EnvString("LIBRATO_USER", "")
-		l.Pass = utils.EnvString("LIBRATO_TOKEN", "")
-		l.Start()
+	//It is not possible to run both librato and graphite outlets
+	//in the same process.
+	switch conf.Outlet {
+	case "librato":
+		rdr := outlet.NewBucketReader(conf.BufferSize,
+			conf.Concurrency, conf.FlushtInterval, st)
+		outlet := outlet.NewLibratoOutlet(conf.BufferSize,
+			conf.Concurrency, conf.NumOutletRetry, rdr)
+		outlet.Start()
+	case "graphite":
+		rdr := &outlet.BucketReader{Store: st, Interval: conf.FlushtInterval}
+		outlet := outlet.NewGraphiteOutlet(conf.BufferSize, rdr)
+		outlet.Start()
+	default:
+		fmt.Println("No outlet running. Run `l2met -h` for outlet help.")
 	}
 
-	if startGraphiteOutlet {
-		// The number of partitions that our backends support.
-		numPartitions := utils.EnvUint64("NUM_OUTLET_PARTITIONS", 1)
-		// The bucket.Store struct will initialize a redis pool for us.
-		maxRedisConn := utils.EnvInt("OUTLET_C", 2) + 100
-		interval := time.Millisecond * 200
-		rdr := &outlet.BucketReader{Store: store, Interval: interval}
-		g := outlet.NewGraphiteOutlet(1000, 1000)
-		g.Reader = rdr
-		g.ApiToken = utils.EnvString("GRAPHITE_API_TOKEN", "")
-		g.Start()
-	}
-
-	if startHttpOutlet {
+	//The HTTP Outlet can be ran in addition to the librato or graphite outlet.
+	if conf.UsingHttpOutlet {
 		httpOutlet := new(outlet.HttpOutlet)
-		httpOutlet.Store = rs
+		httpOutlet.Store = st
 		http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 			httpOutlet.ServeReadBucket(w, r)
 		})
 	}
 
-	if startReceiver {
-		reqBuf := utils.EnvInt("REQUEST_BUFFER", 1000)
-		recv := receiver.NewReceiver(reqBuf, reqBuf)
-		recv.FlushInterval = time.Millisecond * 200
-		recv.NumOutlets = utils.EnvInt("OUTLET_C", 100)
-		recv.NumAcceptors = utils.EnvInt("ACCEPT_C", 100)
-		recv.Store = rs
+	if conf.UsingReciever {
+		recv := receiver.NewReceiver(conf.BufferSize,
+			conf.Concurrency, conf.FlushtInterval, st)
 		recv.Start()
-		if verbose {
+		if conf.Verbose {
 			go recv.Report()
 		}
 		http.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
-			recvLogs(w, r, recv)
+			startReceiveT := time.Now()
+			if r.Method != "POST" {
+				http.Error(w, "Invalid Request", 400)
+				return
+			}
+			user, pass, err := utils.ParseAuth(r)
+			if err != nil {
+				fmt.Printf("measure.failed-auth erro=%s user=%s pass=%s user-agent=%s token=%s client=%s\n",
+					err, user, pass, r.Header.Get("User-Agent"), r.Header.Get("Logplex-Drain-Token"), r.Header.Get("X-Forwarded-For"))
+				http.Error(w, "Invalid Request", 400)
+				return
+			}
+			b, err := ioutil.ReadAll(r.Body)
+			r.Body.Close()
+			if err != nil {
+				http.Error(w, "Invalid Request", 400)
+				return
+			}
+			recv.Receive(user, pass, b, r.URL.Query())
+			utils.MeasureT("http-receiver", startReceiveT)
 		})
 	}
 
@@ -96,46 +89,17 @@ func main() {
 	//is the health of the store. In some cases, this might mean
 	//a redis health check.
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		healthCheck(w, r, rs)
-		ok := store.Health()
+		ok := st.Health()
 		if !ok {
-			msg := "Redis is unavailable."
+			msg := "Store is unavailable."
 			fmt.Printf("error=%q\n", msg)
 			http.Error(w, msg, 500)
 		}
 	})
 
-
 	//Start the HTTP server.
-	port := utils.EnvString("PORT", "8000")
-	err = http.ListenAndServe(":"+port, nil)
-	if err != nil {
-		fmt.Printf("error=%s msg=%q\n", err, "Unable to start http server.")
-		os.Exit(1)
+	if e := http.ListenAndServe(fmt.Sprintf(":%d", conf.Port), nil); e != nil {
+		log.Fatal("Unable to start HTTP server.")
 	}
-	fmt.Printf("at=l2met-initialized port=%s\n", port)
-}
-
-// Pull data from the http request, stick it in a channel and close the request.
-// We don't do any validation on the data. Always respond with 200.
-func recvLogs(w http.ResponseWriter, r *http.Request, recv *receiver.Receiver) {
-	defer utils.MeasureT("http-receiver", time.Now())
-	if r.Method != "POST" {
-		http.Error(w, "Invalid Request", 400)
-		return
-	}
-	user, pass, err := utils.ParseAuth(r)
-	if err != nil {
-		fmt.Printf("measure.failed-auth erro=%s user=%s pass=%s user-agent=%s token=%s client=%s\n",
-			err, user, pass, r.Header.Get("User-Agent"), r.Header.Get("Logplex-Drain-Token"), r.Header.Get("X-Forwarded-For"))
-		http.Error(w, "Invalid Request", 400)
-		return
-	}
-	b, err := ioutil.ReadAll(r.Body)
-	r.Body.Close()
-	if err != nil {
-		http.Error(w, "Invalid Request", 400)
-		return
-	}
-	recv.Receive(user, pass, b, r.URL.Query())
+	fmt.Printf("at=l2met-initialized port=%d\n", conf.Port)
 }

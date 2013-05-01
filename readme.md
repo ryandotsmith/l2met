@@ -230,6 +230,13 @@ $ heroku addons:add redisgreen:basic
 $ heroku config:set REDIS_URL=$(heroku config:get REDISGREEN_URL)
 ```
 
+#### Setup Security
+
+```bash
+heroku config:set SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
+```
+
+
 #### Scale processes.
 
 ```bash

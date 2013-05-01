@@ -85,7 +85,10 @@ func main() {
 				http.Error(w, "Invalid Request", 400)
 				return
 			}
-			recv.Receive(user, pass, b, r.URL.Query())
+			v := r.URL.Query()
+			v.Add("user", user)
+			v.Add("password", pass)
+			recv.Receive(b, v)
 			utils.MeasureT("http-receiver", startReceiveT)
 		})
 	}

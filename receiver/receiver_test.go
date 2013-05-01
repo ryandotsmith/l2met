@@ -3,10 +3,22 @@ package receiver
 import (
 	"l2met/bucket"
 	"l2met/store"
-	"testing"
 	"strings"
+	"testing"
 	"time"
 )
+
+func compareBuckets(actual, expected *bucket.Bucket, t *testing.T) {
+	if actual.Id.Name != expected.Id.Name {
+		t.Errorf("actual-name=%s expected-name=%s\n", actual.Id.Name, expected.Id.Name)
+	}
+	if actual.Id.Source != expected.Id.Source {
+		t.Errorf("actual-source=%s expected-source=%s\n", actual.Id.Source, expected.Id.Source)
+	}
+	if actual.Sum() != expected.Sum() {
+		t.Errorf("actual-sum=%s expected-sum=%s\n", actual.Sum(), expected.Sum())
+	}
+}
 
 func makeReceiver() (store.Store, *Receiver) {
 	st := store.NewMemStore()
@@ -40,21 +52,17 @@ func TestReceive(t *testing.T) {
 		}
 	}
 
-	if helloBucket.Id.Name != "hello" {
-		t.Errorf("actual-name=%s expected-name=%s\n", helloBucket.Id.Name, "hello")
-	}
-	if worldBucket.Id.Name != "world" {
-		t.Errorf("actual-name=%s expected-name=%s\n", worldBucket.Id.Name, "world")
-	}
-
-	if helloBucket.Sum() != 99 {
-		t.Errorf("actual-sum=%s expected-sum=%s\n", helloBucket.Sum(), 99)
-	}
-	if worldBucket.Sum() != 100 {
-		t.Errorf("actual-sum=%s expected-sum=%s\n", worldBucket.Sum(), 100)
-	}
+	compareBuckets(helloBucket, &bucket.Bucket{
+		Id:   &bucket.Id{Name: "hello"},
+		Vals: []float64{99},
+	}, t)
+	compareBuckets(worldBucket, &bucket.Bucket{
+		Id:   &bucket.Id{Name: "world"},
+		Vals: []float64{100},
+	}, t)
 }
 
+/*
 func TestReceiveOpts(t *testing.T) {
 	st, recv := makeReceiver()
 	recv.FlushInterval = time.Millisecond
@@ -93,44 +101,7 @@ func TestReceiveOpts(t *testing.T) {
 		t.Errorf("actual=%d expected=%d\n", actualSecond, expectedSecond)
 	}
 }
-
-/*
-func TestReceiveMultiMetrics(t *testing.T) {
-	st, recv := makeReceiver()
-	recv.FlushInterval = time.Millisecond
-	recv.Start()
-	defer recv.Stop()
-
-	opts := map[string][]string{"resolution": []string{"1000"}}
-	msg := []byte("95 <190>1 2013-03-27T00:00:01+00:00 hostname token shuttle - - measure=hello val=10 measure.db=10\n")
-	recv.Receive("user", "pass", msg, opts)
-	time.Sleep(recv.FlushInterval * 2)
-
-	var buckets []*bucket.Bucket
-	ch, err := st.Scan()
-	if err != nil {
-		t.Error(err)
-	}
-	for b := range ch {
-		buckets = append(buckets, b)
-	}
-
-	expectedLength := 2
-	actualLength := len(buckets)
-	if actualLength != expectedLength {
-		t.Errorf("expected=%d actual=%d\n", expectedLength, actualLength)
-	}
-
-	//the log line above has two measurements with values of 10.
-	actualSum := float64(0)
-	for i := range buckets {
-		actualSum += buckets[i].Sum()
-	}
-	expectedSum := float64(20)
-	if actualSum != expectedSum {
-		t.Errorf("expected=%d actual=%d\n", expectedSum, actualSum)
-	}
-}
+*/
 
 func TestReceiveRouter(t *testing.T) {
 	st, recv := makeReceiver()
@@ -138,9 +109,11 @@ func TestReceiveRouter(t *testing.T) {
 	recv.Start()
 	defer recv.Stop()
 
-	opts := map[string][]string{"resolution": []string{"1"}}
+	opts := make(map[string][]string)
+	opts["user"] = []string{"u"}
+	opts["password"] = []string{"p"}
 	msg := []byte("113 <190>1 2013-03-27T00:00:01+00:00 shuttle heroku router - - host=test.l2met.net service=10ms connect=10ms bytes=45")
-	recv.Receive("user", "pass", msg, opts)
+	recv.Receive(msg, opts)
 	time.Sleep(recv.FlushInterval * 2)
 
 	var buckets []*bucket.Bucket
@@ -178,4 +151,3 @@ func TestReceiveRouter(t *testing.T) {
 		}
 	}
 }
-*/

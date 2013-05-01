@@ -1,50 +1,15 @@
 package bucket
 
 import (
-	"fmt"
 	"bufio"
-	"bytes"
-	"errors"
+	"fmt"
 	"github.com/ryandotsmith/lpx"
-	"github.com/kr/logfmt"
-	"time"
-	"strings"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type Options map[string][]string
-
-type measurement struct {
-	Key    string
-	Val    float64
-	Source string
-	Unit   string
-}
-
-type measurements []*measurement
-
-func (mm *measurements) HandleLogfmt(key, val []byte) error {
-	i := bytes.LastIndexFunc(val, isDigit)
-	v, err := strconv.ParseFloat(string(val[:i+1]), 10)
-	if err != nil {
-		return err
-	}
-	m := &measurement{
-		Key: string(key),
-		Val:  v,
-		Unit: string(val[i+1:]),
-	}
-	*mm = append(*mm, m)
-	return nil
-}
-
-// return true if r is an ASCII digit only, as opposed to unicode.IsDigit.
-func isDigit(r rune) bool {
-	return '0' <= r && r <= '9'
-}
-
-
-var parseError = errors.New("Unable to parse message.")
 
 var (
 	routerPrefix  = "router"
@@ -59,21 +24,21 @@ func NewBuckets(body *bufio.Reader, opts Options) <-chan *Bucket {
 		for rdr.Next() {
 			header := rdr.Header()
 			msg := rdr.Bytes()
-			parseHkRouter(o, opts, header, msg)
-			parseMeasurements(o, opts, header, msg)
+			tups, err := parseLogData(msg)
+			if err != nil {
+				fmt.Printf("at=parse-log-data error=%s\n", err)
+				continue
+			}
+			parseHkRouter(o, opts, header, tups)
+			parseMeasurements(o, opts, header, tups)
 		}
 	}(out)
 	return out
 }
 
-func parseMeasurements(out chan *Bucket, opts Options, header *lpx.Header, msg []byte) error {
-	mm := make(measurements, 0)
-	if err := logfmt.Unmarshal(msg, &mm); err != nil {
-		fmt.Printf("error=%s msg=%s\n", err, string(msg))
-		return err
-	}
-	for i := range mm {
-		if !strings.HasPrefix(mm[i].Key, measurePrefix) {
+func parseMeasurements(out chan *Bucket, opts Options, header *lpx.Header, tups tuples) error {
+	for i := range tups {
+		if !strings.HasPrefix(tups[i].Name(), measurePrefix) {
 			continue
 		}
 		id := new(Id)
@@ -81,32 +46,32 @@ func parseMeasurements(out chan *Bucket, opts Options, header *lpx.Header, msg [
 		id.Time = parseTime(id.Resolution, header.Time)
 		id.User = opts["user"][0]
 		id.Pass = opts["password"][0]
-		id.Name = buildPrefix(opts, mm[i].Key)
-		id.Units = mm[i].Unit
-		id.Source = mm[i].Source
-		out <- &Bucket{Id: id, Vals: []float64{mm[i].Val}}
+		id.Name = buildPrefix(opts, tups[i].Name())
+		id.Units = tups[i].Units()
+		id.Source = tups.Source()
+		val, err := tups[i].Float64()
+		if err != nil {
+			continue
+		}
+		out <- &Bucket{Id: id, Vals: []float64{val}}
 	}
 	return nil
 }
 
-func parseHkRouter(out chan *Bucket, opts Options, header *lpx.Header, msg []byte) error {
-	if string(header.Procid) != routerPrefix {
+func parseHkRouter(out chan *Bucket, opts Options, header *lpx.Header, tups tuples) error {
+	if string(header.Name) != routerPrefix {
 		return nil
 	}
-	mm := make(measurements, 0)
-	if err := logfmt.Unmarshal(msg, &mm); err != nil {
-		return parseError
-	}
-	for i := range mm {
+	for i := range tups {
 		id := new(Id)
 		id.Resolution = parseResolution(opts)
 		id.Time = parseTime(id.Resolution, header.Time)
 		id.User = opts["user"][0]
 		id.Pass = opts["password"][0]
-		id.Source = mm[i].Source
-		id.Units = mm[i].Unit
+		id.Source = tups.Source()
+		id.Units = tups[i].Units()
 
-		switch mm[i].Key {
+		switch tups[i].Name() {
 		case "bytes":
 			id.Name = buildPrefix(opts, "router.bytes")
 		case "connect":
@@ -114,7 +79,11 @@ func parseHkRouter(out chan *Bucket, opts Options, header *lpx.Header, msg []byt
 		case "service":
 			id.Name = buildPrefix(opts, "router.service")
 		}
-		out <- &Bucket{Id: id, Vals: []float64{mm[i].Val}}
+		val, err := tups[i].Float64()
+		if err != nil {
+			continue
+		}
+		out <- &Bucket{Id: id, Vals: []float64{val}}
 	}
 	return nil
 }

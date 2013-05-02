@@ -216,24 +216,32 @@ $ curl http://your-token@l2met.net/metrics?name=user.signup&resolution=60&limit=
 
 ## Getting Started
 
+<<<<<<< HEAD
 The easiest way to get l2met up and running is to deploy to Heroku. This guide assumes you have already created a Heroku & Librato account.
-
-#### Create a Heroku app
 
 ```bash
 $ curl https://s3-us-west-2.amazonaws.com/l2met/v2.0beta/linux/amd64/l2met.tar.gz | tar xvz
-$ ./setup my-l2met my-librato-email@domain.com my-librato-token
+
+$ ./setup my-l2met e@foo.com abc123
+...
+Drain URL: https://long-token@my-l2met.herokuapp.com/logs
 ```
 
-#### Sending data to l2met
+This command will create Heroku app named `my-l2met` and return a drain URL with encrypted Librato credentials for a Librato account with email `e@foo.com` and an API token of `abc123`.
 
-Now that you have created an l2met app, you can drain logs from other heroku apps into your newly created l2met Heroku app.
-
-After running the setup command, the last line provided a drain url. We can add that drain url to a heroku app. For example, if the drain url provided by the setup command was: `https://ZW1haWw6dG9rZW4=@l2met.herokuapp.com/logs` and we wich to drain logs from `my-app` into l2met, we can run the following command:
+After you have created `my-l2met`, you can now add the drain URL to a Heroku app. A copy of the log stream will be delivered to `my-l2met` and metrics will be sent to the Librato account which your provided in the setup.
 
 ```bash
-$ heroku drains:add https://ZW1haWw6dG9rZW4=@l2met.herokuapp.com/logs -a myapp
+$ heroku drains:add https://long-token@my-l2met.herokuapp.com/logs -a myapp
 ```
+
+You can manually send data to `my-l2met` by the following curl command:
+
+```bash
+$ curl "https://long-token@my-l2met.herokuapp.com/logs" --data "94 <190>1 2013-03-27T20:02:24+00:00 hostname token shuttle - - measure.hello=99 measure.world=100"
+```
+
+Verify the command worked by viewing the [newly created metrics](https://metrics.librato.com/metrics?search=hello).
 
 ## Hacking on l2met
 

@@ -33,6 +33,12 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
+which curl > /dev/null
+if [ $? -ne 0 ]; then
+	echo 'Missing curl(1)'
+	exit 1
+fi
+
 which dd > /dev/null
 if [ $? -ne 0 ]; then
 	echo 'Missing DD(1).'
@@ -45,7 +51,9 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-
+# We need to create a git repository to deploy to Heroku.
+# The repo must be created before Heroku app creation so that
+# the Heroku command can update the remote in the git config.
 git init
 if [ $? -ne 0 ]; then
 	echo 'Unable to create git repository.'

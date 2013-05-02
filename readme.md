@@ -243,16 +243,12 @@ Before working on a new feature, send your proposal to the [mailing list](https:
 
 ```bash
 $ go version
-go version go1.0.3
-$ ./redis-server --version
-Redis server v=2.6.7 sha=00000000:0 malloc=libc bits=64
+go version devel +d58997478ec6 Mon Apr 08 00:09:35 2013 -0700 darwin/amd64
 ```
 
 ```bash
 $ git clone git://github.com/ryandotsmith/l2met.git
 $ cd l2met
 $ export SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
-$ export REDIS_URL=redis://localhost:6379
-$ redis-server &
 $ go test ./...
 ```

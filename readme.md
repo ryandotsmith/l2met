@@ -2,11 +2,17 @@
 
 Convert a formatted log stream into metrics.
 
+* [Current Release](#current-release)
 * [Synopsis](#synopsis)
 * [Features](#features)
 * [Log Conventions](#log-conventions)
 * [Setup](#setup)
 * [Hacking on l2met](#hacking-on-l2met)
+
+## Current Release
+
+* Tip: [v2.0beta](https://github.com/ryandotsmith/l2met/tree/v2.0beta)
+* Stable: [v0.11](https://github.com/ryandotsmith/l2met/tree/v0.11)
 
 ## Synopsis
 

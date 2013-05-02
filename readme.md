@@ -221,9 +221,12 @@ The easiest way to get l2met up and running is to deploy to Heroku. This guide a
 #### Create a Heroku app.
 
 ```bash
-$ git clone git://github.com/ryandotsmith/l2met.git
-$ cd l2met
-$ heroku create your-l2met --buildpack git://github.com/kr/heroku-buildpack-go.git
+$ mkdir l2met; cd l2met
+$ curl https://s3-us-west-2.amazonaws.com/l2met/v1.0/linux/amd64/l2met.tar.gz | tar xvz
+$ git init
+$ heroku create your-l2met --buildpack http://github.com/ryandotsmith/null-buildpack.git
+$ git add .
+$ git commit -am "init"
 $ git push heroku master
 ```
 
@@ -241,7 +244,6 @@ $ heroku config:set REDIS_URL=$(heroku config:get REDISGREEN_URL)
 ```bash
 heroku config:set SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
 ```
-
 
 #### Scale processes.
 

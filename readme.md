@@ -6,7 +6,7 @@ Convert a formatted log stream into metrics.
 * [Synopsis](#synopsis)
 * [Features](#features)
 * [Log Conventions](#log-conventions)
-* [Setup](#setup)
+* [Getting Started](#getting-started)
 * [Hacking on l2met](#hacking-on-l2met)
 
 ## Current Release
@@ -214,55 +214,22 @@ For example, if we wanted to test if the count was 5 +/- 2, the following reques
 $ curl http://your-token@l2met.net/metrics?name=user.signup&resolution=60&limit=1&offset=1&count=5&tol=2
 ```
 
-## Setup
+## Getting Started
 
 The easiest way to get l2met up and running is to deploy to Heroku. This guide assumes you have already created a Heroku & Librato account.
 
 #### Create a Heroku app
 
 ```bash
-$ mkdir l2met; cd l2met
-$ curl https://s3-us-west-2.amazonaws.com/l2met/v1.2/linux/amd64/l2met.tar.gz | tar xvz
-$ git init
-$ heroku create your-l2met --buildpack http://github.com/ryandotsmith/null-buildpack.git
-$ git add .
-$ git commit -am "init"
-$ git push heroku master
-```
-
-#### Setup Redis
-
-I prefer redisgreen, however there are cheaper alternatives. Whichever provider you choose, ensure that you have set your REDIS_URL properly.
-
-```bash
-$ heroku addons:add redisgreen:basic
-$ heroku config:set REDIS_URL=$(heroku config:get REDISGREEN_URL)
-```
-
-#### Setup Security
-
-```bash
-heroku config:set SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
-```
-
-#### Scale processes
-
-```bash
-$ heroku scale web=1 librato_outlet=1
+$ curl https://s3-us-west-2.amazonaws.com/l2met/v2.0beta/linux/amd64/l2met.tar.gz | tar xvz
+$ ./setup my-l2met my-librato-email@domain.com my-librato-token
 ```
 
 #### Sending data to l2met
 
-Now that you have created an l2met app, you can drain logs from other heroku apps into l2met. To do so, we will configure our app to drain its logs into l2met.
+Now that you have created an l2met app, you can drain logs from other heroku apps into your newly created l2met Heroku app.
 
-L2met expects your Librato credentials to be Base64 encoded. You can use Ruby to quickly encode your credentials. Replace `email` with the email corresponding to your Librato account, and `token` with your Librato API token. You can find your Librato account details [here](https://metrics.librato.com/account#api_tokens).
-
-```bash
-$ ruby -r base64 -e 'puts Base64.encode64("email:token").tr("\n", "")'
-ZW1haWw6dG9rZW4=
-```
-
-Now we can add our l2met URL as a drain on our app.
+After running the setup command, the last line provided a drain url. We can add that drain url to a heroku app. For example, if the drain url provided by the setup command was: `https://ZW1haWw6dG9rZW4=@l2met.herokuapp.com/logs` and we wich to drain logs from `my-app` into l2met, we can run the following command:
 
 ```bash
 $ heroku drains:add https://ZW1haWw6dG9rZW4=@l2met.herokuapp.com/logs -a myapp

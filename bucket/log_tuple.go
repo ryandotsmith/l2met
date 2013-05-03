@@ -17,6 +17,14 @@ func (lt *logTuple) Name() string {
 }
 
 func (lt *logTuple) Float64() (float64, error) {
+	//If the caller is asking for the float value of a key
+	//and the key is blank, we return a 1. It is idiomatic
+	//for logs to contain data like: measure.hello. This is
+	//interpreted by l2met as: measure.hello=1. That feature
+	//is implemented here.
+	if len(lt.Val) == 0 {
+		lt.Val = []byte("1")
+	}
 	digits := make([]byte, 0)
 	for i := range lt.Val {
 		b := lt.Val[i]

@@ -1,5 +1,11 @@
 Each version of l2met corresponds to a git tag.
 
+## 1.2
+
+2013-05-06
+
+* improve logging for internal l2met metrics. now uses latest l2met convention
+
 ## 1.1
 
 2013-05-06
@@ -10,7 +16,7 @@ Each version of l2met corresponds to a git tag.
 
 2013-04-24
 
-* remove token based auth. (No longer depending onPostgreSQL)
+* remove token based auth. (No longer depending on PostgreSQL)
 
 ## 0.11
 

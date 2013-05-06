@@ -143,9 +143,9 @@ func (r *Receiver) Report() {
 	for _ = range time.Tick(time.Second * 2) {
 		na := atomic.LoadUint64(&r.numBuckets)
 		atomic.AddUint64(&r.numBuckets, -na)
-		utils.MeasureI("receiver.buckets", int64(na))
-		utils.MeasureI("receiver.inbox", int64(len(r.Inbox)))
-		utils.MeasureI("receiver.register", int64(len(r.Register.m)))
-		utils.MeasureI("receiver.outbox", int64(len(r.Outbox)))
+		utils.MeasureI("receiver.buckets", "buckets", int64(na))
+		utils.MeasureI("receiver.inbox", "requests", int64(len(r.Inbox)))
+		utils.MeasureI("receiver.register", "buckets", int64(len(r.Register.m)))
+		utils.MeasureI("receiver.outbox", "buckets", int64(len(r.Outbox)))
 	}
 }

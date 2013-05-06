@@ -1,5 +1,11 @@
 Each version of l2met corresponds to a git tag.
 
+## 1.1
+
+2013-05-06
+
+* fix bugs in base64 decoded authentication parsing
+
 ## 1.0
 
 2013-04-24

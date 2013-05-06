@@ -12,7 +12,7 @@ Convert a formatted log stream into metrics.
 ## Current Release
 
 * Tip: [v2.0beta](https://github.com/ryandotsmith/l2met/tree/v2.0beta)
-* Stable: [v0.11](https://github.com/ryandotsmith/l2met/tree/v0.11)
+* Stable: [v1.1](https://github.com/ryandotsmith/l2met/tree/v1.1)
 
 ## Synopsis
 
@@ -222,7 +222,7 @@ The easiest way to get l2met up and running is to deploy to Heroku. This guide a
 
 ```bash
 $ mkdir l2met; cd l2met
-$ curl https://s3-us-west-2.amazonaws.com/l2met/v1.0/linux/amd64/l2met.tar.gz | tar xvz
+$ curl https://s3-us-west-2.amazonaws.com/l2met/v1.1/linux/amd64/l2met.tar.gz | tar xvz
 $ git init
 $ heroku create your-l2met --buildpack http://github.com/ryandotsmith/null-buildpack.git
 $ git add .

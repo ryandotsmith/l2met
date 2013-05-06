@@ -58,7 +58,7 @@ func (s *RedisStore) Health() bool {
 	return true
 }
 
-func (s *RedisStore) Scan() (<-chan *bucket.Bucket, error) {
+func (s *RedisStore) Scan(current time.Time) (<-chan *bucket.Bucket, error) {
 	retBuckets := make(chan *bucket.Bucket)
 	partition, err := s.lockPartition()
 	if err != nil {
@@ -86,13 +86,17 @@ func (s *RedisStore) Scan() (<-chan *bucket.Bucket, error) {
 				fmt.Printf("at=%q error=%s\n", "bucket-store-parse-key", err)
 				continue
 			}
-			out <- &bucket.Bucket{Id: id}
+			if id.Time.Add(id.Resolution).After(current) {
+				out <- &bucket.Bucket{Id: id}
+			} else {
+				s.putback(partition, id)
+			}
 		}
 	}(retBuckets)
 	return retBuckets, nil
 }
 
-func (s *RedisStore) Putback(partition string, id *bucket.Id) error {
+func (s *RedisStore) putback(partition string, id *bucket.Id) error {
 	defer utils.MeasureT("bucket.putback", time.Now())
 	rc := s.redisPool.Get()
 	defer rc.Close()
@@ -151,22 +155,22 @@ func (s *RedisStore) bucketPartition(prefix string, b []byte) string {
 	return fmt.Sprintf("%s.%d", prefix, check%s.MaxPartitions())
 }
 
-func (s *RedisStore) lockPartition() (uint64, error) {
+func (s *RedisStore) lockPartition() (string, error) {
 	for {
 		for p := uint64(0); p < s.MaxPartitions(); p++ {
 			name := fmt.Sprintf("lock.%d", p)
 			//TODO(ryandotsmith): remove magic number.
 			locked, err := s.writeLock(name, 5)
 			if err != nil {
-				return 0, err
+				return "", err
 			}
 			if locked {
-				return p, nil
+				return name, nil
 			}
 		}
 		time.Sleep(time.Second * 5)
 	}
-	return 0, errors.New("LockPartition impossible broke the loop.")
+	return "", errors.New("LockPartition impossible broke the loop.")
 }
 
 func (s *RedisStore) writeLock(name string, ttl uint64) (bool, error) {
@@ -184,11 +188,9 @@ func (s *RedisStore) writeLock(name string, ttl uint64) (bool, error) {
 	return new > int64(old), nil
 }
 
-func (s *RedisStore) unlockPartition(p uint64) error {
+func (s *RedisStore) unlockPartition(p string) error {
 	rc := s.redisPool.Get()
 	defer rc.Close()
-
-	key := fmt.Sprintf("lock.%d", p)
-	_, err := rc.Do("DEL", key)
+	_, err := rc.Do("DEL", p)
 	return err
 }

@@ -38,8 +38,8 @@ func (r *BucketReader) Start(out chan *bucket.Bucket) {
 }
 
 func (r *BucketReader) scan() {
-	for _ = range time.Tick(r.Interval) {
-		buckets, err := r.Store.Scan()
+	for t := range time.Tick(r.Interval) {
+		buckets, err := r.Store.Scan(t)
 		if err != nil {
 			fmt.Printf("at=bucket.scan error=%s\n", err)
 			continue

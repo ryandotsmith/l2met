@@ -4,6 +4,7 @@ import (
 	"errors"
 	"l2met/bucket"
 	"sync"
+	"time"
 )
 
 type MemStore struct {
@@ -23,7 +24,7 @@ func (m *MemStore) MaxPartitions() uint64 {
 	return uint64(1)
 }
 
-func (m *MemStore) Scan() (<-chan *bucket.Bucket, error) {
+func (m *MemStore) Scan(current time.Time) (<-chan *bucket.Bucket, error) {
 	m.Lock()
 	//TODO(ryandotsmith): Can we eliminate the magical number?
 	buckets := make(chan *bucket.Bucket, 1000)
@@ -31,8 +32,10 @@ func (m *MemStore) Scan() (<-chan *bucket.Bucket, error) {
 		defer m.Unlock()
 		defer close(out)
 		for k, v := range m.m {
-			delete(m.m, k)
-			out <- v
+			if v.Id.Time.Add(v.Id.Resolution).After(current) {
+				delete(m.m, k)
+				out <- v
+			}
 		}
 	}(buckets)
 	return buckets, nil
@@ -46,10 +49,6 @@ func (m *MemStore) Get(b *bucket.Bucket) error {
 		return errors.New("Bucket not in MemStore.")
 	}
 	b = bucket
-	return nil
-}
-
-func (m *MemStore) Putback(partition string, id *bucket.Id) error {
 	return nil
 }
 

@@ -102,7 +102,7 @@ func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	recv.Receive(msg, opts)
 	time.Sleep(recv.FlushInterval * 2)
 
-	ch, err := st.Scan()
+	ch, err := st.Scan(time.Now())
 	if err != nil {
 		return nil, err
 	}

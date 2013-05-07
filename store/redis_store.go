@@ -58,7 +58,7 @@ func (s *RedisStore) Health() bool {
 	return true
 }
 
-func (s *RedisStore) Scan(current time.Time) (<-chan *bucket.Bucket, error) {
+func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	retBuckets := make(chan *bucket.Bucket)
 	partition, err := s.lockPartition()
 	if err != nil {
@@ -86,7 +86,8 @@ func (s *RedisStore) Scan(current time.Time) (<-chan *bucket.Bucket, error) {
 				fmt.Printf("at=%q error=%s\n", "bucket-store-parse-key", err)
 				continue
 			}
-			if id.Time.Add(id.Resolution).After(current) {
+			bucketReady := id.Time.Add(id.Resolution)
+			if !bucketReady.After(schedule) {
 				out <- &bucket.Bucket{Id: id}
 			} else {
 				s.putback(partition, id)

@@ -24,7 +24,7 @@ func (m *MemStore) MaxPartitions() uint64 {
 	return uint64(1)
 }
 
-func (m *MemStore) Scan(current time.Time) (<-chan *bucket.Bucket, error) {
+func (m *MemStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	m.Lock()
 	//TODO(ryandotsmith): Can we eliminate the magical number?
 	buckets := make(chan *bucket.Bucket, 1000)
@@ -32,7 +32,8 @@ func (m *MemStore) Scan(current time.Time) (<-chan *bucket.Bucket, error) {
 		defer m.Unlock()
 		defer close(out)
 		for k, v := range m.m {
-			if v.Id.Time.Add(v.Id.Resolution).After(current) {
+			bucketReady := v.Id.Time.Add(v.Id.Resolution)
+			if !bucketReady.After(schedule) {
 				delete(m.m, k)
 				out <- v
 			}
@@ -55,6 +56,10 @@ func (m *MemStore) Get(b *bucket.Bucket) error {
 func (m *MemStore) Put(b *bucket.Bucket) error {
 	m.Lock()
 	defer m.Unlock()
-	m.m[*b.Id] = b
+	if _, present := m.m[*b.Id]; !present {
+		m.m[*b.Id] = b
+	} else {
+		m.m[*b.Id].Add(b)
+	}
 	return nil
 }

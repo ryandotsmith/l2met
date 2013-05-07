@@ -11,14 +11,16 @@ import (
 type testOps map[string][]string
 
 func TestReceiver(t *testing.T) {
+	currentTime := time.Now()
+	opts := testOps{"resolution": []string{"1"}, "user": []string{"u"}, "password": []string{"p"}}
 	cases := []struct {
 		Opts testOps
 		LogLine []byte
 		Buckets []*bucket.Bucket
 	}{
 		{
-			testOps{"user": []string{"u"}, "password": []string{"p"}},
-			fmtHkLog("host=l2met.net connect=1ms service=4ms bytes=10"),
+			opts,
+			fmtLog(currentTime, "router", "host=l2met.net connect=1ms service=4ms bytes=10"),
 			[]*bucket.Bucket{
 				testBucket("router.connect", "l2met.net", "u", "p", time.Minute, []float64{1}),
 				testBucket("router.service", "l2met.net", "u", "p", time.Minute, []float64{4}),
@@ -26,23 +28,23 @@ func TestReceiver(t *testing.T) {
 			},
 		},
 		{
-			testOps{"user": []string{"u"}, "password": []string{"p"}},
-			fmtLog("measure.a"),
+			opts,
+			fmtLog(currentTime, "app", "measure.a"),
 			[]*bucket.Bucket{testBucket("a", "", "u", "p", time.Minute, []float64{1})},
 		},
 		{
-			testOps{"resolution": []string{"1"}, "user": []string{"u"}, "password": []string{"p"}},
-			fmtLog("measure.a"),
+			opts,
+			fmtLog(currentTime, "app", "measure.a"),
 			[]*bucket.Bucket{testBucket("a", "", "u", "p", time.Second, []float64{1})},
 		},
 		{
-			testOps{"user": []string{"u"}, "password": []string{"p"}},
-			fmtLog("measure.a=1"),
+			opts,
+			fmtLog(currentTime, "app", "measure.a=1"),
 			[]*bucket.Bucket{testBucket("a", "", "u", "p", time.Minute, []float64{1})},
 		},
 		{
-			testOps{"user": []string{"u"}, "password": []string{"p"}},
-			fmtLog("measure.a=1 measure.b=2"),
+			opts,
+			fmtLog(currentTime, "app", "measure.a=1 measure.b=2"),
 			[]*bucket.Bucket{
 				testBucket("a", "", "u", "p", time.Minute, []float64{1}),
 				testBucket("b", "", "u", "p", time.Minute, []float64{2}),
@@ -65,7 +67,7 @@ func TestReceiver(t *testing.T) {
 			}
 		}
 		if match != len(expected) {
-			t.FailNow()
+			t.Fatalf("Expected buckets to match.")
 		}
 	}
 }
@@ -81,16 +83,18 @@ func testBucket(name, source, user, pass string, res time.Duration, vals []float
 	return &bucket.Bucket{Id: id, Vals: vals}
 }
 
-func fmtHkLog(s string) []byte {
-	base := "<190>1 2013-03-27T20:02:24+00:00 hostname token router - - "
-	line := base + s
-	return []byte(fmt.Sprintf("%d %s", len(line), line))
-}
-
-func fmtLog(s string) []byte {
-	base := "<190>1 2013-03-27T20:02:24+00:00 hostname token shuttle - - "
-	line := base + s
-	return []byte(fmt.Sprintf("%d %s", len(line), line))
+func fmtLog(t time.Time, procid, msg string) []byte {
+	prival := 190 //local7/info
+	version := 1
+	timestamp := t.Format("2006-01-02T15:04:05+00:00")
+	hostname := "hostname"
+	appname := "l2met"
+	msgid := "- -"
+	layout := "<%d>%d %s %s %s %s %s %s"
+	packet := fmt.Sprintf(layout, prival, version, timestamp, hostname, appname, procid,
+		msgid, msg)
+	result := fmt.Sprintf("%d %s", len(packet), packet)
+	return []byte(result)
 }
 
 func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
@@ -100,7 +104,7 @@ func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	defer recv.Stop()
 
 	recv.Receive(msg, opts)
-	time.Sleep(recv.FlushInterval * 2)
+	time.Sleep(time.Second)
 
 	ch, err := st.Scan(time.Now())
 	if err != nil {
@@ -115,15 +119,15 @@ func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 
 func bucketsEqual(actual, expected *bucket.Bucket, t *testing.T) bool {
 	if actual.Id.Name != expected.Id.Name {
-		t.Log("actual-name=%s expected-name=%s\n", actual.Id.Name, expected.Id.Name)
+		t.Logf("actual-name=%s expected-name=%s\n", actual.Id.Name, expected.Id.Name)
 		return false
 	}
 	if actual.Id.Source != expected.Id.Source {
-		t.Log("actual-source=%s expected-source=%s\n", actual.Id.Source, expected.Id.Source)
+		t.Logf("actual-source=%s expected-source=%s\n", actual.Id.Source, expected.Id.Source)
 		return false
 	}
 	if actual.Sum() != expected.Sum() {
-		t.Log("actual-sum=%s expected-sum=%s\n", actual.Sum(), expected.Sum())
+		t.Logf("actual-sum=%f expected-sum=%f\n", actual.Sum(), expected.Sum())
 		return false
 	}
 	return true

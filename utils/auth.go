@@ -21,7 +21,6 @@ func init() {
 	}
 }
 
-
 func parseAuthHeader(r *http.Request) (string, error) {
 	header, ok := r.Header["Authorization"]
 	if !ok {
@@ -30,7 +29,7 @@ func parseAuthHeader(r *http.Request) (string, error) {
 	return header[0], nil
 }
 
-func parseAuthValue(header string) (string, string ,error) {
+func parseAuthValue(header string) (string, string, error) {
 	parts := strings.SplitN(header, " ", 2)
 	if len(parts) != 2 {
 		return "", "", errors.New("Authorization header malformed.")

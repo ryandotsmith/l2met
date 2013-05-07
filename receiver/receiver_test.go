@@ -1,9 +1,9 @@
 package receiver
 
 import (
+	"fmt"
 	"l2met/bucket"
 	"l2met/store"
-	"fmt"
 	"testing"
 	"time"
 )
@@ -14,7 +14,7 @@ func TestReceiver(t *testing.T) {
 	currentTime := time.Now()
 	opts := testOps{"resolution": []string{"1"}, "user": []string{"u"}, "password": []string{"p"}}
 	cases := []struct {
-		Opts testOps
+		Opts    testOps
 		LogLine []byte
 		Buckets []*bucket.Bucket
 	}{
@@ -71,7 +71,6 @@ func TestReceiver(t *testing.T) {
 		}
 	}
 }
-
 
 func testBucket(name, source, user, pass string, res time.Duration, vals []float64) *bucket.Bucket {
 	id := new(bucket.Id)

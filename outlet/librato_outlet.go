@@ -41,10 +41,10 @@ type Payload struct {
 	Name   string             `json:"name"`
 	Time   int64              `json:"measure_time"`
 	Val    string             `json:"value,omitempty"`
-	Min    string             `json:"min,omitempty"`
-	Max    string             `json:"max,omitempty"`
-	Count  string             `json:"count,omitempty"`
-	Sum    string             `json:"sum,omitempty"`
+	Count  int                `json:"count,omitempty"`
+	Sum    float64            `json:"sum,omitempty"`
+	Min    float64            `json:"min,omitempty"`
+	Max    float64            `json:"max,omitempty"`
 	Source string             `json:"source,omitempty"`
 	User   string             `json:",omitempty"`
 	Pass   string             `json:",omitempty"`
@@ -116,11 +116,11 @@ func (l *LibratoOutlet) convert() {
 			fmt.Printf("at=bucket-no-vals bucket=%s\n", bucket.Id.Name)
 			continue
 		}
-		//TODO(ryandotsmith): This is getting out of control.
-		//We need a succinct way to building payloads.
-		countAttr := &LibratoAttributes{Min: 0, Units: "count"}
 		attrs := &LibratoAttributes{Min: 0, Units: bucket.Id.Units}
-		//Submit a complex measurement.
+		//This is ane experimental
+		//use of librato's complex measurement API. We could potentially
+		//not submit all of the metrics individually and instad use this build
+		//api endpoint.
 		l.Conversions <- &Payload{
 			Attr:   attrs,
 			User:   bucket.Id.User,
@@ -128,20 +128,18 @@ func (l *LibratoOutlet) convert() {
 			Time:   ft(bucket.Id.Time),
 			Source: bucket.Id.Source,
 			Name:   bucket.Id.Name,
-			Min:    ff(bucket.Min()),
-			Max:    ff(bucket.Max()),
-			Sum:    ff(bucket.Sum()),
-			Count:  strconv.Itoa(bucket.Count()),
+			Min:    bucket.Min(),
+			Max:    bucket.Max(),
+			Sum:    bucket.Sum(),
+			Count:  bucket.Count(),
 		}
+		//TODO(ryandotsmith): Some day Librato will support these
+		//metrics in their complex measurement api. We will need to
+		//move these up ^^ into the complex payload.
 		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".last", Val: ff(bucket.Last())}
-		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".min", Val: ff(bucket.Min())}
-		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".max", Val: ff(bucket.Max())}
-		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".mean", Val: ff(bucket.Mean())}
 		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".median", Val: ff(bucket.Median())}
 		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".perc95", Val: ff(bucket.P95())}
 		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".perc99", Val: ff(bucket.P99())}
-		l.Conversions <- &Payload{Attr: attrs, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".sum", Val: ff(bucket.Sum())}
-		l.Conversions <- &Payload{Attr: countAttr, User: bucket.Id.User, Pass: bucket.Id.Pass, Time: ft(bucket.Id.Time), Source: bucket.Id.Source, Name: bucket.Id.Name + ".count", Val: fi(bucket.Count())}
 		fmt.Printf("measure.bucket.conversion.delay=%d\n", bucket.Id.Delay(time.Now()))
 	}
 }

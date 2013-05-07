@@ -3,8 +3,8 @@ package bucket
 import (
 	"bytes"
 	"errors"
-	"strconv"
 	"github.com/kr/logfmt"
+	"strconv"
 )
 
 type logTuple struct {

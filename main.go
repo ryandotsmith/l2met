@@ -111,7 +111,7 @@ func main() {
 			http.Error(w, "Invalid Method. Must be POST.", 400)
 			return
 		}
-		user, pass, err := auth.Parse(r)
+		user, pass, err := auth.ParseRaw(r.Header.Get("Authorization"))
 		if err != nil {
 			fmt.Printf("measure.failed-auth erro=%s user=%s pass=%s user-agent=%s token=%s client=%s\n",
 				err, user, pass, r.Header.Get("User-Agent"), r.Header.Get("Logplex-Drain-Token"), r.Header.Get("X-Forwarded-For"))

@@ -38,7 +38,7 @@ func parseAuthHeader(r *http.Request) (string, error) {
 	return header[0], nil
 }
 
-func parseAuthValue(header string) (string, string, error) {
+func ParseRaw(header string) (string, string, error) {
 	parts := strings.SplitN(header, " ", 2)
 	if len(parts) != 2 {
 		return "", "", errors.New("Authorization header malformed.")
@@ -55,7 +55,7 @@ func parseAuthValue(header string) (string, string, error) {
 		return "", "", err
 	}
 
-	userPass := strings.SplitN(string(decodedPayload), ":", 1)
+	userPass := strings.SplitN(string(decodedPayload), ":", 2)
 	switch len(userPass) {
 	case 1:
 		return userPass[0], "", nil
@@ -72,7 +72,7 @@ func Parse(r *http.Request) (string, string, error) {
 		return "", "", err
 	}
 
-	user, _, err := parseAuthValue(header)
+	user, _, err := ParseRaw(header)
 	if err != nil {
 		return "", "", err
 	}
@@ -94,10 +94,9 @@ func Parse(r *http.Request) (string, string, error) {
 	//ATM we assume the first part (user field) contains a base64 encoded
 	//representation of the outlet credentials.
 	if len(user) > 0 {
-		trimmedUser := strings.Replace(user, ":", "", -1)
-		decodedUser, err := base64.StdEncoding.DecodeString(trimmedUser)
+		decodedUser, err := base64.StdEncoding.DecodeString(user)
 		if err != nil {
-			return trimmedUser, "", err
+			return user, "", err
 		}
 		outletCreds := strings.Split(string(decodedUser), ":")
 		//If the : is absent in parts[0], outletCreds[0] will contain the entire string in parts[0].

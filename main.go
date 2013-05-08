@@ -115,7 +115,7 @@ func main() {
 		if err != nil {
 			fmt.Printf("measure.failed-auth erro=%s user=%s pass=%s user-agent=%s token=%s client=%s\n",
 				err, user, pass, r.Header.Get("User-Agent"), r.Header.Get("Logplex-Drain-Token"), r.Header.Get("X-Forwarded-For"))
-			http.Error(w, "Invalid Request", 400)
+			http.Error(w, "Unable to parse auth headers.", 400)
 			return
 		}
 		matched := false
@@ -126,7 +126,7 @@ func main() {
 			}
 		}
 		if !matched {
-			http.Error(w, "Invalid Request", 400)
+			http.Error(w, "Authentication failed.", 401)
 			return
 		}
 		b, err := ioutil.ReadAll(r.Body)
@@ -137,7 +137,7 @@ func main() {
 		}
 		signed, err := auth.Sign(b)
 		if err != nil {
-			http.Error(w, "Invalid Request", 500)
+			http.Error(w, "Unable to sign body.", 500)
 			return
 		}
 		fmt.Fprint(w, string(signed))

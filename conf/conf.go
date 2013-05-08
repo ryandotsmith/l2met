@@ -40,18 +40,18 @@ var (
 
 func init() {
 	var err error
+	UsingRedis = false
 
 	rurl := os.Getenv("REDIS_URL")
 	if len(rurl) == 0 {
-		UsingRedis = false
 		return
 	}
 
 	RedisHost, RedisPass, err = utils.ParseRedisUrl(rurl)
 	if err != nil {
-		UsingRedis = false
 		return
 	}
+	UsingRedis = true
 
 	mr := Concurrency + 10
 	flag.IntVar(&MaxRedisConns, "max-redis-conns", mr, "Max number of redis connections to pool.")

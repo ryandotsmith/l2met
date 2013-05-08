@@ -226,7 +226,7 @@ $ ./setup my-l2met e@foo.com abc123
 Drain URL: https://long-token@my-l2met.herokuapp.com/logs
 ```
 
-This command will create Heroku app named `my-l2met` and return a drain URL with encrypted Librato credentials for a Librato account with email `e@foo.com` and an API token of `abc123`. After you have created `my-l2met`, you can now add the drain URL to a Heroku app. A copy of the log stream will be delivered to `my-l2met` and metrics will be sent to the Librato account which your provided in the setup.
+This command will create Heroku app named `my-l2met` and return a drain URL with encrypted Librato credentials for a Librato account with email `e@foo.com` and an API token of `abc123`. After you have created `my-l2met`, you can add the drain URL to a Heroku app. A copy of the log stream will be delivered to `my-l2met` and metrics will be sent to the Librato account which your provided in the setup.
 
 ```bash
 $ heroku drains:add https://long-token@my-l2met.herokuapp.com/logs -a myapp

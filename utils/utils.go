@@ -1,68 +1,20 @@
 package utils
 
 import (
+	"l2met/conf"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
-	"os"
-	"strconv"
 	"time"
 )
 
-var (
-	appName string
-)
-
-func init() {
-	appName = os.Getenv("APP_NAME")
-	if len(appName) == 0 {
-		appName = "l2met"
-	}
-}
-
-func EnvUint64(name string, defaultVal uint64) uint64 {
-	tmp := os.Getenv(name)
-	if len(tmp) != 0 {
-		n, err := strconv.ParseUint(tmp, 10, 64)
-		if err == nil {
-			return n
-		}
-	}
-	return defaultVal
-}
-
-func EnvString(name string, defaultVal string) string {
-	tmp := os.Getenv(name)
-	if len(tmp) != 0 {
-		return tmp
-	}
-	return defaultVal
-}
-
-func EnvInt(name string, defaultVal int) int {
-	tmp := os.Getenv(name)
-	if len(tmp) != 0 {
-		n, err := strconv.Atoi(tmp)
-		if err == nil {
-			return n
-		}
-	}
-	return defaultVal
-}
-
-func EnvDuration(name string, defaultVal int) time.Duration {
-	return time.Duration(EnvInt(name, defaultVal))
-}
-
 func MeasureI(name, units string, val int64) {
-	m := appName + "." + name
+	m := conf.AppName + "." + name
 	fmt.Printf("measure.%s=%d\n", m, val)
 }
 
 func MeasureT(name string, t time.Time) {
-	m := appName + "." + name
+	m := conf.AppName + "." + name
 	fmt.Printf("measure.%s=%dms\n", m, time.Since(t)/time.Millisecond)
 }
 
@@ -85,16 +37,4 @@ func WriteJson(w http.ResponseWriter, status int, data interface{}) {
 
 func RoundTime(t time.Time, d time.Duration) time.Time {
 	return time.Unix(0, int64((time.Duration(t.UnixNano())/d)*d))
-}
-
-func ParseRedisUrl(s string) (string, string, error) {
-	u, err := url.Parse(s)
-	if err != nil {
-		return "", "", errors.New("utils: Missing REDIS_URL")
-	}
-	var password string
-	if u.User != nil {
-		password, _ = u.User.Password()
-	}
-	return u.Host, password, nil
 }

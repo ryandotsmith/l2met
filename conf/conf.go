@@ -11,12 +11,23 @@
 package conf
 
 import (
+	"errors"
+	"strconv"
+	"net/url"
 	"strings"
 	"flag"
-	"l2met/utils"
 	"os"
 	"time"
 )
+
+var AppName string
+
+func init() {
+	AppName = os.Getenv("APP_NAME")
+	if len(AppName) == 0 {
+		AppName = "l2met"
+	}
+}
 
 var Outlet string
 
@@ -31,10 +42,10 @@ var (
 )
 
 func init() {
-	b := utils.EnvInt("REQUEST_BUFFER", 1000)
+	b := envInt("REQUEST_BUFFER", 1000)
 	flag.IntVar(&BufferSize, "buffer", b, "Number of items to buffer prior to flush.")
 
-	c := utils.EnvInt("CONCURRENCY", 100)
+	c := envInt("CONCURRENCY", 100)
 	flag.IntVar(&Concurrency, "concurrency", c, "Number local routines to start.")
 
 	t := time.Millisecond * 200
@@ -58,7 +69,7 @@ func init() {
 		return
 	}
 
-	RedisHost, RedisPass, err = utils.ParseRedisUrl(rurl)
+	RedisHost, RedisPass, err = parseRedisUrl(rurl)
 	if err != nil {
 		return
 	}
@@ -96,7 +107,7 @@ var (
 func init() {
 	flag.BoolVar(&Verbose, "v", false, "Enable verbose stastics.")
 
-	p := utils.EnvInt("PORT", 8080)
+	p := envInt("PORT", 8080)
 	flag.IntVar(&Port, "port", p, "HTTP server will bind to this port.")
 }
 
@@ -109,4 +120,29 @@ func init() {
 //Finally.
 func init() {
 	flag.Parse()
+}
+
+//Helper Functions
+
+func parseRedisUrl(s string) (string, string, error) {
+	u, err := url.Parse(s)
+	if err != nil {
+		return "", "", errors.New("Missing REDIS_URL")
+	}
+	var password string
+	if u.User != nil {
+		password, _ = u.User.Password()
+	}
+	return u.Host, password, nil
+}
+
+func envInt(name string, defaultVal int) int {
+	tmp := os.Getenv(name)
+	if len(tmp) != 0 {
+		n, err := strconv.Atoi(tmp)
+		if err == nil {
+			return n
+		}
+	}
+	return defaultVal
 }

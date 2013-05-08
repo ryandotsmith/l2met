@@ -1,11 +1,11 @@
-package utils
+package auth
 
 import (
+	"l2met/conf"
 	"encoding/base64"
 	"errors"
 	"github.com/kr/fernet"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -16,8 +16,9 @@ var (
 )
 
 func init() {
-	if s := strings.Split(os.Getenv("SECRETS"), ":"); len(s[0]) > 0 {
-		keys = fernet.MustDecodeKeys(s...)
+	secrets := conf.Secrets
+	if len(secrets) > 0 {
+		keys = fernet.MustDecodeKeys(secrets...)
 	}
 }
 
@@ -66,7 +67,7 @@ func parseAuthValue(header string) (string, string, error) {
 	return "", "", errors.New("Unable to parse username or password.")
 }
 
-func ParseAuth(r *http.Request) (string, string, error) {
+func Parse(r *http.Request) (string, string, error) {
 	header, err := parseAuthHeader(r)
 	if err != nil {
 		return "", "", err

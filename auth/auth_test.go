@@ -1,4 +1,4 @@
-package utils
+package auth
 
 import (
 	"bytes"
@@ -8,15 +8,15 @@ import (
 	"testing"
 )
 
-func TestParseAuthNoPassword(t *testing.T) {
+func TestParseNoPassword(t *testing.T) {
 	var b bytes.Buffer
 	r, err := http.NewRequest("GET", "http://does-not-matter.com", &b)
 	if err != nil {
 		t.Error(err)
 	}
-	_, _, err = ParseAuth(r)
+	_, _, err = Parse(r)
 	if err == nil {
-		t.Errorf("Expected ParseAuth to return error when with no creds.")
+		t.Errorf("Expected Parse to return error when with no creds.")
 	}
 }
 
@@ -29,7 +29,7 @@ func TestParseBase64EncodedAuth(t *testing.T) {
 	credentials := []byte("ryan@heroku.com:abc123")
 	encodedCredentials := base64.StdEncoding.EncodeToString(credentials)
 	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(encodedCredentials)))
-	expectedUser, expectedPass, err := ParseAuth(r)
+	expectedUser, expectedPass, err := Parse(r)
 
 	if err != nil {
 		t.Error(err)
@@ -61,7 +61,7 @@ func TestParseEncryptedAuth(t *testing.T) {
 		t.Error(err)
 	}
 	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString(tok))
-	expectedUser, expectedPass, err := ParseAuth(r)
+	expectedUser, expectedPass, err := Parse(r)
 
 	if err != nil {
 		t.Error(err)

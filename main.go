@@ -8,6 +8,7 @@ import (
 	"l2met/receiver"
 	"l2met/store"
 	"l2met/utils"
+	"l2met/auth"
 	"log"
 	"net/http"
 	"runtime"
@@ -72,7 +73,7 @@ func main() {
 				http.Error(w, "Invalid Request", 400)
 				return
 			}
-			user, pass, err := utils.ParseAuth(r)
+			user, pass, err := auth.Parse(r)
 			if err != nil {
 				fmt.Printf("measure.failed-auth erro=%s user=%s pass=%s user-agent=%s token=%s client=%s\n",
 					err, user, pass, r.Header.Get("User-Agent"), r.Header.Get("Logplex-Drain-Token"), r.Header.Get("X-Forwarded-For"))
@@ -110,13 +111,31 @@ func main() {
 			http.Error(w, "Invalid Method. Must be POST.", 400)
 			return
 		}
+		user, pass, err := auth.Parse(r)
+		if err != nil {
+			fmt.Printf("measure.failed-auth erro=%s user=%s pass=%s user-agent=%s token=%s client=%s\n",
+				err, user, pass, r.Header.Get("User-Agent"), r.Header.Get("Logplex-Drain-Token"), r.Header.Get("X-Forwarded-For"))
+			http.Error(w, "Invalid Request", 400)
+			return
+		}
+		matched := false
+		for i := range conf.Secrets {
+			if user == conf.Secrets[i] {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			http.Error(w, "Invalid Request", 400)
+			return
+		}
 		b, err := ioutil.ReadAll(r.Body)
 		r.Body.Close()
 		if err != nil {
 			http.Error(w, "Unable to read body of POST.", 400)
 			return
 		}
-		signed, err := utils.Sign(b)
+		signed, err := auth.Sign(b)
 		if err != nil {
 			http.Error(w, "Invalid Request", 500)
 			return

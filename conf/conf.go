@@ -1,6 +1,17 @@
+//The conf package is responsible for reading in data from the environment.
+//This should be the only place in the l2met source that calls os.Getenv.
+//Flag handling is also limited to this package.
+//The conf package has a pattern:
+//
+// Variable Declaration
+// Variable Initialization
+//
+//If you are adding new configuration, please follow the pattern and append.
+
 package conf
 
 import (
+	"strings"
 	"flag"
 	"l2met/utils"
 	"os"
@@ -87,6 +98,12 @@ func init() {
 
 	p := utils.EnvInt("PORT", 8080)
 	flag.IntVar(&Port, "port", p, "HTTP server will bind to this port.")
+}
+
+var Secrets []string
+
+func init() {
+	Secrets = strings.Split(os.Getenv("SECRETS"), ":")
 }
 
 //Finally.

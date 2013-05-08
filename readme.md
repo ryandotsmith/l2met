@@ -216,7 +216,6 @@ $ curl http://your-token@l2met.net/metrics?name=user.signup&resolution=60&limit=
 
 ## Getting Started
 
-<<<<<<< HEAD
 The easiest way to get l2met up and running is to deploy to Heroku. This guide assumes you have already created a Heroku & Librato account.
 
 ```bash

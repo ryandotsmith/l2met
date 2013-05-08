@@ -1,5 +1,14 @@
 Each version of l2met corresponds to a git tag.
 
+## 2.0beta
+
+2013-05-07
+
+* Reduce project to a single binary
+* Drop support for measure= val= format
+* Support Librato's complex measurements
+* bugfix:
+
 ## 1.2
 
 2013-05-06

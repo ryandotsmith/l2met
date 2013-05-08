@@ -39,17 +39,7 @@ A simple example:
 $stdout.puts("measure.db.latency=20")
 ```
 
-Metrics Produced:
-
-* db.latency.min
-* db.latency.median
-* db.latency.perc95
-* db.latency.perc99
-* db.latency.max
-* db.latency.mean
-* db.latency.last
-* db.latency.count
-* db.latency.sum
+Metrics Produced: `db.latency.{min, median, perc95, perc99, max, mean, last, count, sum}`
 
 An example using [multi-metrics](#multi-metrics) and a source key:
 
@@ -59,24 +49,8 @@ $stdout.puts("source=prod measure.db.latency=20 measure.view.latency=10")
 
 Metrics Produced:
 
-* prod.db.latency.min
-* prod.db.latency.median
-* prod.db.latency.perc95
-* prod.db.latency.perc99
-* prod.db.latency.max
-* prod.db.latency.mean
-* prod.db.latency.last
-* prod.db.latency.count
-* prod.db.latency.sum
-* prod.view.latency.min
-* prod.view.latency.median
-* prod.view.latency.perc95
-* prod.view.latency.perc99
-* prod.view.latency.max
-* prod.view.latency.mean
-* prod.view.latency.last
-* prod.view.latency.count
-* prod.view.latency.sum
+* `prod.db.latency.{min, median, perc95, perc99, max, mean, last, count, sum}`
+* `prod.view.latency.{min, median, perc95, perc99, max, mean, last, count, sum}`
 
 ## Features
 
@@ -96,7 +70,7 @@ We want to be able to specify multiple measurements on a single line so as not t
 Example:
 
 ```
-echo 'measure=hello val=10 measure.world=10' | log-shuttle
+echo 'measure.hello=10 measure.world=10' | log-shuttle
 ```
 
 This will result in 2 buckets:

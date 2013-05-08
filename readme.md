@@ -224,7 +224,7 @@ Before working on a new feature, send your proposal to the [mailing list](https:
 
 ```bash
 $ go version
-go version devel +d58997478ec6 Mon Apr 08 00:09:35 2013 -0700 darwin/amd64
+go version go1.1rc2 darwin/amd64
 ```
 
 ```bash

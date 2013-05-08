@@ -16,9 +16,8 @@ var (
 )
 
 func init() {
-	secrets := conf.Secrets
-	if len(secrets) > 0 {
-		keys = fernet.MustDecodeKeys(secrets...)
+	if len(conf.Secrets) > 0 {
+		keys = fernet.MustDecodeKeys(conf.Secrets...)
 	}
 }
 

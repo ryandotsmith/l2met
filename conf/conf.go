@@ -114,7 +114,10 @@ func init() {
 var Secrets []string
 
 func init() {
-	Secrets = strings.Split(os.Getenv("SECRETS"), ":")
+	s := os.Getenv("SECRETS")
+	if len(s) > 0 {
+		Secrets = strings.Split(s, ":")
+	}
 }
 
 //Finally.

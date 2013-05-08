@@ -39,7 +39,9 @@ A simple example:
 $stdout.puts("measure.db.latency=20")
 ```
 
-Metrics Produced: `db.latency.{min, median, perc95, perc99, max, mean, last, count, sum}`
+Metrics Produced:
+
+* `db.latency.{min, median, perc95, perc99, max, mean, last, count, sum}`
 
 An example using [multi-metrics](#multi-metrics) and a source key:
 

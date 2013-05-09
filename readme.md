@@ -63,7 +63,6 @@ Metrics Produced:
 * [Bucket attrs](#bucket-attrs)
 * [HTTP Outlet](#http-outlet)
 * Librato Outlet
-* Graphite Outlet
 
 ### Multi-metrics
 

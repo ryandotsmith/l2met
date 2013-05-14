@@ -103,5 +103,5 @@ else
 	echo "L2met health check failed. Run: heroku logs -t"
 fi
 
-token=$(curl -s "https://$1.herokuapp.com/sign" --data "$2:$3")
+token=$(curl -s "https://$1.herokuapp.com/sign" --data "$2:$3" -u "$secret:")
 echo "Drain URL: https://$token@$1.herokuapp.com/logs"

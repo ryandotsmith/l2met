@@ -26,8 +26,14 @@ func (lt *logTuple) Float64() (float64, error) {
 		lt.Val = []byte("1")
 	}
 	digits := make([]byte, 0)
+	foundDecimal := false
 	for i := range lt.Val {
 		b := lt.Val[i]
+		if b == '.' && !foundDecimal {
+			foundDecimal = true
+			digits = append(digits, b)
+			continue
+		}
 		if b < '0' || b > '9' {
 			break
 		}

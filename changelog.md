@@ -6,6 +6,7 @@ Each version of l2met corresponds to a git tag.
 
 * Reduce project to a single binary
 * Drop support for measure= val= format
+* Only support encrypted auth
 * Support Librato's complex measurements
 * bugfix:
 

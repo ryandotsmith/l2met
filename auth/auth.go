@@ -90,24 +90,5 @@ func Parse(r *http.Request) (string, string, error) {
 			return parts[0], parts[1], nil
 		}
 	}
-	//If the user is not == "l2met" then dbless-auth is requested.
-	//ATM we assume the first part (user field) contains a base64 encoded
-	//representation of the outlet credentials.
-	if len(user) > 0 {
-		decodedUser, err := base64.StdEncoding.DecodeString(user)
-		if err != nil {
-			return user, "", err
-		}
-		outletCreds := strings.Split(string(decodedUser), ":")
-		//If the : is absent in parts[0], outletCreds[0] will contain the entire string in parts[0].
-		u := outletCreds[0]
-		//It is not required for the outletCreds to contain a pass.
-		//The empty string that is returned will be handled by the outlet.
-		var p string
-		if len(outletCreds) > 1 {
-			p = outletCreds[1]
-		}
-		return u, p, nil
-	}
 	return "", "", errors.New("End of Authe chain reached.")
 }

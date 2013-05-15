@@ -59,7 +59,7 @@ func parseMeasurements(out chan *Bucket, opts Options, header *lpx.Header, tups 
 }
 
 func parseHkRouter(out chan *Bucket, opts Options, header *lpx.Header, tups tuples) error {
-	if string(header.Name) != routerPrefix {
+	if string(header.Procid) != routerPrefix {
 		return nil
 	}
 	for i := range tups {
@@ -78,6 +78,8 @@ func parseHkRouter(out chan *Bucket, opts Options, header *lpx.Header, tups tupl
 			id.Name = buildPrefix(opts, "router.connect")
 		case "service":
 			id.Name = buildPrefix(opts, "router.service")
+		default:
+			continue
 		}
 		val, err := tups[i].Float64()
 		if err != nil {

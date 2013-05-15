@@ -87,13 +87,13 @@ func testBucket(name, source, user, pass string, res time.Duration, vals []float
 	return &bucket.Bucket{Id: id, Vals: vals}
 }
 
-func fmtLog(t time.Time, appname, msg string) []byte {
+func fmtLog(t time.Time, procid, msg string) []byte {
 	prival := 190 //local7/info
 	version := 1
 	timestamp := t.Format("2006-01-02T15:04:05+00:00")
 	hostname := "hostname"
+	appname := "app"
 	msgid := "-"
-	procid := "-"
 	layout := "<%d>%d %s %s %s %s %s %s"
 	packet := fmt.Sprintf(layout,
 		prival, version, timestamp, hostname, appname, procid, msgid, msg)

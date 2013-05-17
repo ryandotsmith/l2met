@@ -96,18 +96,22 @@ func (r *Receiver) Accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		for bucket := range bucket.NewBuckets(rdr, lreq.Opts) {
-			r.numBuckets += 1
-			r.Register.Lock()
-			k := *bucket.Id
-			_, present := r.Register.m[k]
-			if !present {
-				r.Register.m[k] = bucket
-			} else {
-				r.Register.m[k].Add(bucket)
-			}
-			r.Register.Unlock()
+			r.addRegister(bucket)
 		}
 	}
+}
+
+func (r *Receiver) addRegister(b *bucket.Bucket) {
+	r.Register.Lock()
+	defer r.Register.Unlock()
+	k := *b.Id
+	_, present := r.Register.m[k]
+	if !present {
+		r.Register.m[k] = b
+	} else {
+		r.Register.m[k].Add(b)
+	}
+	r.numBuckets += 1
 }
 
 func (r *Receiver) Transfer() {

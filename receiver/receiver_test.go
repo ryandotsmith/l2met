@@ -58,21 +58,16 @@ func TestReceiver(t *testing.T) {
 	}
 
 	for i := range cases {
-		match := 0
 		actual, err := receiveInput(cases[i].Opts, cases[i].LogLine)
 		if err != nil {
 			t.Errorf("error=%s\n", err)
 		}
 		expected := cases[i].Buckets
-		for j := range expected {
-			for k := range actual {
-				if bucketsEqual(actual[k], expected[j], t) {
-					match++
-				}
+		for j := range actual {
+			if !bucketsEqual(actual[j], expected[j]) {
+				t.Errorf("\n actual:\t %s \n expected:\t %s",
+					actual[j].String(), expected[j].String())
 			}
-		}
-		if match != len(expected) {
-			t.Fatalf("Expected buckets to match.")
 		}
 	}
 }
@@ -121,17 +116,14 @@ func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	return buckets, nil
 }
 
-func bucketsEqual(actual, expected *bucket.Bucket, t *testing.T) bool {
+func bucketsEqual(actual, expected *bucket.Bucket) bool {
 	if actual.Id.Name != expected.Id.Name {
-		t.Logf("actual-name=%s expected-name=%s\n", actual.Id.Name, expected.Id.Name)
 		return false
 	}
 	if actual.Id.Source != expected.Id.Source {
-		t.Logf("actual-source=%s expected-source=%s\n", actual.Id.Source, expected.Id.Source)
 		return false
 	}
 	if actual.Sum() != expected.Sum() {
-		t.Logf("actual-sum=%f expected-sum=%f\n", actual.Sum(), expected.Sum())
 		return false
 	}
 	return true

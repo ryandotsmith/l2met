@@ -1,6 +1,7 @@
 package bucket
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"sync"
@@ -26,6 +27,11 @@ func (b *Bucket) Add(otherM *Bucket) {
 	for _, v := range otherM.Vals {
 		b.Vals = append(b.Vals, v)
 	}
+}
+
+func (b *Bucket) String() string {
+	return fmt.Sprintf("name=%s source=%s vals=%v",
+		b.Id.Name, b.Id.Source, b.Vals)
 }
 
 /*

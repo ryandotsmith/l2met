@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"l2met/conf"
 	"encoding/json"
 	"fmt"
+	"l2met/conf"
 	"net/http"
 	"time"
 )

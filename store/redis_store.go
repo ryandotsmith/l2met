@@ -13,6 +13,7 @@ import (
 )
 
 var lockPrefix, partitionPrefix string
+
 func init() {
 	lockPrefix = "lock"
 	partitionPrefix = "partition.outlet"
@@ -210,6 +211,6 @@ func (s *RedisStore) writeLock(name string, ttl uint64) (bool, error) {
 func (s *RedisStore) unlockPartition(p uint64) error {
 	rc := s.redisPool.Get()
 	defer rc.Close()
-	_, err := rc.Do("DEL", lockPrefix + "." + strconv.Itoa(int(p)))
+	_, err := rc.Do("DEL", lockPrefix+"."+strconv.Itoa(int(p)))
 	return err
 }

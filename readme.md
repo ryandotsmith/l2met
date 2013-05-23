@@ -7,6 +7,7 @@ Convert a formatted log stream into metrics.
 * [Features](#features)
 * [Log Conventions](#log-conventions)
 * [Getting Started](#getting-started)
+* [Operations](#operations)
 * [Hacking on l2met](#hacking-on-l2met)
 
 ## Current Release
@@ -215,6 +216,20 @@ $ curl "https://long-token@my-l2met.herokuapp.com/logs" --data "94 <190>1 2013-0
 
 Verify the command worked by viewing the [newly created metrics](https://metrics.librato.com/metrics?search=hello).
 
+## Operations
+There are several knobs and levers to use in order to optimize l2met operations.
+
+* [Internal Metrics](#internal-metrics)
+
+### Internal Metrics
+The receiver keeps track of the time spent processing incoming logs. This data is sent through the normal flow for metrics. To enable, ensure the following config var is set:
+
+```bash
+$ export OUTLET_USER="user@domain.com" OUTLET_PASS="abc123"
+```
+
+By setting these config vars, l2met will be able to outlet the internal metrics to your librato account.
+
 ## Hacking on l2met
 
 Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
@@ -229,6 +244,7 @@ go version go1.1rc2 darwin/amd64
 ```bash
 $ git clone git://github.com/ryandotsmith/l2met.git
 $ cd l2met
+$ export OUTLET_USER="na" OUTLET_PASS="na" 
 $ export SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
 $ go test ./...
 ```

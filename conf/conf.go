@@ -12,11 +12,11 @@ package conf
 
 import (
 	"errors"
-	"strconv"
-	"net/url"
-	"strings"
 	"flag"
+	"net/url"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -117,6 +117,17 @@ func init() {
 	s := os.Getenv("SECRETS")
 	if len(s) > 0 {
 		Secrets = strings.Split(s, ":")
+	}
+}
+
+var OutletUser, OutletPass string
+var OutletMeasurements bool
+
+func init() {
+	OutletUser = os.Getenv("OUTLET_USER")
+	OutletPass = os.Getenv("OUTLET_PASS")
+	if len(OutletUser) > 0 && len(OutletPass) > 0 {
+		OutletMeasurements = true
 	}
 }
 

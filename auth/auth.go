@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"l2met/conf"
 	"encoding/base64"
 	"errors"
 	"github.com/kr/fernet"
+	"l2met/conf"
 	"net/http"
 	"strings"
 	"time"

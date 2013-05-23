@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"l2met/auth"
 	"l2met/conf"
 	"l2met/outlet"
 	"l2met/receiver"
 	"l2met/store"
 	"l2met/utils"
-	"l2met/auth"
 	"log"
 	"net/http"
 	"runtime"

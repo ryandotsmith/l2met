@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"l2met/bucket"
+	"l2met/conf"
 	"l2met/store"
 	"l2met/utils"
 	"sync"
@@ -65,6 +66,7 @@ func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
 }
 
 func (r *Receiver) Receive(b []byte, opts map[string][]string) {
+	defer r.measure("receiver.receive", time.Now())
 	r.Inbox <- &LogRequest{b, opts}
 }
 
@@ -136,6 +138,24 @@ func (r *Receiver) Outlet() {
 			fmt.Printf("error=%s\n", err)
 		}
 	}
+}
+
+func (r *Receiver) measure(name string, t time.Time) {
+	if !conf.OutletMeasurements {
+		return
+	}
+	b := &bucket.Bucket{
+		Id: &bucket.Id{
+			Name:       name,
+			Source:     conf.AppName,
+			User:       conf.OutletUser,
+			Pass:       conf.OutletPass,
+			Time:       t,
+			Resolution: time.Second,
+		},
+		Vals: []float64{float64(time.Since(t) / time.Millisecond)},
+	}
+	r.addRegister(b)
 }
 
 // Keep an eye on the lenghts of our bufferes. If they are maxed out, something

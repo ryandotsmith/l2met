@@ -98,7 +98,14 @@ func (r *Receiver) Accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		for bucket := range bucket.NewBuckets(rdr, lreq.Opts) {
-			r.addRegister(bucket)
+			now := time.Now().Truncate(bucket.Id.Resolution)
+			if bucket.Id.Time.Equal(now) {
+				r.addRegister(bucket)
+			} else {
+				fmt.Printf("at=receiver-drop b=%s n=%s\n",
+					bucket.Id.Time, now)
+				r.measure("drop", now)
+			}
 		}
 	}
 }
@@ -133,8 +140,7 @@ func (r *Receiver) Transfer() {
 
 func (r *Receiver) Outlet() {
 	for b := range r.Outbox {
-		err := r.Store.Put(b)
-		if err != nil {
+		if err := r.Store.Put(b); err != nil {
 			fmt.Printf("error=%s\n", err)
 		}
 	}
@@ -146,12 +152,12 @@ func (r *Receiver) measure(name string, t time.Time) {
 	}
 	b := &bucket.Bucket{
 		Id: &bucket.Id{
-			Name:       name,
-			Source:     conf.AppName,
+			Name:       conf.AppName + "." + name,
+			Source:     "receiver",
 			User:       conf.OutletUser,
 			Pass:       conf.OutletPass,
-			Time:       t,
-			Resolution: time.Second,
+			Time:       t.Truncate(time.Minute),
+			Resolution: time.Minute,
 		},
 		Vals: []float64{float64(time.Since(t) / time.Millisecond)},
 	}

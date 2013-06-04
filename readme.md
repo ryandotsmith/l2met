@@ -246,5 +246,6 @@ $ git clone git://github.com/ryandotsmith/l2met.git
 $ cd l2met
 $ export OUTLET_USER="na" OUTLET_PASS="na" 
 $ export SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
+$ export TZ=UTC
 $ go test ./...
 ```

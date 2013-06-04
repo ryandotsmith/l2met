@@ -32,8 +32,8 @@ func (m *MemStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 		defer m.Unlock()
 		defer close(out)
 		for k, v := range m.m {
-			bucketReady := v.Id.Time.Add(v.Id.Resolution)
-			if !bucketReady.After(schedule) {
+			ready := v.Id.Time.Add(v.Id.Resolution).Add(time.Second)
+			if !ready.After(schedule) {
 				delete(m.m, k)
 				out <- v
 			}

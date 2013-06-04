@@ -22,11 +22,11 @@ func init() {
 	tr := &http.Transport{
 		DisableKeepAlives: true,
 		Dial: func(n, a string) (net.Conn, error) {
-			c, err := net.DialTimeout(n, a, time.Second*5)
+			c, err := net.DialTimeout(n, a, time.Second*2)
 			if err != nil {
 				return c, err
 			}
-			return c, c.SetDeadline(time.Now().Add(time.Second * 7))
+			return c, c.SetDeadline(time.Now().Add(time.Second * 2))
 		},
 	}
 	httpClient = &http.Client{Transport: tr}

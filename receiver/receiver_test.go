@@ -12,61 +12,62 @@ type testOps map[string][]string
 
 func TestReceiver(t *testing.T) {
 	currentTime := time.Now()
-	opts := testOps{"resolution": []string{"1"}, "user": []string{"u"}, "password": []string{"p"}}
+	opts := testOps{"resolution": []string{"60"}, "user": []string{"u"}, "password": []string{"p"}}
 	cases := []struct {
+		Name    string
 		Opts    testOps
 		LogLine []byte
 		Buckets []*bucket.Bucket
 	}{
 		{
+			"router",
 			opts,
 			fmtLog(currentTime, "router", "host=l2met.net connect=1ms service=4ms bytes=10"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
-				testBucket("router.connect", "l2met.net", "u", "p", time.Minute, []float64{1}),
-				testBucket("router.service", "l2met.net", "u", "p", time.Minute, []float64{4}),
-				testBucket("router.bytes", "l2met.net", "u", "p", time.Minute, []float64{10}),
+				testBucket("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{1}),
+				testBucket("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
+				testBucket("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{10}),
 			},
 		},
 		{
+			"idiomatic",
 			opts,
 			fmtLog(currentTime, "app", "measure.a"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
-				testBucket("a", "", "u", "p", time.Minute, []float64{1}),
+				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
 			},
 		},
 		{
+			"change in resolution",
 			opts,
 			fmtLog(currentTime, "app", "measure.a"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
-				testBucket("a", "", "u", "p", time.Second, []float64{1}),
+				testBucket("a", "", "u", "p", currentTime, time.Second, []float64{1}),
 			},
 		},
 		{
+			"with value",
 			opts,
 			fmtLog(currentTime, "app", "measure.a=1"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
-				testBucket("a", "", "u", "p", time.Minute, []float64{1}),
+				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
 			},
 		},
 		{
+			"with float value",
 			opts,
 			fmtLog(currentTime, "app", "measure.a=0.001"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
-				testBucket("a", "", "u", "p", time.Minute, []float64{0.001}),
+				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{0.001}),
 			},
 		},
 		{
+			"multiple values",
 			opts,
 			fmtLog(currentTime, "app", "measure.a=1 measure.b=2"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
-				testBucket("a", "", "u", "p", time.Minute, []float64{1}),
-				testBucket("b", "", "u", "p", time.Minute, []float64{2}),
+				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+				testBucket("b", "", "u", "p", currentTime, time.Minute, []float64{2}),
 			},
 		},
 	}
@@ -78,8 +79,8 @@ func TestReceiver(t *testing.T) {
 		}
 		expected := cases[i].Buckets
 		if len(actual) != len(expected) {
-			t.Fatalf("actual-length=%d expected-length=%d\n",
-				len(actual), len(expected))
+			t.Fatalf("case=%s actual-len=%d expected-len=%d\n",
+				cases[i].Name, len(actual), len(expected))
 		}
 		for j := range actual {
 			if !bucketsEqual(actual[j], expected[j]) {
@@ -90,12 +91,13 @@ func TestReceiver(t *testing.T) {
 	}
 }
 
-func testBucket(name, source, user, pass string, res time.Duration, vals []float64) *bucket.Bucket {
+func testBucket(name, source, user, pass string, t time.Time, res time.Duration, vals []float64) *bucket.Bucket {
 	id := new(bucket.Id)
 	id.Name = name
 	id.Source = source
 	id.User = user
 	id.Pass = pass
+	id.Time = t.Truncate(res)
 	id.Resolution = res
 	return &bucket.Bucket{Id: id, Vals: vals}
 }
@@ -121,9 +123,10 @@ func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	defer recv.Stop()
 
 	recv.Receive(msg, opts)
-	time.Sleep(time.Second)
+	time.Sleep(2*recv.FlushInterval)
 
-	ch, err := st.Scan(time.Now())
+	future := time.Now().Add(time.Minute)
+	ch, err := st.Scan(future)
 	if err != nil {
 		return nil, err
 	}

@@ -150,11 +150,11 @@ func (r *Receiver) measure(name string, t time.Time) {
 	}
 	b := &bucket.Bucket{
 		Id: &bucket.Id{
-			Name:       conf.AppName + name,
+			Name:       conf.AppName + "." + name,
 			Source:     "receiver",
 			User:       conf.OutletUser,
 			Pass:       conf.OutletPass,
-			Time:       t,
+			Time:       t.Truncate(time.Minute),
 			Resolution: time.Minute,
 		},
 		Vals: []float64{float64(time.Since(t) / time.Millisecond)},

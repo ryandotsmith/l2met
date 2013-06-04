@@ -1,1 +1,1 @@
-web: ./l2met -outlet="librato"
+web: l2met -outlet="librato"

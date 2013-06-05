@@ -102,7 +102,7 @@ func (r *Receiver) Accept() {
 			if bucket.Id.Time.Sub(now) <= time.Second {
 				r.addRegister(bucket)
 			} else {
-				r.measure("l2met.outlet.bucket-delay", now)
+				r.measure("drop", now)
 			}
 		}
 	}

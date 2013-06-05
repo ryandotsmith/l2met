@@ -99,9 +99,11 @@ func (r *Receiver) Accept() {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		for bucket := range bucket.NewBuckets(rdr, lreq.Opts) {
 			now := time.Now().Truncate(bucket.Id.Resolution)
-			if bucket.Id.Time.Sub(now) <= time.Second {
+			if bucket.Id.Time.Equal(now) {
 				r.addRegister(bucket)
 			} else {
+				fmt.Printf("at=receiver-drop b=%s n=%s\n",
+					bucket.Id.Time, now)
 				r.measure("drop", now)
 			}
 		}

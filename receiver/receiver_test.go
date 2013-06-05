@@ -14,57 +14,58 @@ func TestReceiver(t *testing.T) {
 	currentTime := time.Now()
 	opts := testOps{"resolution": []string{"1"}, "user": []string{"u"}, "password": []string{"p"}}
 	cases := []struct {
+		Name    string
 		Opts    testOps
 		LogLine []byte
 		Buckets []*bucket.Bucket
 	}{
 		{
+			"router",
 			opts,
 			fmtLog(currentTime, "router", "host=l2met.net connect=1ms service=4ms bytes=10"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
 				testBucket("router.connect", "l2met.net", "u", "p", time.Minute, []float64{1}),
 				testBucket("router.service", "l2met.net", "u", "p", time.Minute, []float64{4}),
 				testBucket("router.bytes", "l2met.net", "u", "p", time.Minute, []float64{10}),
 			},
 		},
 		{
+			"idiomatic",
 			opts,
 			fmtLog(currentTime, "app", "measure.a"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
 				testBucket("a", "", "u", "p", time.Minute, []float64{1}),
 			},
 		},
 		{
+			"change in resolution",
 			opts,
 			fmtLog(currentTime, "app", "measure.a"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
 				testBucket("a", "", "u", "p", time.Second, []float64{1}),
 			},
 		},
 		{
+			"with value",
 			opts,
 			fmtLog(currentTime, "app", "measure.a=1"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
 				testBucket("a", "", "u", "p", time.Minute, []float64{1}),
 			},
 		},
 		{
+			"with float value",
 			opts,
 			fmtLog(currentTime, "app", "measure.a=0.001"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
 				testBucket("a", "", "u", "p", time.Minute, []float64{0.001}),
 			},
 		},
 		{
+			"multiple values",
 			opts,
 			fmtLog(currentTime, "app", "measure.a=1 measure.b=2"),
 			[]*bucket.Bucket{
-				testBucket("receiver.receive", "l2met", "", "", time.Second, []float64{0}),
 				testBucket("a", "", "u", "p", time.Minute, []float64{1}),
 				testBucket("b", "", "u", "p", time.Minute, []float64{2}),
 			},
@@ -78,8 +79,8 @@ func TestReceiver(t *testing.T) {
 		}
 		expected := cases[i].Buckets
 		if len(actual) != len(expected) {
-			t.Fatalf("actual-length=%d expected-length=%d\n",
-				len(actual), len(expected))
+			t.Fatalf("case=%s actual-len=%d expected-len=%d\n",
+				cases[i].Name, len(actual), len(expected))
 		}
 		for j := range actual {
 			if !bucketsEqual(actual[j], expected[j]) {

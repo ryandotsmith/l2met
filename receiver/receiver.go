@@ -66,7 +66,7 @@ func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
 }
 
 func (r *Receiver) Receive(b []byte, opts map[string][]string) {
-	defer r.measure("receiver.receive", time.Now())
+	defer r.measure("receive", time.Now())
 	r.Inbox <- &LogRequest{b, opts}
 }
 
@@ -152,8 +152,8 @@ func (r *Receiver) measure(name string, t time.Time) {
 	}
 	b := &bucket.Bucket{
 		Id: &bucket.Id{
-			Name:       conf.AppName + "." + name,
-			Source:     "receiver",
+			Name:       conf.AppName + ".receiver." + name,
+			Source:     "",
 			User:       conf.OutletUser,
 			Pass:       conf.OutletPass,
 			Time:       t.Truncate(time.Minute),

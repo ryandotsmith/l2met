@@ -222,13 +222,15 @@ There are several knobs and levers to use in order to optimize l2met operations.
 * [Internal Metrics](#internal-metrics)
 
 ### Internal Metrics
-The receiver keeps track of the time spent processing incoming logs. This data is sent through the normal flow for metrics. To enable, ensure the following config var is set:
+This data is sent through the normal flow for metrics to the librato outlet. To enable, ensure the following config var is set:
 
 ```bash
 $ export OUTLET_USER="user@domain.com" OUTLET_PASS="abc123"
 ```
 
-By setting these config vars, l2met will be able to outlet the internal metrics to your librato account.
+The following internal metrics are produced:
+* receiver latency & count: `name=l2met.receiver.receive`
+* receiver drops: `name=l2met.receiver.drop`
 
 ## Hacking on l2met
 

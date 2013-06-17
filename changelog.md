@@ -1,5 +1,9 @@
 Each version of l2met corresponds to a git tag.
 
+## 1.4
+
+* Drop .mean|sum|count|min|max in favor of complex measurements
+
 ## 1.2
 
 2013-05-06

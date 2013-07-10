@@ -3,6 +3,7 @@ Each version of l2met corresponds to a git tag.
 ## 1.6
 
 * Fix for auth path that could never complete
+* include dod@heroku.com account for complex measurements
 
 ## 1.5
 

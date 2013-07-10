@@ -47,7 +47,7 @@ func parseAuthValue(header string) (string, string ,error) {
 		return "", "", err
 	}
 
-	userPass := strings.SplitN(string(decodedPayload), ":", 1)
+	userPass := strings.SplitN(string(decodedPayload), ":", 2)
 	switch len(userPass) {
 	case 1:
 		return userPass[0], "", nil

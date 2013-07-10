@@ -222,14 +222,6 @@ func (l *LibratoOutlet) post(u, p string, body *bytes.Buffer) error {
 	return nil
 }
 
-func ff(x float64) string {
-	return strconv.FormatFloat(x, 'f', 5, 64)
-}
-
-func fi(x int) string {
-	return strconv.FormatInt(int64(x), 10)
-}
-
 func ft(t time.Time) int64 {
 	return t.Unix()
 }

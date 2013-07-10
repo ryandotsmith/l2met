@@ -1,5 +1,9 @@
 Each version of l2met corresponds to a git tag.
 
+## 1.6
+
+* Fix for auth path that could never complete
+
 ## 1.5
 
 * Add .mean|sum|count|min|max for non librato-production@heroku.com cases

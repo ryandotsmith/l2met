@@ -72,6 +72,11 @@ func (id *Id) String() string {
 	return s
 }
 
+// The number of time units returned represents
+// the processing time accumulated within l2met.
+// E.g. If the resolution of the bucket/id is 60s
+// and the delay is 2, then it took 120s for l2met
+// to process the bucket.
 func (id *Id) Delay(t time.Time) int64 {
 	t0 := utils.RoundTime(id.Time, id.Resolution).Unix()
 	t1 := utils.RoundTime(t, id.Resolution).Unix()

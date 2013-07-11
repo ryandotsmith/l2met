@@ -90,7 +90,7 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 		var members []string
 		redis.Scan(reply, &members, &delCount)
 		for _, member := range members {
-			id, err := bucket.ParseId(member)
+			id, err := bucket.DecodeId(member)
 			if err != nil {
 				fmt.Printf("at=%q error=%s\n", "bucket-store-parse-key", err)
 				continue
@@ -112,7 +112,7 @@ func (s *RedisStore) putback(id *bucket.Id) error {
 	defer utils.MeasureT("bucket.putback", time.Now())
 	rc := s.redisPool.Get()
 	defer rc.Close()
-	key := id.String()
+	key := id.Encode()
 	partition := s.bucketPartition([]byte(key))
 	rc.Send("MULTI")
 	rc.Send("SADD", partition, key)
@@ -131,7 +131,7 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 	defer rc.Close()
 
 	b.Lock()
-	key := b.Id.String()
+	key := b.Id.Encode()
 	value := b.Vals
 	b.Unlock()
 
@@ -156,7 +156,7 @@ func (s *RedisStore) Get(b *bucket.Bucket) error {
 	defer rc.Close()
 
 	//Fill in the vals.
-	reply, err := redis.Values(rc.Do("LRANGE", b.Id.String(), 0, -1))
+	reply, err := redis.Values(rc.Do("LRANGE", b.Id.Encode(), 0, -1))
 	if err != nil {
 		return err
 	}

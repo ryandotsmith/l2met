@@ -24,7 +24,7 @@ type Id struct {
 	Source     string
 }
 
-func ParseId(s string) (*Id, error) {
+func DecodeId(s string) (*Id, error) {
 	parts := strings.Split(s, keySep)
 	if len(parts) < 5 {
 		return nil, errors.New("bucket: Unable to parse bucket key.")
@@ -58,7 +58,7 @@ func ParseId(s string) (*Id, error) {
 	return id, nil
 }
 
-func (id *Id) String() string {
+func (id *Id) Encode() string {
 	s := ""
 	s += strconv.FormatInt(id.Time.Unix(), 10) + keySep
 	s += strconv.FormatInt(int64(id.Resolution), 10) + keySep

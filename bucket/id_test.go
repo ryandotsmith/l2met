@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-func TestParseId(t *testing.T) {
+func TestDecodeId(t *testing.T) {
 	id := Id{time.Now(), time.Minute, "user", "pass", "name", "units", "source"}
-	expected, err := ParseId(id.String())
+	expected, err := DecodeId(id.Encode())
 	if err != nil {
 		t.FailNow()
 	}
@@ -34,9 +34,9 @@ func TestParseId(t *testing.T) {
 	}
 }
 
-func TestParseIdWithoutSource(t *testing.T) {
+func TestDecodeIdWithoutSource(t *testing.T) {
 	id := Id{time.Now(), time.Minute, "user", "pass", "name", "units", ""}
-	expected, err := ParseId(id.String())
+	expected, err := DecodeId(id.Encode())
 	if err != nil {
 		t.FailNow()
 	}

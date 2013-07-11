@@ -83,16 +83,16 @@ func (r *Receiver) Start() {
 	// Parsing the log data can be expensive. Make use
 	// of parallelism.
 	for i := 0; i < r.NumAcceptors; i++ {
-		go r.Accept()
+		go r.accept()
 	}
 	// Each outlet will write a bucket to redis.
 	for i := 0; i < r.NumOutlets; i++ {
-		go r.Outlet()
+		go r.outlet()
 	}
 	r.TransferTicker = time.NewTicker(r.FlushInterval)
 	// The transfer is not a concurrent process.
 	// It removes buckets from the register to the outbox.
-	go r.Transfer()
+	go r.transfer()
 }
 
 func (r *Receiver) Stop() {
@@ -103,7 +103,7 @@ func (r *Receiver) Stop() {
 	close(r.Outbox)
 }
 
-func (r *Receiver) Accept() {
+func (r *Receiver) accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		for bucket := range bucket.NewBuckets(rdr, lreq.Opts) {
@@ -132,7 +132,7 @@ func (r *Receiver) addRegister(b *bucket.Bucket) {
 	r.numBuckets += 1
 }
 
-func (r *Receiver) Transfer() {
+func (r *Receiver) transfer() {
 	for _ = range r.TransferTicker.C {
 		for k := range r.Register.m {
 			r.Register.Lock()
@@ -147,7 +147,7 @@ func (r *Receiver) Transfer() {
 	}
 }
 
-func (r *Receiver) Outlet() {
+func (r *Receiver) outlet() {
 	for b := range r.Outbox {
 		if err := r.Store.Put(b); err != nil {
 			fmt.Printf("error=%s\n", err)

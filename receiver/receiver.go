@@ -1,3 +1,8 @@
+// The receiver is responsible for:
+// * Accepting on LogRequests
+// * Extracting measurements from the LogRequests into Buckets
+// * Buffering Buckets in memory.
+// * Outleting the Buckets to a data-store. (In memory or redis).
 package receiver
 
 import (
@@ -23,6 +28,9 @@ type LogRequest struct {
 	Opts map[string][]string
 }
 
+// The register accumulates buckets in memory.
+// A seperate routine working on an interval will flush
+// the buckets from the register.
 type register struct {
 	sync.Mutex
 	m map[bucket.Id]*bucket.Bucket
@@ -70,6 +78,7 @@ func (r *Receiver) Receive(b []byte, opts map[string][]string) {
 	r.Inbox <- &LogRequest{b, opts}
 }
 
+// Start moving data through the receiver's pipeline.
 func (r *Receiver) Start() {
 	// Parsing the log data can be expensive. Make use
 	// of parallelism.

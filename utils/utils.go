@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func MeasureI(name, units string, val int64) {
+func MeasureI(name string, val int) {
 	m := conf.AppName + "." + name
 	fmt.Printf("measure.%s=%d\n", m, val)
 }

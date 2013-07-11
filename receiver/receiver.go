@@ -173,15 +173,15 @@ func (r *Receiver) measure(name string, t time.Time) {
 	r.addRegister(b)
 }
 
-// Keep an eye on the lenghts of our bufferes. If they are maxed out, something
-// is going wrong.
+// Keep an eye on the lenghts of our bufferes.
+// If they are maxed out, something is going wrong.
 func (r *Receiver) Report() {
 	for _ = range time.Tick(time.Second * 2) {
-		na := atomic.LoadUint64(&r.numBuckets)
-		atomic.AddUint64(&r.numBuckets, -na)
-		utils.MeasureI("receiver.buckets", "buckets", int64(na))
-		utils.MeasureI("receiver.inbox", "requests", int64(len(r.Inbox)))
-		utils.MeasureI("receiver.register", "buckets", int64(len(r.Register.m)))
-		utils.MeasureI("receiver.outbox", "buckets", int64(len(r.Outbox)))
+		nb := atomic.LoadUint64(&r.numBuckets)
+		atomic.AddUint64(&r.numBuckets, -nb)
+		utils.MeasureI("receiver.buckets",  int(nb))
+		utils.MeasureI("receiver.inbox", len(r.Inbox))
+		utils.MeasureI("receiver.register", len(r.Register.m))
+		utils.MeasureI("receiver.outbox", len(r.Outbox))
 	}
 }

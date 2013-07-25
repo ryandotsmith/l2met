@@ -59,8 +59,7 @@ func (lt *logTuple) Units() string {
 	if err != nil {
 		return ""
 	}
-	units := strings.TrimFunc(string(lt.Val), trimToChar)
-	return units
+	return strings.TrimFunc(string(lt.Val), trimToChar)
 }
 
 type tuples []*logTuple

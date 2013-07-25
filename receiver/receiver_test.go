@@ -34,9 +34,9 @@ func TestReceiver(t *testing.T) {
 			opts,
 			fmtLog(currentTime, "router", "host=l2met.net connect=12345678912ms service=4ms bytes=12345678912"),
 			[]*bucket.Bucket{
-				testBucket("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{1}),
+				testBucket("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
 				testBucket("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
-				testBucket("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{10}),
+				testBucket("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
 			},
 		},
 		{

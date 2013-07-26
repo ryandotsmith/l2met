@@ -2,10 +2,7 @@
 
 L2met receives HTTP requests that contain a body of RFC5424 formatted data. Commonly data is drained into l2met by [logplex](https://github.com/heroku/logplex) or [log-shuttle](https://github.com/heroku/log-shuttle). Once data is delivered, l2met extracts and parses the individual log lines using the [log conventions](https://github.com/ryandotsmith/l2met/wiki/Usage#log-conventions) and then stores the data in redis so that outlets can read the data and build metrics. The librato_outlet is the most popular and will put all of your metrics into your Librato account. See the [getting started](#getting-started) section to get started.
 
-## Current Release
-
-* Tip: [v2.0beta](https://github.com/ryandotsmith/l2met/tree/v2.0beta)
-* Stable: [v1.2](https://github.com/ryandotsmith/l2met/tree/v1.2)
+For information regarding usage, archetecture, and administration, checkout the project's wiki.
 
 ## Getting Started
 
@@ -19,13 +16,13 @@ $ ./setup my-l2met e@foo.com abc123
 Drain URL: https://long-token@my-l2met.herokuapp.com/logs
 ```
 
-This command will create Heroku app named `my-l2met` and return a drain URL with encrypted Librato credentials for a Librato account with email `e@foo.com` and an API token of `abc123`. After you have created `my-l2met`, you can add the drain URL to a Heroku app. A copy of the log stream will be delivered to `my-l2met` and metrics will be sent to the Librato account which your provided in the setup.
+This command will create Heroku app named *my-l2met* and return a drain URL with encrypted Librato credentials for a Librato account with email *e@foo.com* and an API token of *abc123*. After you have created *my-l2met*, you can add the drain URL to a Heroku app. A copy of the log stream will be delivered to *my-l2met* and metrics will be sent to the Librato account which your provided in the setup.
 
 ```bash
 $ heroku drains:add https://long-token@my-l2met.herokuapp.com/logs -a myapp
 ```
 
-You can manually send data to `my-l2met` by the following curl command:
+You can manually send data to *my-l2met* by the following curl command:
 
 ```bash
 $ curl "https://long-token@my-l2met.herokuapp.com/logs" --data "94 <190>1 2013-03-27T20:02:24+00:00 hostname token shuttle - - measure.hello=99 measure.world=100"

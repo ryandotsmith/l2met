@@ -2,7 +2,7 @@
 
 L2met receives HTTP requests that contain a body of RFC5424 formatted data. Commonly data is drained into l2met by [logplex](https://github.com/heroku/logplex) or [log-shuttle](https://github.com/heroku/log-shuttle). Once data is delivered, l2met extracts and parses the individual log lines using the [log conventions](https://github.com/ryandotsmith/l2met/wiki/Usage#log-conventions) and then stores the data in redis so that outlets can read the data and build metrics. The librato_outlet is the most popular and will put all of your metrics into your Librato account.
 
-For information regarding usage, archetecture, and administration, checkout the project's wiki.
+Checkout the wiki for information related to: [usage](https://github.com/ryandotsmith/l2met/wiki/Usage), [archetecture](https://github.com/ryandotsmith/l2met/wiki/Architecture), and [administration](https://github.com/ryandotsmith/l2met/wiki/Administration).
 
 ## Getting Started
 
@@ -34,7 +34,7 @@ Verify the command worked by viewing the [newly created metrics](https://metrics
 Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
 
 
-### Documentation 
+### Documentation
 [GoDoc](http://godoc.org/github.com/ryandotsmith/l2met)
 
 ### Running Tests

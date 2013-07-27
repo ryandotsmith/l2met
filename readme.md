@@ -36,6 +36,8 @@ Before working on a new feature, send your proposal to the [mailing list](https:
 
 [![Build Status](https://drone.io/github.com/ryandotsmith/l2met/status.png)](https://drone.io/github.com/ryandotsmith/l2met/latest)
 
+[GoDoc](http://godoc.org/github.com/ryandotsmith/l2met)
+
 ```bash
 $ go version
 go version go1.1.1 darwin/amd64
@@ -44,7 +46,6 @@ go version go1.1.1 darwin/amd64
 ```bash
 $ git clone git://github.com/ryandotsmith/l2met.git
 $ cd l2met
-$ export OUTLET_USER="na" OUTLET_PASS="na" 
 $ export SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
 $ export TZ=UTC
 $ go test ./...

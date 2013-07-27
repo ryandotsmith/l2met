@@ -31,13 +31,14 @@ $ curl "https://long-token@my-l2met.herokuapp.com/logs" --data "94 <190>1 2013-0
 Verify the command worked by viewing the [newly created metrics](https://metrics.librato.com/metrics?search=hello).
 
 ## Hacking on l2met
-
 Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
 
-[![Build Status](https://drone.io/github.com/ryandotsmith/l2met/status.png)](https://drone.io/github.com/ryandotsmith/l2met/latest)
 
+### Documentation 
 [GoDoc](http://godoc.org/github.com/ryandotsmith/l2met)
 
+### Running Tests
+[![Build Status](https://drone.io/github.com/ryandotsmith/l2met/status.png)](https://drone.io/github.com/ryandotsmith/l2met/latest)
 ```bash
 $ go version
 go version go1.1.1 darwin/amd64

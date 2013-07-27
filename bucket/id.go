@@ -2,7 +2,7 @@ package bucket
 
 import (
 	"errors"
-	"l2met/utils"
+	"github.com/ryandotsmith/l2met/utils"
 	"strconv"
 	"strings"
 	"time"

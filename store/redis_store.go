@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/encoding"
+	"github.com/ryandotsmith/l2met/utils"
 	"hash/crc64"
-	"l2met/bucket"
-	"l2met/encoding"
-	"l2met/utils"
 	"strconv"
 	"time"
 )

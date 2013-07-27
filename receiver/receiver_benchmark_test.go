@@ -1,7 +1,7 @@
 package receiver
 
 import (
-	"l2met/store"
+	"github.com/ryandotsmith/l2met/store"
 	"testing"
 	"time"
 )

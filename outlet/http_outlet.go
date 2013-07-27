@@ -2,10 +2,10 @@ package outlet
 
 import (
 	"errors"
-	"l2met/auth"
-	"l2met/bucket"
-	"l2met/store"
-	"l2met/utils"
+	"github.com/ryandotsmith/l2met/auth"
+	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/store"
+	"github.com/ryandotsmith/l2met/utils"
 	"math"
 	"net/http"
 	"net/url"

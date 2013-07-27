@@ -1,7 +1,7 @@
 package store
 
 import (
-	"l2met/bucket"
+	"github.com/ryandotsmith/l2met/bucket"
 	"time"
 )
 

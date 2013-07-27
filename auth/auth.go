@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"github.com/kr/fernet"
-	"l2met/conf"
+	"github.com/ryandotsmith/l2met/conf"
 	"net/http"
 	"strings"
 	"time"

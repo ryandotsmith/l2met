@@ -3,7 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"l2met/conf"
+	"github.com/ryandotsmith/l2met/conf"
 	"net/http"
 	"time"
 )

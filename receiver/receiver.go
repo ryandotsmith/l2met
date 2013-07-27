@@ -9,10 +9,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"l2met/bucket"
-	"l2met/conf"
-	"l2met/store"
-	"l2met/utils"
+	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/conf"
+	"github.com/ryandotsmith/l2met/store"
+	"github.com/ryandotsmith/l2met/utils"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -179,7 +179,7 @@ func (r *Receiver) Report() {
 	for _ = range time.Tick(time.Second * 2) {
 		nb := atomic.LoadUint64(&r.numBuckets)
 		atomic.AddUint64(&r.numBuckets, -nb)
-		utils.MeasureI("receiver.buckets",  int(nb))
+		utils.MeasureI("receiver.buckets", int(nb))
 		utils.MeasureI("receiver.inbox", len(r.Inbox))
 		utils.MeasureI("receiver.register", len(r.Register.m))
 		utils.MeasureI("receiver.outbox", len(r.Outbox))

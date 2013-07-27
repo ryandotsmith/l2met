@@ -2,8 +2,8 @@ package receiver
 
 import (
 	"fmt"
-	"l2met/bucket"
-	"l2met/store"
+	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/store"
 	"testing"
 	"time"
 )

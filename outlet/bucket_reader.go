@@ -2,8 +2,8 @@ package outlet
 
 import (
 	"fmt"
-	"l2met/bucket"
-	"l2met/store"
+	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/store"
 	"time"
 )
 
@@ -44,8 +44,8 @@ func (r *BucketReader) scan() {
 			fmt.Printf("at=bucket.scan error=%s\n", err)
 			continue
 		}
-		for bucket := range buckets {
-			r.Inbox <- bucket
+		for b := range buckets {
+			r.Inbox <- b
 		}
 	}
 }

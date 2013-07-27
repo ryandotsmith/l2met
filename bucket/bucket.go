@@ -1,3 +1,4 @@
+// A collection of measurements.
 package bucket
 
 import (

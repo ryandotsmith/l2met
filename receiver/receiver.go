@@ -1,8 +1,6 @@
-// The receiver is responsible for:
-// * Accepting on LogRequests
-// * Extracting measurements from the LogRequests into Buckets
-// * Buffering Buckets in memory.
-// * Outleting the Buckets to a data-store. (In memory or redis).
+// Receiver provides mechanisms to read log requests,
+// extract measurements from log requests, aggregate
+// measurements in buckets, and flush buckets into a memory store.
 package receiver
 
 import (

@@ -14,7 +14,7 @@ func TestParseNoPassword(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	_, _, err = Parse(r)
+	_, _, err = ParseAndDecrypt(r)
 	if err == nil {
 		t.Errorf("Expected Parse to return error when with no creds.")
 	}
@@ -24,30 +24,32 @@ func TestParseEncryptedAuth(t *testing.T) {
 	if len(keys) == 0 {
 		t.Fatalf("Must set $SECRETS\n")
 	}
+
 	var b bytes.Buffer
 	r, err := http.NewRequest("GET", "http://does-not-matter.com", &b)
 	if err != nil {
 		t.Error(err)
 	}
 
-	libratoUser := "ryan@heroku.com"
-	libratoPass := "abc123"
-	tok, err := fernet.EncryptAndSign([]byte(libratoUser+":"+libratoPass), keys[0])
+	u := "ryan@heroku.com"
+	p := "abc123"
+	tok, err := fernet.EncryptAndSign([]byte(u+":"+p), keys[0])
 	if err != nil {
 		t.Error(err)
 	}
-	r.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString(tok))
-	expectedUser, expectedPass, err := Parse(r)
+	r.Header.Set("Authorization",
+		"Basic "+base64.StdEncoding.EncodeToString(tok))
 
+	expectedUser, expectedPass, err := ParseAndDecrypt(r)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if expectedUser != "ryan@heroku.com" {
-		t.Errorf("expected=%q actual=%q\n", "l2met", expectedUser)
+	if expectedUser != u {
+		t.Errorf("expected=%q actual=%q\n", u, expectedUser)
 	}
 
-	if expectedPass != "abc123" {
-		t.Errorf("expected=%q actual=%q\n", "token", expectedPass)
+	if expectedPass != p {
+		t.Errorf("expected=%q actual=%q\n", p, expectedPass)
 	}
 }

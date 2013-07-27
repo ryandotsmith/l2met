@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	OneHundredYears = time.Hour * 24 * 365 * 100
-	keys            []*fernet.Key
+	ttl  = time.Hour * 24 * 365 * 100
+	keys []*fernet.Key
 )
 
 func init() {
@@ -42,8 +42,11 @@ func parseAuthHeader(r *http.Request) (string, error) {
 	return header[0], nil
 }
 
-func ParseRaw(header string) (string, string, error) {
-	parts := strings.SplitN(header, " ", 2)
+// Extract the username and password from the authorization
+// line of an HTTP header. This function will handle the
+// parsing and decoding of the line.
+func ParseRaw(authLine string) (string, string, error) {
+	parts := strings.SplitN(authLine, " ", 2)
 	if len(parts) != 2 {
 		return "", "", errors.New("Authorization header malformed.")
 	}
@@ -70,7 +73,10 @@ func ParseRaw(header string) (string, string, error) {
 	return "", "", errors.New("Unable to parse username or password.")
 }
 
-func Parse(r *http.Request) (string, string, error) {
+// ParseAndDecrypt returns the outlet's API credentials which
+// are expected to be signed & encrypted and stuffed into the
+// authorization header of the HTTP request.
+func ParseAndDecrypt(r *http.Request) (string, string, error) {
 	header, err := parseAuthHeader(r)
 	if err != nil {
 		return "", "", err
@@ -81,15 +87,16 @@ func Parse(r *http.Request) (string, string, error) {
 		return "", "", err
 	}
 
-	//If we have gotten here, we have a signed, db-less authentication reque
-	//If we can verify and decrypt, then we will pass the decrypted credenti
-	//to the caller. Most of the time, the username and password will be
-	//credentials to outlet providers. (e.g. Librato creds or Graphite creds
-	//We care about the validity of those credentials here. If they are wron
-	//the metrics will be dropped at the outlet. Keep an eye on http
-	//authentication errors from the log output of the outlets.
+	// If we have gotten here, we have a signed, authentication request.
+	// If we can verify & decrypt, then we will pass the decrypted credenti
+	// to the caller. Most of the time, the username and password will be
+	// credentials to Librato metric API. We don't care about the
+	// validity of those credentials here. If they are wrong
+	// the metrics will be dropped in the outlet. Keep an eye on HTTP
+	// authentication errors from the log output of the outlets.
 	if len(keys) > 0 {
-		if s := fernet.VerifyAndDecrypt([]byte(user), OneHundredYears, keys); s != nil {
+		s := fernet.VerifyAndDecrypt([]byte(user), ttl, keys)
+		if s != nil {
 			parts := strings.Split(string(s), ":")
 			return parts[0], parts[1], nil
 		}

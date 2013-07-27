@@ -1,3 +1,5 @@
+// Provides helpers for authentication & authorization via HTTP.
+// Outlet credentials are encrypted and signed in the authorization payload.
 package auth
 
 import (
@@ -21,7 +23,9 @@ func init() {
 	}
 }
 
-func Sign(b []byte) ([]byte, error) {
+// Use the first valid key to sign b.
+// Returns error if no key is able to sign b.
+func EncryptAndSign(b []byte) ([]byte, error) {
 	for i := range keys {
 		if res, err := fernet.EncryptAndSign(b, keys[i]); err == nil {
 			return res, err

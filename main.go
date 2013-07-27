@@ -135,7 +135,7 @@ func main() {
 			http.Error(w, "Unable to read body of POST.", 400)
 			return
 		}
-		signed, err := auth.Sign(b)
+		signed, err := auth.EncryptAndSign(b)
 		if err != nil {
 			http.Error(w, "Unable to sign body.", 500)
 			return

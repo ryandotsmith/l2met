@@ -1,6 +1,7 @@
 package receiver
 
 import (
+	"fmt"
 	"github.com/ryandotsmith/l2met/store"
 	"testing"
 	"time"
@@ -16,11 +17,14 @@ func BenchmarkReceive(b *testing.B) {
 	opts := make(map[string][]string)
 	opts["user"] = []string{"u"}
 	opts["password"] = []string{"p"}
-	msg := []byte("94 <190>1 2013-03-27T20:02:24+00:00 hostname token shuttle - - measure.hello=99 measure.world=100")
+
+	tf := "2013-03-27T20:02:24+00:00"
+	bmsg := "94 <190>1 %s hostname token shuttle - - measure.hello=1"
 
 	for i := 0; i < b.N; i++ {
+		msg := fmt.Sprintf(bmsg, time.Now().Format(tf))
 		b.StartTimer()
-		recv.Receive(msg, opts)
+		recv.Receive([]byte(msg), opts)
 		b.StopTimer()
 		b.SetBytes(int64(len(msg)))
 	}

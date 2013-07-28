@@ -27,6 +27,9 @@ type D struct {
 	Verbose         bool
 }
 
+// Builds a conf data structure and connects
+// the fields in the struct to flags.
+// It is up to the caller to call flag.Parse()
 func New() *D {
 	d := new(D)
 

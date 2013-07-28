@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/ryandotsmith/l2met/auth"
 	"github.com/ryandotsmith/l2met/conf"
@@ -26,6 +27,7 @@ var cfg *conf.D
 
 func main() {
 	cfg = conf.New()
+	flag.Parse()
 
 	// The store will be used by receivers and outlets.
 	var st store.Store

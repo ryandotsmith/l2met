@@ -10,6 +10,7 @@ import (
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/store"
 	"github.com/ryandotsmith/l2met/utils"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -49,8 +50,6 @@ type Receiver struct {
 	FlushInterval time.Duration
 	// How many outlet routines should be running.
 	NumOutlets int
-	// How many accept routines should be running.
-	NumAcceptors int
 	// Bucket storage.
 	Store store.Store
 	//Count the number of times we accept a bucket.
@@ -65,7 +64,6 @@ func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
 	r.numBuckets = uint64(0)
 	r.FlushInterval = i
 	r.NumOutlets = c
-	r.NumAcceptors = c
 	r.Store = s
 	return r
 }
@@ -76,12 +74,17 @@ func (r *Receiver) Receive(b []byte, opts map[string][]string) {
 
 // Start moving data through the receiver's pipeline.
 func (r *Receiver) Start() {
-	// Parsing the log data can be expensive. Make use
-	// of parallelism.
-	for i := 0; i < r.NumAcceptors; i++ {
+	// Accepting the data involves parsing logs messages
+	// into buckets. It is mostly CPU bound, so
+	// it makes sense to parallelize this to the extent
+	// of the number of CPUs.
+	for i := 0; i < runtime.NumCPU(); i++ {
 		go r.accept()
 	}
-	// Each outlet will write a bucket to redis.
+	// Outletting data to the store involves sending
+	// data out on the network to Redis. We may wish to
+	// add more threads here since it is likely that
+	// they will be blocking on I/O.
 	for i := 0; i < r.NumOutlets; i++ {
 		go r.outlet()
 	}

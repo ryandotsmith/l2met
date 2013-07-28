@@ -197,15 +197,15 @@ func (s *RedisStore) writeLock(name string, ttl uint64) (bool, error) {
 	rc := s.redisPool.Get()
 	defer rc.Close()
 
-	new := time.Now().Unix() + int64(ttl) + 1
-	old, err := redis.Int(rc.Do("GETSET", name, new))
+	newTime := time.Now().Unix() + int64(ttl) + 1
+	old, err := redis.Int(rc.Do("GETSET", name, newTime))
 	// If the ErrNil is present, the old value is set to 0.
 	if err != nil && err != redis.ErrNil && old == 0 {
 		return false, err
 	}
 	// If the new value is greater than the old
 	// value, then the old lock is expired.
-	return new > int64(old), nil
+	return newTime > int64(old), nil
 }
 
 func (s *RedisStore) unlockPartition(p uint64) error {

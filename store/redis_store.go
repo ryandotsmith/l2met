@@ -26,16 +26,16 @@ type RedisStore struct {
 	maxPartitions uint64
 }
 
-func NewRedisStore(server, pass string, maxPartitions uint64, maxConn int) *RedisStore {
+func NewRedisStore(server, pass string, maxPartitions uint64) *RedisStore {
 	return &RedisStore{
 		maxPartitions: maxPartitions,
-		redisPool:     initRedisPool(server, pass, maxConn),
+		redisPool:     initRedisPool(server, pass),
 	}
 }
 
-func initRedisPool(server, pass string, maxConn int) *redis.Pool {
+func initRedisPool(server, pass string) *redis.Pool {
 	return &redis.Pool{
-		MaxIdle:     maxConn,
+		MaxIdle:     1,
 		IdleTimeout: 30 * time.Second,
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")

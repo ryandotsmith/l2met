@@ -21,7 +21,7 @@ type HttpOutlet struct {
 func (h *HttpOutlet) ServeReadBucket(w http.ResponseWriter, r *http.Request) {
 	// need to extract: token, source, name, time
 	// https://l2met:token@l2met.net/buckets/:name
-	user, pass, err := auth.Parse(r)
+	user, pass, err := auth.ParseAndDecrypt(r)
 	if err != nil {
 		http.Error(w, "Inavalid Authentication", 401)
 		return

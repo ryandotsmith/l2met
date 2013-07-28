@@ -3,19 +3,16 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ryandotsmith/l2met/conf"
 	"net/http"
 	"time"
 )
 
 func MeasureI(name string, val int) {
-	m := conf.AppName + "." + name
-	fmt.Printf("measure.%s=%d\n", m, val)
+	fmt.Printf("measure.%s=%d\n", name, val)
 }
 
 func MeasureT(name string, t time.Time) {
-	m := conf.AppName + "." + name
-	fmt.Printf("measure.%s=%dms\n", m, time.Since(t)/time.Millisecond)
+	fmt.Printf("measure.%s=%dms\n", name, time.Since(t)/time.Millisecond)
 }
 
 func WriteJsonBytes(w http.ResponseWriter, status int, b []byte) {

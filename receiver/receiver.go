@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ryandotsmith/l2met/bucket"
-	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/store"
 	"github.com/ryandotsmith/l2met/utils"
 	"sync"
@@ -72,7 +71,6 @@ func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
 }
 
 func (r *Receiver) Receive(b []byte, opts map[string][]string) {
-	defer r.measure("receive", time.Now())
 	r.Inbox <- &LogRequest{b, opts}
 }
 
@@ -111,7 +109,6 @@ func (r *Receiver) accept() {
 			} else {
 				fmt.Printf("at=receiver-drop b=%s n=%s\n",
 					bucket.Id.Time, now)
-				r.measure("drop", now)
 			}
 		}
 	}
@@ -151,24 +148,6 @@ func (r *Receiver) outlet() {
 			fmt.Printf("error=%s\n", err)
 		}
 	}
-}
-
-func (r *Receiver) measure(name string, t time.Time) {
-	if !conf.OutletMeasurements {
-		return
-	}
-	b := &bucket.Bucket{
-		Id: &bucket.Id{
-			Name:       conf.AppName + ".receiver." + name,
-			Source:     "",
-			User:       conf.OutletUser,
-			Pass:       conf.OutletPass,
-			Time:       t.Truncate(time.Minute),
-			Resolution: time.Minute,
-		},
-		Vals: []float64{float64(time.Since(t) / time.Millisecond)},
-	}
-	r.addRegister(b)
 }
 
 // Keep an eye on the lenghts of our bufferes.

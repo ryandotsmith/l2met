@@ -6,8 +6,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"github.com/kr/fernet"
-	"github.com/ryandotsmith/l2met/conf"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -18,8 +18,9 @@ var (
 )
 
 func init() {
-	if len(conf.Secrets) > 0 {
-		keys = fernet.MustDecodeKeys(conf.Secrets...)
+	s := os.Getenv("SECRETS")
+	if len(s) > 0 {
+		keys = fernet.MustDecodeKeys(strings.Split(s, ":")...)
 	}
 }
 

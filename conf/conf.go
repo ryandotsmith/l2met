@@ -1,13 +1,5 @@
-//The conf package is responsible for reading in data from the environment.
-//This should be the only place in the l2met source that calls os.Getenv.
-//Flag handling is also limited to this package.
-//The conf package has a pattern:
-//
-// Variable Declaration
-// Variable Initialization
-//
-//If you are adding new configuration, please follow the pattern and append.
-
+// Conf exposes a data structure containing all of the
+// l2met configuration data. Combines cmd flags and env vars.
 package conf
 
 import (
@@ -15,129 +7,75 @@ import (
 	"flag"
 	"net/url"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 )
 
-var AppName string
-
-func init() {
-	AppName = os.Getenv("APP_NAME")
-	if len(AppName) == 0 {
-		AppName = "l2met"
-	}
+type D struct {
+	AppName         string
+	Outlet          string
+	RedisHost       string
+	RedisPass       string
+	Secrets         []string
+	BufferSize      int
+	Concurrency     int
+	Port            int
+	NumOutletRetry  int
+	MaxPartitions   uint64
+	FlushtInterval  time.Duration
+	UsingHttpOutlet bool
+	UsingReciever   bool
+	Verbose         bool
 }
 
-var Outlet string
+func New() *D {
+	d := new(D)
 
-func init() {
-	flag.StringVar(&Outlet, "outlet", "", "Type of outlet to start. Valid opts: librato, graphite, (blank).")
+	flag.StringVar(&d.AppName, "app-name", "l2met",
+		"Prefix internal log messages with this value.")
+
+	flag.StringVar(&d.Outlet, "outlet", "",
+		"The type of outlet to use."+
+			"Example:librato, graphite, (blank)")
+
+	flag.IntVar(&d.BufferSize, "buffer", 1024,
+		"Max number of items for all internal buffers.")
+
+	flag.IntVar(&d.Concurrency, "concurrency", 100,
+		"Number of running go routines for outlet or receiver.")
+
+	flag.IntVar(&d.Port, "port", 8080,
+		"HTTP server's bind port.")
+
+	flag.IntVar(&d.NumOutletRetry, "outlet-retry", 2,
+		"Number of attempts to outlet metrics to Librato or Graphite.")
+
+	flag.Uint64Var(&d.MaxPartitions, "partitions", uint64(1),
+		"Number of partitions to use for outlets.")
+
+	flag.DurationVar(&d.FlushtInterval, "flush-interval", time.Second,
+		"Time to wait before sending data to store or outlet. "+
+			"Example:60s 30s 1m")
+
+	flag.BoolVar(&d.UsingHttpOutlet, "http-outlet", false,
+		"Enable the HTTP outlet.")
+
+	flag.BoolVar(&d.UsingReciever, "receiver", true,
+		"Enable the Receiver.")
+
+	flag.BoolVar(&d.Verbose, "v", false,
+		"Enable verbose log output.")
+
+	d.RedisHost, d.RedisPass, _ = parseRedisUrl(env("REDIS_URL"))
+
+	return d
 }
 
-var (
-	BufferSize     int
-	Concurrency    int
-	FlushtInterval time.Duration
-)
-
-func init() {
-	b := envInt("REQUEST_BUFFER", 1000)
-	flag.IntVar(&BufferSize, "buffer", b, "Number of items to buffer prior to flush.")
-
-	c := envInt("CONCURRENCY", 100)
-	flag.IntVar(&Concurrency, "concurrency", c, "Number local routines to start.")
-
-	t := time.Millisecond * 200
-	flag.DurationVar(&FlushtInterval, "flush-interval", t, "Time to wait before flushing items in buffer.")
+// Helper Function
+func env(n string) string {
+	return os.Getenv(n)
 }
 
-var (
-	UsingRedis    bool
-	MaxRedisConns int
-	RedisHost     string
-	RedisPass     string
-	MaxPartitions uint64
-)
-
-func init() {
-	var err error
-	UsingRedis = false
-
-	rurl := os.Getenv("REDIS_URL")
-	if len(rurl) == 0 {
-		return
-	}
-
-	RedisHost, RedisPass, err = parseRedisUrl(rurl)
-	if err != nil {
-		return
-	}
-	UsingRedis = true
-
-	mr := Concurrency + 10
-	flag.IntVar(&MaxRedisConns, "max-redis-conns", mr, "Max number of redis connections to pool.")
-
-	flag.Uint64Var(&MaxPartitions, "max-partitions", uint64(1), "Max number of partitions.")
-}
-
-var UsingHttpOutlet bool
-
-func init() {
-	flag.BoolVar(&UsingHttpOutlet, "http-outlet", true, "Enable HTTP Outlet.")
-}
-
-var NumOutletRetry int
-
-func init() {
-	flag.IntVar(&NumOutletRetry, "outlet-retry", 2, "Number of times to retry outlet requests.")
-}
-
-var UsingReciever bool
-
-func init() {
-	flag.BoolVar(&UsingReciever, "receiver", true, "Start a log receiver.")
-}
-
-var (
-	Verbose bool
-	Port    int
-)
-
-func init() {
-	flag.BoolVar(&Verbose, "v", false, "Enable verbose statistics.")
-
-	p := envInt("PORT", 8080)
-	flag.IntVar(&Port, "port", p, "HTTP server will bind to this port.")
-}
-
-var Secrets []string
-
-func init() {
-	s := os.Getenv("SECRETS")
-	if len(s) > 0 {
-		Secrets = strings.Split(s, ":")
-	}
-}
-
-var OutletUser, OutletPass string
-var OutletMeasurements bool
-
-func init() {
-	OutletUser = os.Getenv("OUTLET_USER")
-	OutletPass = os.Getenv("OUTLET_PASS")
-	if len(OutletUser) > 0 && len(OutletPass) > 0 {
-		OutletMeasurements = true
-	}
-}
-
-//Finally.
-func init() {
-	flag.Parse()
-}
-
-//Helper Functions
-
+// Helper Function
 func parseRedisUrl(s string) (string, string, error) {
 	u, err := url.Parse(s)
 	if err != nil {
@@ -148,15 +86,4 @@ func parseRedisUrl(s string) (string, string, error) {
 		password, _ = u.User.Password()
 	}
 	return u.Host, password, nil
-}
-
-func envInt(name string, defaultVal int) int {
-	tmp := os.Getenv(name)
-	if len(tmp) != 0 {
-		n, err := strconv.Atoi(tmp)
-		if err == nil {
-			return n
-		}
-	}
-	return defaultVal
 }

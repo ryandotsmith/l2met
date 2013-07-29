@@ -108,6 +108,7 @@ func (r *Receiver) Stop() {
 func (r *Receiver) accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
+		startParse := time.Now()
 		for bucket := range bucket.NewBuckets(rdr, lreq.Opts) {
 			now := time.Now().Truncate(bucket.Id.Resolution)
 			if bucket.Id.Time.Equal(now) {
@@ -117,6 +118,7 @@ func (r *Receiver) accept() {
 					bucket.Id.Time, now)
 			}
 		}
+		r.Metchan.Measure("receiver.accept", startParse)
 	}
 }
 

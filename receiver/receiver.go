@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/store"
 	"github.com/ryandotsmith/l2met/utils"
 	"runtime"
@@ -54,6 +55,8 @@ type Receiver struct {
 	Store store.Store
 	//Count the number of times we accept a bucket.
 	numBuckets uint64
+	// Publish receiver metrics on this channel.
+	Metchan *metchan.Channel
 }
 
 func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
@@ -147,9 +150,11 @@ func (r *Receiver) transfer() {
 
 func (r *Receiver) outlet() {
 	for b := range r.Outbox {
+		startPut := time.Now()
 		if err := r.Store.Put(b); err != nil {
 			fmt.Printf("error=%s\n", err)
 		}
+		r.Metchan.Measure("reciever.outlet", startPut)
 	}
 }
 

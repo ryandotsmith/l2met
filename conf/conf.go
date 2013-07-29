@@ -7,24 +7,26 @@ import (
 	"flag"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
 type D struct {
-	AppName         string
-	Outlet          string
-	RedisHost       string
-	RedisPass       string
-	Secrets         []string
-	BufferSize      int
-	Concurrency     int
-	Port            int
-	NumOutletRetry  int
-	MaxPartitions   uint64
-	FlushtInterval  time.Duration
-	UsingHttpOutlet bool
-	UsingReciever   bool
-	Verbose         bool
+	AppName               string
+	Outlet                string
+	RedisHost             string
+	RedisPass             string
+	Secrets               []string
+	BufferSize            int
+	Concurrency           int
+	Port                  int
+	NumOutletRetry        int
+	MaxPartitions         uint64
+	FlushtInterval        time.Duration
+	EnableInternalMetrics bool
+	UsingHttpOutlet       bool
+	UsingReciever         bool
+	Verbose               bool
 }
 
 // Builds a conf data structure and connects
@@ -65,10 +67,14 @@ func New() *D {
 	flag.BoolVar(&d.UsingReciever, "receiver", true,
 		"Enable the Receiver.")
 
+	flag.BoolVar(&d.EnableInternalMetrics, "metchan", false,
+		"Enable the internal metrics channel.")
+
 	flag.BoolVar(&d.Verbose, "v", false,
 		"Enable verbose log output.")
 
 	d.RedisHost, d.RedisPass, _ = parseRedisUrl(env("REDIS_URL"))
+	d.Secrets = strings.Split(mustenv("SECRETS"), ":")
 
 	return d
 }
@@ -76,6 +82,14 @@ func New() *D {
 // Helper Function
 func env(n string) string {
 	return os.Getenv(n)
+}
+
+func mustenv(n string) string {
+	v := env(n)
+	if len(v) == 0 {
+		panic("Must set: " + n)
+	}
+	return v
 }
 
 // Helper Function

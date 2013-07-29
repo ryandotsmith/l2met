@@ -1,7 +1,6 @@
 package outlet
 
 import (
-	"runtime"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -11,6 +10,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"runtime"
 	"time"
 )
 

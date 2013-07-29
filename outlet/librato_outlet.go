@@ -70,24 +70,24 @@ type LibratoOutlet struct {
 	// How many accept routines should be running.
 	NumConverters int
 	//We use the Reader to read buckets from the store into our Inbox.
-	Reader Reader
+	rdr Reader
 	//Number of times to retry HTTP requests to librato's api.
 	Retries int
 }
 
-func NewLibratoOutlet(s, c, r int, rdr Reader) *LibratoOutlet {
+func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
 	l := new(LibratoOutlet)
-	l.Inbox = make(chan *bucket.Bucket, s)
-	l.Conversions = make(chan *Payload, s)
-	l.Outbox = make(chan []*Payload, s)
-	l.NumConverters = c
-	l.NumOutlets = c
-	l.Reader = rdr
+	l.Inbox = make(chan *bucket.Bucket, sz)
+	l.Conversions = make(chan *Payload, sz)
+	l.Outbox = make(chan []*Payload, sz)
+	l.NumConverters = concur
+	l.NumOutlets = concur
+	l.rdr = r
 	return l
 }
 
 func (l *LibratoOutlet) Start() {
-	go l.Reader.Start(l.Inbox)
+	go l.rdr.Start(l.Inbox)
 	for i := 0; i < l.NumConverters; i++ {
 		go l.convert()
 	}

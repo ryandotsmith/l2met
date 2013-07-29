@@ -11,11 +11,10 @@ import (
 	"github.com/ryandotsmith/l2met/bucket"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 )
-
-var libratoUrl = "https://metrics-api.librato.com/v1/metrics"
 
 // Convert l2met data into Librato's API format.
 type libratoMetric struct {
@@ -31,15 +30,17 @@ type libratoMetric struct {
 // The channel for which internal metrics are organized.
 type Channel struct {
 	sync.Mutex
-	verbose bool
-	enabled bool
-	buffer  map[bucket.Id]*bucket.Bucket
-	outbox  chan *bucket.Bucket
+	verbose    bool
+	enabled    bool
+	buffer     map[bucket.Id]*bucket.Bucket
+	outbox     chan *bucket.Bucket
+	url *url.URL
 }
 
-func New(enabled, verbose bool) *Channel {
+func New(verbose bool, u *url.URL) *Channel {
 	c := new(Channel)
-	c.enabled = enabled
+	c.url = u
+	c.enabled = len(u.String()) > 0
 	c.verbose = verbose
 	c.buffer = make(map[bucket.Id]*bucket.Bucket)
 	c.outbox = make(chan *bucket.Bucket, 10)
@@ -64,7 +65,7 @@ func (c *Channel) Measure(name string, t time.Time) {
 			Units:      "ms",
 			// TODO(ryandotsmith):
 			// Maybe we use the system's hostname?
-			Source:     "metchan",
+			Source: "metchan",
 		},
 		Vals: []float64{float64(elapsed)},
 	}
@@ -108,7 +109,7 @@ func (c *Channel) outlet() {
 			Max:    b.Max(),
 			Min:    b.Min(),
 		}
-		if err := post(met); err != nil {
+		if err := c.post(met); err != nil {
 			fmt.Printf("at=metchan-post error=%s\n", err)
 		} else {
 			fmt.Printf("at=metchan-post status=success\n")
@@ -116,24 +117,26 @@ func (c *Channel) outlet() {
 	}
 }
 
-func post(m *libratoMetric) error {
+func (c *Channel) post(m *libratoMetric) error {
 	payload := struct {
 		Gauges []*libratoMetric `json:"gauges"`
 	}{
 		[]*libratoMetric{m},
 	}
 
-	body, err := json.Marshal(payload)
+	j, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", libratoUrl, bytes.NewBuffer(body))
+	body := bytes.NewBuffer(j)
+	req, err := http.NewRequest("POST", "https://metrics-api.librato.com/v1/metrics", body)
 	if err != nil {
 		return err
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "l2met-metchan/0")
-	req.SetBasicAuth("s@32k.io", "484c793b46dabbf72c24489f88793b65e05664b83e4b0ddce55b051822a008d0")
+	p,_ := c.url.User.Password()
+	req.SetBasicAuth(c.url.User.Username(), p)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err

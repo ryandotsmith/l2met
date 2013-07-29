@@ -16,6 +16,7 @@ type D struct {
 	Outlet                string
 	RedisHost             string
 	RedisPass             string
+	MetchanUrl            *url.URL
 	Secrets               []string
 	BufferSize            int
 	Concurrency           int
@@ -75,6 +76,13 @@ func New() *D {
 
 	d.RedisHost, d.RedisPass, _ = parseRedisUrl(env("REDIS_URL"))
 	d.Secrets = strings.Split(mustenv("SECRETS"), ":")
+
+	if len(env("METCHAN_URL")) > 0 {
+		url, err := url.Parse(env("METCHAN_URL"))
+		if err == nil {
+			d.MetchanUrl = url
+		}
+	}
 
 	return d
 }

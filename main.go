@@ -54,7 +54,7 @@ func main() {
 			cfg.Concurrency, cfg.NumOutletRetry, rdr)
 		outlet.Start()
 		if cfg.Verbose {
-			//go outlet.Report()
+			go outlet.Report()
 		}
 	case "graphite":
 		rdr := &outlet.BucketReader{
@@ -84,7 +84,7 @@ func main() {
 		recv.Metchan = mchan
 		recv.Start()
 		if cfg.Verbose {
-			//go recv.Report()
+			go recv.Report()
 		}
 		http.HandleFunc("/logs",
 			func(w http.ResponseWriter, r *http.Request) {

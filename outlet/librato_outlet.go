@@ -71,7 +71,7 @@ type LibratoOutlet struct {
 	// We use the Reader to read buckets from the store into our Inbox.
 	rdr Reader
 	// Number of times to retry HTTP requests to librato's api.
-	Retries int
+	numRetries int
 }
 
 func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
@@ -80,6 +80,7 @@ func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
 	l.Conversions = make(chan *Payload, sz)
 	l.Outbox = make(chan []*Payload, sz)
 	l.NumOutlets = concur
+	l.numRetries = retries
 	l.rdr = r
 	return l
 }
@@ -179,10 +180,10 @@ func (l *LibratoOutlet) outlet() {
 }
 
 func (l *LibratoOutlet) postWithRetry(u, p string, body *bytes.Buffer) error {
-	for i := 0; i <= l.Retries; i++ {
+	for i := 0; i <= l.numRetries; i++ {
 		if err := l.post(u, p, body); err != nil {
 			fmt.Printf("measure.librato.error user=%s msg=%s attempt=%d\n", u, err, i)
-			if i == l.Retries {
+			if i == l.numRetries {
 				return err
 			}
 			continue

@@ -67,7 +67,7 @@ type LibratoOutlet struct {
 	// Ensures that we route the metrics to the correct librato account.
 	Outbox chan []*Payload
 	// How many outlet routines should be running.
-	NumOutlets int
+	numOutlets int
 	// We use the Reader to read buckets from the store into our Inbox.
 	rdr Reader
 	// Number of times to retry HTTP requests to librato's api.
@@ -79,7 +79,7 @@ func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
 	l.Inbox = make(chan *bucket.Bucket, sz)
 	l.Conversions = make(chan *Payload, sz)
 	l.Outbox = make(chan []*Payload, sz)
-	l.NumOutlets = concur
+	l.numOutlets = concur
 	l.numRetries = retries
 	l.rdr = r
 	return l
@@ -93,7 +93,7 @@ func (l *LibratoOutlet) Start() {
 		go l.convert()
 	}
 	go l.batch()
-	for i := 0; i < l.NumOutlets; i++ {
+	for i := 0; i < l.numOutlets; i++ {
 		go l.outlet()
 	}
 }

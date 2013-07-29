@@ -1,6 +1,7 @@
 package outlet
 
 import (
+	"runtime"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -63,15 +64,13 @@ type LibratoOutlet struct {
 	// the outbox for HTTP submission. We rely on the batch
 	// routine to make sure that the collections of librato metrics
 	// in the outbox are homogeneous with respect to their token.
-	// This ensures that we route the metrics to the correct librato account.
+	// Ensures that we route the metrics to the correct librato account.
 	Outbox chan []*Payload
 	// How many outlet routines should be running.
 	NumOutlets int
-	// How many accept routines should be running.
-	NumConverters int
-	//We use the Reader to read buckets from the store into our Inbox.
+	// We use the Reader to read buckets from the store into our Inbox.
 	rdr Reader
-	//Number of times to retry HTTP requests to librato's api.
+	// Number of times to retry HTTP requests to librato's api.
 	Retries int
 }
 
@@ -80,7 +79,6 @@ func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
 	l.Inbox = make(chan *bucket.Bucket, sz)
 	l.Conversions = make(chan *Payload, sz)
 	l.Outbox = make(chan []*Payload, sz)
-	l.NumConverters = concur
 	l.NumOutlets = concur
 	l.rdr = r
 	return l
@@ -88,7 +86,9 @@ func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
 
 func (l *LibratoOutlet) Start() {
 	go l.rdr.Start(l.Inbox)
-	for i := 0; i < l.NumConverters; i++ {
+	// Converting is CPU bound as it reads from memory
+	// then computes statistical functions over an array.
+	for i := 0; i < runtime.NumCPU(); i++ {
 		go l.convert()
 	}
 	go l.batch()

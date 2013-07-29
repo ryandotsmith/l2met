@@ -37,6 +37,12 @@ type Channel struct {
 	url *url.URL
 }
 
+// Returns an initialized Metchan Channel.
+// Creates a new HTTP client for direct access to Librato.
+// This channel is orthogonal with other librato http clients in l2met.
+// If a blank URL is given, no metric posting attempt will be made.
+// If verbose is set to true, the metric will be printed to STDOUT
+// regardless of whether the metric is sent to Librato.
 func New(verbose bool, u *url.URL) *Channel {
 	c := new(Channel)
 	c.url = u
@@ -49,6 +55,9 @@ func New(verbose bool, u *url.URL) *Channel {
 	return c
 }
 
+// Provide the time at which you started your measurement.
+// Places the measurement in a buffer to be aggregated and
+// eventually flushed to Librato.
 func (c *Channel) Measure(name string, t time.Time) {
 	elapsed := time.Since(t) / time.Millisecond
 	if c.verbose {

@@ -14,7 +14,7 @@ import (
 type Reader struct {
 	str          store.Store
 	scanInterval time.Duration
-	NumOutlets   int
+	numOutlets   int
 	Inbox        chan *bucket.Bucket
 	Outbox       chan *bucket.Bucket
 	Mchan        *metchan.Channel
@@ -24,7 +24,7 @@ type Reader struct {
 func New(sz, c int, st store.Store) *Reader {
 	rdr := new(Reader)
 	rdr.Inbox = make(chan *bucket.Bucket, sz)
-	rdr.NumOutlets = c
+	rdr.numOutlets = c
 	rdr.scanInterval = time.Second
 	rdr.str = st
 	return rdr
@@ -33,7 +33,7 @@ func New(sz, c int, st store.Store) *Reader {
 func (r *Reader) Start(out chan *bucket.Bucket) {
 	r.Outbox = out
 	go r.scan()
-	for i := 0; i < r.NumOutlets; i++ {
+	for i := 0; i < r.numOutlets; i++ {
 		go r.outlet()
 	}
 }

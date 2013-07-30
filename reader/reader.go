@@ -12,22 +12,23 @@ import (
 )
 
 type Reader struct {
-	str store.Store
-	Interval    time.Duration
-	Partition   string
-	Ttl         uint64
-	NumOutlets  int
-	Inbox       chan *bucket.Bucket
-	Outbox      chan *bucket.Bucket
-	Mchan       *metchan.Channel
+	str          store.Store
+	scanInterval time.Duration
+	Partition    string
+	Ttl          uint64
+	NumOutlets   int
+	Inbox        chan *bucket.Bucket
+	Outbox       chan *bucket.Bucket
+	Mchan        *metchan.Channel
 }
 
-func New(sz, c int, i time.Duration, st store.Store) *Reader {
+// Sets the scan interval to 1s.
+func New(sz, c int, st store.Store) *Reader {
 	rdr := new(Reader)
 	rdr.Partition = "bucket-reader"
 	rdr.Inbox = make(chan *bucket.Bucket, sz)
 	rdr.NumOutlets = c
-	rdr.Interval = i
+	rdr.scanInterval = time.Second
 	rdr.str = st
 	return rdr
 }
@@ -41,7 +42,7 @@ func (r *Reader) Start(out chan *bucket.Bucket) {
 }
 
 func (r *Reader) scan() {
-	for t := range time.Tick(r.Interval) {
+	for t := range time.Tick(r.scanInterval) {
 		startScan := time.Now()
 		buckets, err := r.str.Scan(t)
 		if err != nil {

@@ -1,7 +1,6 @@
 package store
 
 import (
-	"strings"
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
@@ -9,6 +8,7 @@ import (
 	"github.com/ryandotsmith/l2met/utils"
 	"hash/crc64"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -224,7 +224,7 @@ func decodeList(src []byte, dest *[]float64) error {
 	// Assume the array starts with '[' and ends with ']'
 	trimed := string(src[1:(len(src) - 1)])
 	// Assume the numbers are seperated by spaces.
-	for _, s := range strings.Split(trimed, " "){
+	for _, s := range strings.Split(trimed, " ") {
 		f, err := strconv.ParseFloat(s, 64)
 		if err == nil {
 			*dest = append(*dest, f)

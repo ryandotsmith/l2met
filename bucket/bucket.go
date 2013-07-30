@@ -30,14 +30,62 @@ func (b *Bucket) Add(otherM *Bucket) {
 	}
 }
 
+func (b *Bucket) Metrics() []*LibratoMetric {
+	metrics := make([]*LibratoMetric, 9)
+	metrics[0] = b.Metric("min")
+	metrics[1] = b.Metric("median")
+	metrics[2] = b.Metric("p95")
+	metrics[3] = b.Metric("p99")
+	metrics[4] = b.Metric("max")
+	metrics[5] = b.Metric("max")
+	metrics[6] = b.Metric("sum")
+	metrics[7] = b.Metric("count")
+	metrics[8] = b.Metric("last")
+	return metrics
+}
+
+func (b *Bucket) Metric(name string) *LibratoMetric {
+	return &LibratoMetric{
+		Attr: &libratoAttrs{
+			Min:   0,
+			Units: b.Id.Units,
+		},
+		Name:   b.Id.Name + name,
+		Source: b.Id.Source,
+		Time:   b.Id.Time.Unix(),
+		User:   b.Id.User,
+		Pass:   b.Id.Pass,
+		Val:    b.queryVal(name),
+	}
+}
+
 func (b *Bucket) String() string {
 	return fmt.Sprintf("name=%s source=%s vals=%v",
 		b.Id.Name, b.Id.Source, b.Vals)
 }
 
-/*
- The remainder of these methods provide statistics for buckets.
-*/
+func (b *Bucket) queryVal(name string) float64 {
+	switch name {
+	case "min":
+		return b.Min()
+	case "median":
+		return b.Median()
+	case "p95":
+		return b.P95()
+	case "p99":
+		return b.P99()
+	case "max":
+		return b.Max()
+	case "sum":
+		return b.Sum()
+	case "count":
+		return float64(b.Count())
+	case "last":
+		return b.Last()
+	default:
+		panic("Value not defined.")
+	}
+}
 
 func (b *Bucket) Count() int {
 	return len(b.Vals)

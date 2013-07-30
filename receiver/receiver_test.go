@@ -130,7 +130,7 @@ func fmtLog(t time.Time, procid, msg string) []byte {
 func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	st := store.NewMemStore()
 	recv := NewReceiver(100, 1, time.Millisecond*5, st)
-	recv.Metchan = new(metchan.Channel)
+	recv.Mchan = new(metchan.Channel)
 	recv.Start()
 	defer recv.Stop()
 

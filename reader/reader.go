@@ -14,7 +14,6 @@ import (
 type Reader struct {
 	str          store.Store
 	scanInterval time.Duration
-	Ttl          uint64
 	NumOutlets   int
 	Inbox        chan *bucket.Bucket
 	Outbox       chan *bucket.Bucket

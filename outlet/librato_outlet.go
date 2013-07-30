@@ -37,19 +37,19 @@ func init() {
 	httpClient = &http.Client{Transport: tr}
 }
 
-type LibratoAttributes struct {
+type libratoAttrs struct {
 	Min   int    `json:"display_min"`
 	Units string `json:"display_units_long"`
 }
 
 type libratoMetric struct {
-	Name   string             `json:"name"`
-	Time   int64              `json:"measure_time"`
-	Val    float64            `json:"value"`
-	Source string             `json:"source,omitempty"`
-	User   string             `json:"-"`
-	Pass   string             `json:"-"`
-	Attr   *LibratoAttributes `json:"attributes,omitempty"`
+	Name   string        `json:"name"`
+	Time   int64         `json:"measure_time"`
+	Val    float64       `json:"value"`
+	Source string        `json:"source,omitempty"`
+	User   string        `json:"-"`
+	Pass   string        `json:"-"`
+	Attr   *libratoAttrs `json:"attributes,omitempty"`
 }
 
 type LibratoRequest struct {
@@ -118,7 +118,7 @@ func (l *LibratoOutlet) convert() {
 			fmt.Printf("at=bucket-no-vals bucket=%s\n", bucket.Id.Name)
 			continue
 		}
-		attrs := &LibratoAttributes{Min: 0, Units: bucket.Id.Units}
+		attrs := &libratoAttrs{Min: 0, Units: bucket.Id.Units}
 		//TODO(ryandotsmith): Some day Librato will support these
 		//metrics in their complex measurement api. We will need to
 		//move these up ^^ into the complex payload.

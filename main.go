@@ -108,7 +108,7 @@ func main() {
 				v.Add("user", user)
 				v.Add("password", pass)
 				recv.Receive(b, v)
-				mchan.Measure("http-receiver", startReceiveT)
+				mchan.Measure("http.handle", startReceiveT)
 			})
 	}
 

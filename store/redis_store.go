@@ -1,11 +1,11 @@
 package store
 
 import (
+	"strings"
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/ryandotsmith/l2met/bucket"
-	"github.com/ryandotsmith/l2met/encoding"
 	"github.com/ryandotsmith/l2met/utils"
 	"hash/crc64"
 	"strconv"
@@ -151,21 +151,20 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 
 func (s *RedisStore) Get(b *bucket.Bucket) error {
 	defer utils.MeasureT("bucket.get", time.Now())
-
 	rc := s.redisPool.Get()
 	defer rc.Close()
 
-	//Fill in the vals.
 	reply, err := redis.Values(rc.Do("LRANGE", b.Id.Encode(), 0, -1))
 	if err != nil {
 		return err
 	}
-	for _, item := range reply {
-		v, ok := item.([]byte)
-		if !ok {
-			continue
-		}
-		err = encoding.DecodeArray(v, &b.Vals, '[', ']', ' ')
+	if len(reply) == 0 {
+		return errors.New("redis_store: Empty bucket.")
+	}
+	// The redis.Strings reply will always wrap our array in an outer
+	// array. Above, we checked that we would always have at least 1 elm.
+	if err := decodeList(reply[0].([]byte), &b.Vals); err != nil {
+		return err
 	}
 	return nil
 }
@@ -213,4 +212,23 @@ func (s *RedisStore) unlockPartition(p uint64) error {
 	defer rc.Close()
 	_, err := rc.Do("DEL", lockPrefix+"."+strconv.Itoa(int(p)))
 	return err
+}
+
+func (s *RedisStore) flush() {
+	rc := s.redisPool.Get()
+	defer rc.Close()
+	rc.Do("FLUSHALL")
+}
+
+func decodeList(src []byte, dest *[]float64) error {
+	// Assume the array starts with '[' and ends with ']'
+	trimed := string(src[1:(len(src) - 1)])
+	// Assume the numbers are seperated by spaces.
+	for _, s := range strings.Split(trimed, " "){
+		f, err := strconv.ParseFloat(s, 64)
+		if err == nil {
+			*dest = append(*dest, f)
+		}
+	}
+	return nil
 }

@@ -23,7 +23,6 @@ type D struct {
 	NumOutletRetry  int
 	MaxPartitions   uint64
 	FlushtInterval  time.Duration
-	UsingHttpOutlet bool
 	UsingReciever   bool
 	UseOutlet       bool
 	Verbose         bool
@@ -59,9 +58,6 @@ func New() *D {
 
 	flag.BoolVar(&d.UseOutlet, "outlet", false,
 		"Start the Librato outlet.")
-
-	flag.BoolVar(&d.UsingHttpOutlet, "http-outlet", false,
-		"Enable the HTTP outlet.")
 
 	flag.BoolVar(&d.UsingReciever, "receiver", true,
 		"Enable the Receiver.")

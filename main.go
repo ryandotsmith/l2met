@@ -57,16 +57,6 @@ func main() {
 		}
 	}
 
-	// HTTP Outlet can be ran in addition to the librato outlet.
-	if cfg.UsingHttpOutlet {
-		httpOutlet := new(outlet.HttpOutlet)
-		httpOutlet.Store = st
-		outletFunc := func(w http.ResponseWriter, r *http.Request) {
-			httpOutlet.ServeReadBucket(w, r)
-		}
-		http.HandleFunc("/metrics", outletFunc)
-	}
-
 	if cfg.UsingReciever {
 		recv := receiver.NewReceiver(cfg.BufferSize,
 			cfg.Concurrency, cfg.FlushtInterval, st)

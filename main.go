@@ -50,8 +50,10 @@ func main() {
 	case "librato":
 		rdr := outlet.NewBucketReader(cfg.BufferSize,
 			cfg.Concurrency, cfg.FlushtInterval, st)
+		rdr.Mchan = mchan
 		outlet := outlet.NewLibratoOutlet(cfg.BufferSize,
 			cfg.Concurrency, cfg.NumOutletRetry, rdr)
+		outlet.Mchan = mchan
 		outlet.Start()
 		if cfg.Verbose {
 			go outlet.Report()
@@ -61,6 +63,7 @@ func main() {
 			Store:    st,
 			Interval: cfg.FlushtInterval,
 		}
+		rdr.Mchan = mchan
 		outlet := outlet.NewGraphiteOutlet(cfg.BufferSize, rdr)
 		outlet.Start()
 	default:
@@ -81,7 +84,7 @@ func main() {
 	if cfg.UsingReciever {
 		recv := receiver.NewReceiver(cfg.BufferSize,
 			cfg.Concurrency, cfg.FlushtInterval, st)
-		recv.Metchan = mchan
+		recv.Mchan = mchan
 		recv.Start()
 		if cfg.Verbose {
 			go recv.Report()

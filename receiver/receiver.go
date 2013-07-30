@@ -56,7 +56,7 @@ type Receiver struct {
 	//Count the number of times we accept a bucket.
 	numBuckets uint64
 	// Publish receiver metrics on this channel.
-	Metchan *metchan.Channel
+	Mchan *metchan.Channel
 }
 
 func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
@@ -118,7 +118,7 @@ func (r *Receiver) accept() {
 					bucket.Id.Time, now)
 			}
 		}
-		r.Metchan.Measure("receiver.accept", startParse)
+		r.Mchan.Measure("receiver.accept", startParse)
 	}
 }
 
@@ -156,7 +156,7 @@ func (r *Receiver) outlet() {
 		if err := r.Store.Put(b); err != nil {
 			fmt.Printf("error=%s\n", err)
 		}
-		r.Metchan.Measure("reciever.outlet", startPut)
+		r.Mchan.Measure("reciever.outlet", startPut)
 	}
 }
 

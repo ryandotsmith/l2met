@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/utils"
 	"io/ioutil"
 	"net"
@@ -72,6 +73,7 @@ type LibratoOutlet struct {
 	rdr Reader
 	// Number of times to retry HTTP requests to librato's api.
 	numRetries int
+	Mchan      *metchan.Channel
 }
 
 func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
@@ -198,7 +200,7 @@ func (l *LibratoOutlet) postWithRetry(u, p string, body *bytes.Buffer) error {
 }
 
 func (l *LibratoOutlet) post(u, p string, body *bytes.Buffer) error {
-	defer utils.MeasureT("librato-post", time.Now())
+	defer l.Mchan.Measure("outlet.post", time.Now())
 	req, err := http.NewRequest("POST", libratoUrl, body)
 	if err != nil {
 		return err

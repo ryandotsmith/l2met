@@ -12,7 +12,7 @@ import (
 )
 
 type Reader struct {
-	Store       store.Store
+	str store.Store
 	Interval    time.Duration
 	Partition   string
 	Ttl         uint64
@@ -30,7 +30,7 @@ func New(sz, c int, i time.Duration, st store.Store) *Reader {
 	rdr.NumScanners = c
 	rdr.NumOutlets = c
 	rdr.Interval = i
-	rdr.Store = st
+	rdr.str = st
 	return rdr
 }
 
@@ -45,7 +45,7 @@ func (r *Reader) Start(out chan *bucket.Bucket) {
 func (r *Reader) scan() {
 	for t := range time.Tick(r.Interval) {
 		startScan := time.Now()
-		buckets, err := r.Store.Scan(t)
+		buckets, err := r.str.Scan(t)
 		if err != nil {
 			fmt.Printf("at=bucket.scan error=%s\n", err)
 			continue
@@ -60,7 +60,7 @@ func (r *Reader) scan() {
 func (r *Reader) outlet() {
 	for b := range r.Inbox {
 		startGet := time.Now()
-		r.Store.Get(b)
+		r.str.Get(b)
 		r.Outbox <- b
 		r.Mchan.Measure("reader.get", startGet)
 	}

@@ -52,7 +52,7 @@ type libratoMetric struct {
 	Attr   *libratoAttrs `json:"attributes,omitempty"`
 }
 
-type LibratoRequest struct {
+type libratoRequest struct {
 	Gauges []*libratoMetric `json:"gauges"`
 }
 
@@ -175,7 +175,7 @@ func (l *LibratoOutlet) outlet() {
 		//from any one of the payloads.
 		user := payloads[0].User
 		pass := payloads[0].Pass
-		libratoReq := &LibratoRequest{payloads}
+		libratoReq := &libratoRequest{payloads}
 		j, err := json.Marshal(libratoReq)
 		if err != nil {
 			fmt.Printf("at=json error=%s user=%s\n", err, user)

@@ -17,7 +17,6 @@ type Reader struct {
 	Partition   string
 	Ttl         uint64
 	NumOutlets  int
-	NumScanners int
 	Inbox       chan *bucket.Bucket
 	Outbox      chan *bucket.Bucket
 	Mchan       *metchan.Channel
@@ -27,7 +26,6 @@ func New(sz, c int, i time.Duration, st store.Store) *Reader {
 	rdr := new(Reader)
 	rdr.Partition = "bucket-reader"
 	rdr.Inbox = make(chan *bucket.Bucket, sz)
-	rdr.NumScanners = c
 	rdr.NumOutlets = c
 	rdr.Interval = i
 	rdr.str = st

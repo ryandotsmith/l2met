@@ -27,16 +27,21 @@ type libratoMetric struct {
 	Min    float64 `json:"min"`
 }
 
+type libratoPayload struct {
+	Gauges []*libratoMetric `json:"gauges"`
+}
+
 // The channel for which internal metrics are organized.
 type Channel struct {
 	sync.Mutex
-	username string
-	password string
-	verbose  bool
-	enabled  bool
-	buffer   map[bucket.Id]*bucket.Bucket
-	outbox   chan *bucket.Bucket
-	url      *url.URL
+	username      string
+	password      string
+	verbose       bool
+	enabled       bool
+	buffer        map[bucket.Id]*bucket.Bucket
+	outbox        chan *bucket.Bucket
+	url           *url.URL
+	FlushInterval time.Duration
 }
 
 // Returns an initialized Metchan Channel.
@@ -47,18 +52,30 @@ type Channel struct {
 // regardless of whether the metric is sent to Librato.
 func New(verbose bool, u *url.URL) *Channel {
 	c := new(Channel)
+
+	// Read the destination for the metrics
 	c.url = u
 	c.enabled = len(u.String()) > 0
-	c.verbose = verbose
-	c.buffer = make(map[bucket.Id]*bucket.Bucket)
-	c.outbox = make(chan *bucket.Bucket, 10)
 	c.username = u.User.Username()
 	c.password, _ = u.User.Password()
 	c.url.User = nil
 
+	// This will enable writting to a logger.
+	c.verbose = verbose
+
+	// Internal Datastructures.
+	c.buffer = make(map[bucket.Id]*bucket.Bucket)
+	c.outbox = make(chan *bucket.Bucket, 10)
+
+	// Default flush interval.
+	c.FlushInterval = time.Second
+
+	return c
+}
+
+func (c *Channel) Start() {
 	go c.scheduleFlush()
 	go c.outlet()
-	return c
 }
 
 // Provide the time at which you started your measurement.
@@ -99,7 +116,7 @@ func (c *Channel) add(b *bucket.Bucket) {
 }
 
 func (c *Channel) scheduleFlush() {
-	for _ = range time.Tick(time.Second * 5) {
+	for _ = range time.Tick(c.FlushInterval) {
 		c.flush()
 	}
 }
@@ -133,13 +150,8 @@ func (c *Channel) outlet() {
 }
 
 func (c *Channel) post(m *libratoMetric) error {
-	payload := struct {
-		Gauges []*libratoMetric `json:"gauges"`
-	}{
-		[]*libratoMetric{m},
-	}
-
-	j, err := json.Marshal(payload)
+	p := &libratoPayload{[]*libratoMetric{m}}
+	j, err := json.Marshal(p)
 	if err != nil {
 		return err
 	}

@@ -2,8 +2,8 @@ package outlet
 
 import (
 	"fmt"
-	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/store"
 	"time"
 )

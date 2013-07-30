@@ -13,7 +13,6 @@ import (
 
 type D struct {
 	AppName         string
-	Outlet          string
 	RedisHost       string
 	RedisPass       string
 	MetchanUrl      *url.URL
@@ -26,6 +25,7 @@ type D struct {
 	FlushtInterval  time.Duration
 	UsingHttpOutlet bool
 	UsingReciever   bool
+	UseOutlet       bool
 	Verbose         bool
 }
 
@@ -38,10 +38,6 @@ func New() *D {
 	flag.StringVar(&d.AppName, "app-name", "l2met",
 		"Prefix internal log messages with this value.")
 
-	flag.StringVar(&d.Outlet, "outlet", "",
-		"The type of outlet to use."+
-			"Example:librato, graphite, (blank)")
-
 	flag.IntVar(&d.BufferSize, "buffer", 1024,
 		"Max number of items for all internal buffers.")
 
@@ -52,7 +48,7 @@ func New() *D {
 		"HTTP server's bind port.")
 
 	flag.IntVar(&d.NumOutletRetry, "outlet-retry", 2,
-		"Number of attempts to outlet metrics to Librato or Graphite.")
+		"Number of attempts to outlet metrics to Librato.")
 
 	flag.Uint64Var(&d.MaxPartitions, "partitions", uint64(1),
 		"Number of partitions to use for outlets.")
@@ -60,6 +56,9 @@ func New() *D {
 	flag.DurationVar(&d.FlushtInterval, "flush-interval", time.Second,
 		"Time to wait before sending data to store or outlet. "+
 			"Example:60s 30s 1m")
+
+	flag.BoolVar(&d.UseOutlet, "outlet", false,
+		"Start the Librato outlet.")
 
 	flag.BoolVar(&d.UsingHttpOutlet, "http-outlet", false,
 		"Enable the HTTP outlet.")

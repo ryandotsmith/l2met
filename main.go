@@ -44,10 +44,7 @@ func main() {
 		fmt.Printf("at=initialized-mem-store\n")
 	}
 
-	// It is not possible to run both librato and graphite outlets
-	// in the same process.
-	switch cfg.Outlet {
-	case "librato":
+	if cfg.UseOutlet {
 		rdr := outlet.NewBucketReader(cfg.BufferSize,
 			cfg.Concurrency, cfg.FlushtInterval, st)
 		rdr.Mchan = mchan
@@ -58,17 +55,6 @@ func main() {
 		if cfg.Verbose {
 			go outlet.Report()
 		}
-	case "graphite":
-		rdr := &outlet.BucketReader{
-			Store:    st,
-			Interval: cfg.FlushtInterval,
-		}
-		rdr.Mchan = mchan
-		outlet := outlet.NewGraphiteOutlet(cfg.BufferSize, rdr)
-		outlet.Start()
-	default:
-		fmt.Println("No outlet running. `l2met -h` for outlet help.")
-		os.Exit(1)
 	}
 
 	// HTTP Outlet can be ran in addition to the librato outlet.

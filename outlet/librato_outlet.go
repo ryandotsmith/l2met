@@ -1,3 +1,6 @@
+// The outlet pkg is responsible for taking
+// buckets from the reader, formatting them in the Librato format
+// and delivering the formatted librato metrics to Librato's API.
 package outlet
 
 import (

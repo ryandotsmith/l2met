@@ -167,15 +167,18 @@ func (l *LibratoOutlet) outlet() {
 		//Since a playload contains all metrics for
 		//a unique librato user/pass, we can extract the user/pass
 		//from any one of the payloads.
-		sample := payloads[0]
-		reqBody := new(LibratoRequest)
-		reqBody.Gauges = payloads
-		j, err := json.Marshal(reqBody)
+		user := payloads[0].User
+		pass := payloads[0].Pass
+		libratoReq := &LibratoRequest{payloads}
+		j, err := json.Marshal(libratoReq)
 		if err != nil {
-			fmt.Printf("at=json-error error=%s user=%s\n", err, sample.User)
+			fmt.Printf("at=json error=%s user=%s\n", err, user)
 			continue
 		}
-		l.postWithRetry(sample.User, sample.Pass, bytes.NewBuffer(j))
+		body := bytes.NewBuffer(j)
+		if err := l.postWithRetry(user, pass, body); err != nil {
+			fmt.Printf("measure.outlet.drop user=%s\n", user)
+		}
 	}
 }
 

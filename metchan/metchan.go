@@ -55,7 +55,6 @@ func New(verbose bool, u *url.URL) *Channel {
 	c.username = u.User.Username()
 	c.password, _ = u.User.Password()
 	c.url.User = nil
-	print(c.url.String())
 
 	go c.scheduleFlush()
 	go c.outlet()

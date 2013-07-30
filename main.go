@@ -8,12 +8,12 @@ import (
 	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/outlet"
+	"github.com/ryandotsmith/l2met/reader"
 	"github.com/ryandotsmith/l2met/receiver"
 	"github.com/ryandotsmith/l2met/store"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 )
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	if cfg.UseOutlet {
-		rdr := outlet.NewBucketReader(cfg.BufferSize,
+		rdr := reader.New(cfg.BufferSize,
 			cfg.Concurrency, cfg.FlushtInterval, st)
 		rdr.Mchan = mchan
 		outlet := outlet.NewLibratoOutlet(cfg.BufferSize,

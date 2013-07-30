@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/reader"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/utils"
 	"io/ioutil"
@@ -70,18 +71,18 @@ type LibratoOutlet struct {
 	// How many outlet routines should be running.
 	numOutlets int
 	// We use the Reader to read buckets from the store into our Inbox.
-	rdr Reader
+	rdr *reader.Reader
 	// Number of times to retry HTTP requests to librato's api.
 	numRetries int
 	Mchan      *metchan.Channel
 }
 
-func NewLibratoOutlet(sz, concur, retries int, r Reader) *LibratoOutlet {
+func NewLibratoOutlet(sz, conc, retries int, r *reader.Reader) *LibratoOutlet {
 	l := new(LibratoOutlet)
 	l.Inbox = make(chan *bucket.Bucket, sz)
 	l.Conversions = make(chan *Payload, sz)
 	l.Outbox = make(chan []*Payload, sz)
-	l.numOutlets = concur
+	l.numOutlets = conc
 	l.numRetries = retries
 	l.rdr = r
 	return l

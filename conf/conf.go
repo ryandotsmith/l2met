@@ -24,7 +24,6 @@ type D struct {
 	NumOutletRetry        int
 	MaxPartitions         uint64
 	FlushtInterval        time.Duration
-	EnableInternalMetrics bool
 	UsingHttpOutlet       bool
 	UsingReciever         bool
 	Verbose               bool
@@ -67,9 +66,6 @@ func New() *D {
 
 	flag.BoolVar(&d.UsingReciever, "receiver", true,
 		"Enable the Receiver.")
-
-	flag.BoolVar(&d.EnableInternalMetrics, "metchan", false,
-		"Enable the internal metrics channel.")
 
 	flag.BoolVar(&d.Verbose, "v", false,
 		"Enable verbose log output.")

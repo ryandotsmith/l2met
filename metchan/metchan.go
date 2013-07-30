@@ -30,11 +30,13 @@ type libratoMetric struct {
 // The channel for which internal metrics are organized.
 type Channel struct {
 	sync.Mutex
-	verbose    bool
-	enabled    bool
-	buffer     map[bucket.Id]*bucket.Bucket
-	outbox     chan *bucket.Bucket
-	url *url.URL
+	username string
+	password string
+	verbose  bool
+	enabled  bool
+	buffer   map[bucket.Id]*bucket.Bucket
+	outbox   chan *bucket.Bucket
+	url      *url.URL
 }
 
 // Returns an initialized Metchan Channel.
@@ -50,6 +52,11 @@ func New(verbose bool, u *url.URL) *Channel {
 	c.verbose = verbose
 	c.buffer = make(map[bucket.Id]*bucket.Bucket)
 	c.outbox = make(chan *bucket.Bucket, 10)
+	c.username = u.User.Username()
+	c.password, _ = u.User.Password()
+	c.url.User = nil
+	print(c.url.String())
+
 	go c.scheduleFlush()
 	go c.outlet()
 	return c
@@ -138,14 +145,13 @@ func (c *Channel) post(m *libratoMetric) error {
 		return err
 	}
 	body := bytes.NewBuffer(j)
-	req, err := http.NewRequest("POST", "https://metrics-api.librato.com/v1/metrics", body)
+	req, err := http.NewRequest("POST", c.url.String(), body)
 	if err != nil {
 		return err
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "l2met-metchan/0")
-	p,_ := c.url.User.Password()
-	req.SetBasicAuth(c.url.User.Username(), p)
+	req.SetBasicAuth(c.username, c.password)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err

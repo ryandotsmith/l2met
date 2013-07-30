@@ -14,7 +14,6 @@ import (
 type Reader struct {
 	str          store.Store
 	scanInterval time.Duration
-	Partition    string
 	Ttl          uint64
 	NumOutlets   int
 	Inbox        chan *bucket.Bucket
@@ -25,7 +24,6 @@ type Reader struct {
 // Sets the scan interval to 1s.
 func New(sz, c int, st store.Store) *Reader {
 	rdr := new(Reader)
-	rdr.Partition = "bucket-reader"
 	rdr.Inbox = make(chan *bucket.Bucket, sz)
 	rdr.NumOutlets = c
 	rdr.scanInterval = time.Second

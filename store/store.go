@@ -1,3 +1,5 @@
+// The store pkg is responsible for coordinating bucket transfer
+// between the receivers (front-end) and readers & outlets (back-end).
 package store
 
 import (

@@ -12,20 +12,20 @@ import (
 )
 
 type D struct {
-	AppName         string
-	RedisHost       string
-	RedisPass       string
-	MetchanUrl      *url.URL
-	Secrets         []string
-	BufferSize      int
-	Concurrency     int
-	Port            int
-	NumOutletRetry  int
-	MaxPartitions   uint64
-	FlushtInterval  time.Duration
-	UsingReciever   bool
-	UseOutlet       bool
-	Verbose         bool
+	AppName        string
+	RedisHost      string
+	RedisPass      string
+	MetchanUrl     *url.URL
+	Secrets        []string
+	BufferSize     int
+	Concurrency    int
+	Port           int
+	NumOutletRetry int
+	MaxPartitions  uint64
+	FlushtInterval time.Duration
+	UsingReciever  bool
+	UseOutlet      bool
+	Verbose        bool
 }
 
 // Builds a conf data structure and connects

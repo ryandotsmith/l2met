@@ -59,7 +59,7 @@ func New() *D {
 	flag.BoolVar(&d.UseOutlet, "outlet", false,
 		"Start the Librato outlet.")
 
-	flag.BoolVar(&d.UsingReciever, "receiver", true,
+	flag.BoolVar(&d.UsingReciever, "receiver", false,
 		"Enable the Receiver.")
 
 	flag.BoolVar(&d.Verbose, "v", false,

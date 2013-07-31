@@ -42,10 +42,11 @@ type libratoRequest struct {
 }
 
 type LibratoOutlet struct {
-	// The inbox is used to hold empty buckets that are
-	// waiting to be processed. We buffer the chanel so
-	// as not to slow down the fetch routine.
-	Inbox chan *bucket.Bucket
+	// The inbox will be passed to the reader so
+	// it (the reader) can deliver buckets to the outlet.
+	// Buckets delivered in the outlet's inbox are complete.
+	inbox chan *bucket.Bucket
+
 	// The converter will take items from the inbox,
 	// fill in the bucket with the vals, then convert the
 	// bucket into a librato metric.
@@ -67,7 +68,7 @@ type LibratoOutlet struct {
 
 func NewLibratoOutlet(sz, conc, retries int, r *reader.Reader) *LibratoOutlet {
 	l := new(LibratoOutlet)
-	l.Inbox = make(chan *bucket.Bucket, sz)
+	l.inbox = make(chan *bucket.Bucket, sz)
 	l.conversions = make(chan *bucket.LibratoMetric, sz)
 	l.Outbox = make(chan []*bucket.LibratoMetric, sz)
 	l.numOutlets = conc
@@ -77,7 +78,7 @@ func NewLibratoOutlet(sz, conc, retries int, r *reader.Reader) *LibratoOutlet {
 }
 
 func (l *LibratoOutlet) Start() {
-	go l.rdr.Start(l.Inbox)
+	go l.rdr.Start(l.inbox)
 	// Converting is CPU bound as it reads from memory
 	// then computes statistical functions over an array.
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -91,14 +92,14 @@ func (l *LibratoOutlet) Start() {
 
 func (l *LibratoOutlet) Report() {
 	for _ = range time.Tick(time.Second * 2) {
-		utils.MeasureI("librato-outlet.inbox", len(l.Inbox))
+		utils.MeasureI("librato-outlet.inbox", len(l.inbox))
 		utils.MeasureI("librato-outlet.conversions", len(l.conversions))
 		utils.MeasureI("librato-outlet.outbox", len(l.Outbox))
 	}
 }
 
 func (l *LibratoOutlet) convert() {
-	for bucket := range l.Inbox {
+	for bucket := range l.inbox {
 		for _, m := range bucket.Metrics() {
 			l.conversions <- m
 		}

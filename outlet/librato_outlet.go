@@ -49,7 +49,7 @@ type LibratoOutlet struct {
 	// The converter will take items from the inbox,
 	// fill in the bucket with the vals, then convert the
 	// bucket into a librato metric.
-	Conversions chan *bucket.LibratoMetric
+	conversions chan *bucket.LibratoMetric
 	// The converter will place the librato metrics into
 	// the outbox for HTTP submission. We rely on the batch
 	// routine to make sure that the collections of librato metrics
@@ -68,7 +68,7 @@ type LibratoOutlet struct {
 func NewLibratoOutlet(sz, conc, retries int, r *reader.Reader) *LibratoOutlet {
 	l := new(LibratoOutlet)
 	l.Inbox = make(chan *bucket.Bucket, sz)
-	l.Conversions = make(chan *bucket.LibratoMetric, sz)
+	l.conversions = make(chan *bucket.LibratoMetric, sz)
 	l.Outbox = make(chan []*bucket.LibratoMetric, sz)
 	l.numOutlets = conc
 	l.numRetries = retries
@@ -92,7 +92,7 @@ func (l *LibratoOutlet) Start() {
 func (l *LibratoOutlet) Report() {
 	for _ = range time.Tick(time.Second * 2) {
 		utils.MeasureI("librato-outlet.inbox", len(l.Inbox))
-		utils.MeasureI("librato-outlet.conversions", len(l.Conversions))
+		utils.MeasureI("librato-outlet.conversions", len(l.conversions))
 		utils.MeasureI("librato-outlet.outbox", len(l.Outbox))
 	}
 }
@@ -100,7 +100,7 @@ func (l *LibratoOutlet) Report() {
 func (l *LibratoOutlet) convert() {
 	for bucket := range l.Inbox {
 		for _, m := range bucket.Metrics() {
-			l.Conversions <- m
+			l.conversions <- m
 		}
 		fmt.Printf("measure.bucket.conversion.delay=%d\n",
 			bucket.Id.Delay(time.Now()))
@@ -119,7 +119,7 @@ func (l *LibratoOutlet) groupByUser() {
 				}
 				delete(m, k)
 			}
-		case payload := <-l.Conversions:
+		case payload := <-l.conversions:
 			usr := payload.User + ":" + payload.Pass
 			_, present := m[usr]
 			if !present {

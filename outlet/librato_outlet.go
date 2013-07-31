@@ -83,7 +83,7 @@ func (l *LibratoOutlet) Start() {
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go l.convert()
 	}
-	go l.batch()
+	go l.groupByUser()
 	for i := 0; i < l.numOutlets; i++ {
 		go l.outlet()
 	}
@@ -107,30 +107,30 @@ func (l *LibratoOutlet) convert() {
 	}
 }
 
-func (l *LibratoOutlet) batch() {
+func (l *LibratoOutlet) groupByUser() {
 	ticker := time.Tick(time.Millisecond * 200)
-	batchMap := make(map[string][]*bucket.LibratoMetric)
+	m := make(map[string][]*bucket.LibratoMetric)
 	for {
 		select {
 		case <-ticker:
-			for k, v := range batchMap {
+			for k, v := range m {
 				if len(v) > 0 {
 					l.Outbox <- v
 				}
-				delete(batchMap, k)
+				delete(m, k)
 			}
 		case payload := <-l.Conversions:
-			index := payload.User + ":" + payload.Pass
-			_, present := batchMap[index]
+			usr := payload.User + ":" + payload.Pass
+			_, present := m[usr]
 			if !present {
-				batchMap[index] = make([]*bucket.LibratoMetric, 1, 300)
-				batchMap[index][0] = payload
+				m[usr] = make([]*bucket.LibratoMetric, 1, 300)
+				m[usr][0] = payload
 			} else {
-				batchMap[index] = append(batchMap[index], payload)
+				m[usr] = append(m[usr], payload)
 			}
-			if len(batchMap[index]) == cap(batchMap[index]) {
-				l.Outbox <- batchMap[index]
-				delete(batchMap, index)
+			if len(m[usr]) == cap(m[usr]) {
+				l.Outbox <- m[usr]
+				delete(m, usr)
 			}
 		}
 	}

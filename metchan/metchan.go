@@ -38,8 +38,8 @@ type Channel struct {
 	password      string
 	verbose       bool
 	enabled       bool
-	buffer        map[bucket.Id]*bucket.Bucket
-	outbox        chan *bucket.Bucket
+	buffer        map[string]*bucket.Bucket
+	outbox        chan *libratoMetric
 	url           *url.URL
 	FlushInterval time.Duration
 }
@@ -64,8 +64,8 @@ func New(verbose bool, u *url.URL) *Channel {
 	c.verbose = verbose
 
 	// Internal Datastructures.
-	c.buffer = make(map[bucket.Id]*bucket.Bucket)
-	c.outbox = make(chan *bucket.Bucket, 10)
+	c.buffer = make(map[string]*bucket.Bucket)
+	c.outbox = make(chan *libratoMetric, 10)
 
 	// Default flush interval.
 	c.FlushInterval = time.Second
@@ -82,37 +82,43 @@ func (c *Channel) Start() {
 // Places the measurement in a buffer to be aggregated and
 // eventually flushed to Librato.
 func (c *Channel) Measure(name string, t time.Time) {
-	elapsed := time.Since(t) / time.Millisecond
+	elapsed := float64(time.Since(t) / time.Millisecond)
 	if c.verbose {
-		fmt.Printf("measure.%s=%f\n", name, float64(elapsed))
+		fmt.Printf("measure.%s=%f\n", name, elapsed)
 	}
 	if !c.enabled {
 		return
 	}
-	b := &bucket.Bucket{
-		Id: &bucket.Id{
-			Time:       time.Now().Truncate(time.Minute),
-			Resolution: time.Minute,
-			Name:       name,
-			Units:      "ms",
-			// TODO(ryandotsmith):
-			// Maybe we use the system's hostname?
-			Source: "metchan",
-		},
-		Vals: []float64{float64(elapsed)},
+	id := &bucket.Id{
+		Resolution: c.FlushInterval,
+		Name:       name,
+		Units:      "ms",
+		// TODO(ryandotsmith):
+		// Maybe we use the system's hostname?
+		Source: "metchan",
 	}
-	c.add(b)
+	c.add(id, elapsed)
 }
 
-func (c *Channel) add(b *bucket.Bucket) {
+func (c *Channel) add(id *bucket.Id, val float64) {
 	c.Lock()
 	defer c.Unlock()
-	existing, present := c.buffer[*b.Id]
-	if !present {
-		c.buffer[*b.Id] = b
-		return
+	b, ok := c.buffer[id.Name]
+	if !ok {
+		b = &bucket.Bucket{Id: id}
+		b.Vals = make([]float64, 1, 10000)
+		c.buffer[id.Name] = b
 	}
-	existing.Add(b)
+	// Instead of creating a new bucket struct with a new Vals slice
+	// We will re-use the old bucket and reset the slice. This
+	// dramatically decreases the amount of arrays created and thus
+	// led to better memory utilization.
+	latest := time.Now().Truncate(c.FlushInterval)
+	if b.Id.Time != latest {
+		b.Id.Time = latest
+		b.Vals = b.Vals[:0]
+	}
+	b.Vals = append(b.Vals, val)
 }
 
 func (c *Channel) scheduleFlush() {
@@ -124,15 +130,8 @@ func (c *Channel) scheduleFlush() {
 func (c *Channel) flush() {
 	c.Lock()
 	defer c.Unlock()
-	for id, b := range c.buffer {
-		c.outbox <- b
-		delete(c.buffer, id)
-	}
-}
-
-func (c *Channel) outlet() {
-	for b := range c.outbox {
-		met := &libratoMetric{
+	for _,  b := range c.buffer {
+		c.outbox <- &libratoMetric{
 			Name:   b.Id.Name,
 			Time:   b.Id.Time.Unix(),
 			Source: b.Id.Source,
@@ -141,6 +140,11 @@ func (c *Channel) outlet() {
 			Max:    b.Max(),
 			Min:    b.Min(),
 		}
+	}
+}
+
+func (c *Channel) outlet() {
+	for met := range c.outbox {
 		if err := c.post(met); err != nil {
 			fmt.Printf("at=metchan-post error=%s\n", err)
 		} else {

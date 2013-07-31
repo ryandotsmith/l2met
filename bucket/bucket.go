@@ -37,9 +37,9 @@ func (b *Bucket) Metrics() []*LibratoMetric {
 	metrics[2] = b.Metric("p95")
 	metrics[3] = b.Metric("p99")
 	metrics[4] = b.Metric("max")
-	metrics[5] = b.Metric("max")
 	metrics[6] = b.Metric("sum")
 	metrics[7] = b.Metric("count")
+	metrics[5] = b.Metric("mean")
 	metrics[8] = b.Metric("last")
 	return metrics
 }
@@ -50,7 +50,7 @@ func (b *Bucket) Metric(name string) *LibratoMetric {
 			Min:   0,
 			Units: b.Id.Units,
 		},
-		Name:   b.Id.Name + name,
+		Name:   b.Id.Name + "." + name,
 		Source: b.Id.Source,
 		Time:   b.Id.Time.Unix(),
 		User:   b.Id.User,
@@ -80,6 +80,8 @@ func (b *Bucket) queryVal(name string) float64 {
 		return b.Sum()
 	case "count":
 		return float64(b.Count())
+	case "mean":
+		return b.Mean()
 	case "last":
 		return b.Last()
 	default:

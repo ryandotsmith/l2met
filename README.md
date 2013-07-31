@@ -1,6 +1,6 @@
 # l2met
 
-Turn this:
+Turn these:
 ```ruby
 $stdout.puts("measure.db.latency=4ms")
 ```

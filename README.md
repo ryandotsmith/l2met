@@ -43,7 +43,6 @@ Verify the command worked by viewing the [newly created metrics](https://metrics
 ## Hacking on l2met
 Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
 
-
 ### Documentation
 [GoDoc](http://godoc.org/github.com/ryandotsmith/l2met)
 

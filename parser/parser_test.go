@@ -8,8 +8,8 @@ import (
 )
 
 var parseTest = []struct {
-	in   string
-	opts options
+	in    string
+	opts  options
 	names []string
 }{
 	{

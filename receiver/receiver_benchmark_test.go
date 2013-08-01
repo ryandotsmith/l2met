@@ -2,8 +2,8 @@ package receiver
 
 import (
 	"fmt"
-	"github.com/ryandotsmith/l2met/store"
 	"github.com/ryandotsmith/l2met/metchan"
+	"github.com/ryandotsmith/l2met/store"
 	"net/url"
 	"testing"
 	"time"

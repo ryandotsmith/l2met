@@ -3,10 +3,10 @@
 package parser
 
 import (
-	"fmt"
 	"bufio"
-	"github.com/ryandotsmith/l2met/bucket"
+	"fmt"
 	"github.com/bmizerany/lpx"
+	"github.com/ryandotsmith/l2met/bucket"
 	"strconv"
 	"strings"
 	"time"

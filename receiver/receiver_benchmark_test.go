@@ -3,6 +3,8 @@ package receiver
 import (
 	"fmt"
 	"github.com/ryandotsmith/l2met/store"
+	"github.com/ryandotsmith/l2met/metchan"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -11,6 +13,8 @@ func BenchmarkReceive(b *testing.B) {
 	b.StopTimer()
 	st := store.NewMemStore()
 	recv := NewReceiver(1, 1, time.Second, st)
+	u, _ := url.Parse("https://u:p@test.com/")
+	recv.Mchan = metchan.New(false, u)
 	recv.Start()
 	defer recv.Stop()
 

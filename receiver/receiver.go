@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/parser"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/store"
 	"github.com/ryandotsmith/l2met/utils"
@@ -109,7 +110,7 @@ func (r *Receiver) accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		startParse := time.Now()
-		for bucket := range bucket.NewBuckets(rdr, lreq.Opts) {
+		for bucket := range parser.BuildBuckets(rdr, lreq.Opts) {
 			now := time.Now().Truncate(bucket.Id.Resolution)
 			if bucket.Id.Time.Equal(now) {
 				r.addRegister(bucket)

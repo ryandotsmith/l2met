@@ -130,7 +130,7 @@ func (c *Channel) scheduleFlush() {
 func (c *Channel) flush() {
 	c.Lock()
 	defer c.Unlock()
-	for _,  b := range c.buffer {
+	for _, b := range c.buffer {
 		c.outbox <- &libratoMetric{
 			Name:   b.Id.Name,
 			Time:   b.Id.Time.Unix(),

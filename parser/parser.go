@@ -59,7 +59,6 @@ func (p *parser) handlMeasurements() error {
 		id.Time = p.Time()
 		id.User = p.User()
 		id.Pass = p.Pass()
-		///buildPrefix(opts, tups[i].Name())
 		id.Name = p.Prefix(tuple.Name())
 		id.Units = tuple.Units()
 		id.Source = p.ld.Source()

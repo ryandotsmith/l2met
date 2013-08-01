@@ -44,61 +44,59 @@ func (p *parser) parse() {
 			fmt.Printf("error=%s\n", err)
 			continue
 		}
-		p.handleHkRouter()
-		p.handlMeasurements()
+		for _, t := range p.ld.Tuples {
+			p.handleHkRouter(t)
+			p.handlMeasurements(t)
+		}
 	}
 }
 
-func (p *parser) handlMeasurements() error {
-	for _, tuple := range p.ld.Tuples {
-		if !strings.HasPrefix(tuple.Name(), measurePrefix) {
-			continue
-		}
-		id := new(bucket.Id)
-		id.Resolution = p.Resolution()
-		id.Time = p.Time()
-		id.User = p.User()
-		id.Pass = p.Pass()
-		id.Name = p.Prefix(tuple.Name())
-		id.Units = tuple.Units()
-		id.Source = p.ld.Source()
-		val, err := tuple.Float64()
-		if err != nil {
-			continue
-		}
-		p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
+func (p *parser) handlMeasurements(t *tuple) error {
+	if !strings.HasPrefix(t.Name(), measurePrefix) {
+		return nil
 	}
+	id := new(bucket.Id)
+	id.Resolution = p.Resolution()
+	id.Time = p.Time()
+	id.User = p.User()
+	id.Pass = p.Pass()
+	id.Name = p.Prefix(t.Name())
+	id.Units = t.Units()
+	id.Source = p.ld.Source()
+	val, err := t.Float64()
+	if err != nil {
+		return err
+	}
+	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
 }
 
-func (p *parser) handleHkRouter() error {
+func (p *parser) handleHkRouter(t *tuple) error {
 	if string(p.lr.Header().Procid) != routerPrefix {
 		return nil
 	}
-	for _, tuple := range p.ld.Tuples {
-		id := new(bucket.Id)
-		id.Resolution = p.Resolution()
-		id.Time = p.Time()
-		id.User = p.User()
-		id.Pass = p.Pass()
-		id.Source = p.ld.Source()
-		id.Units = tuple.Units()
-		switch tuple.Name() {
-		case "bytes":
-			id.Name = p.Prefix("router.bytes")
-		case "connect":
-			id.Name = p.Prefix("router.connect")
-		case "service":
-			id.Name = p.Prefix("router.service")
-		default:
-			continue
-		}
-		val, err := tuple.Float64()
-		if err != nil {
-			continue
-		}
-		p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
+	id := new(bucket.Id)
+	id.Resolution = p.Resolution()
+	id.Time = p.Time()
+	id.User = p.User()
+	id.Pass = p.Pass()
+	id.Source = p.ld.Source()
+	id.Units = t.Units()
+	switch t.Name() {
+	case "bytes":
+		id.Name = p.Prefix("router.bytes")
+	case "connect":
+		id.Name = p.Prefix("router.connect")
+	case "service":
+		id.Name = p.Prefix("router.service")
+	default:
+		return nil
 	}
+	val, err := t.Float64()
+	if err != nil {
+		return err
+	}
+	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
 }
 

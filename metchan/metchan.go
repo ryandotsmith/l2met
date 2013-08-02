@@ -27,7 +27,7 @@ type libratoMetric struct {
 	Min    float64 `json:"min"`
 }
 
-type libratoPayload struct {
+type libratoGauge struct {
 	Gauges []*libratoMetric `json:"gauges"`
 }
 
@@ -154,7 +154,7 @@ func (c *Channel) outlet() {
 }
 
 func (c *Channel) post(m *libratoMetric) error {
-	p := &libratoPayload{[]*libratoMetric{m}}
+	p := &libratoGauge{[]*libratoMetric{m}}
 	j, err := json.Marshal(p)
 	if err != nil {
 		return err

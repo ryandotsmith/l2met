@@ -67,7 +67,11 @@ func (p *parser) handlMeasurements(t *tuple) error {
 	if err != nil {
 		return err
 	}
-	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
+	p.out <- &bucket.Bucket{
+		Id: id,
+		Vals: []float64{val},
+		Emtr: bucket.MeasureEmitter,
+	}
 	return nil
 }
 
@@ -96,7 +100,11 @@ func (p *parser) handleHkRouter(t *tuple) error {
 	if err != nil {
 		return err
 	}
-	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
+	p.out <- &bucket.Bucket{
+		Id: id,
+		Vals: []float64{val},
+		Emtr: bucket.MeasureEmitter,
+	}
 	return nil
 }
 

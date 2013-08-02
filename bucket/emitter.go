@@ -21,3 +21,25 @@ type LibratoMetric struct {
 	Pass   string        `json:"-"`
 	Attr   *libratoAttrs `json:"attributes,omitempty"`
 }
+
+// Emitter abstracts the bucket from what type of
+// metrics are emitted from the bucket. This is useful
+// when you want to selectively submit different metrics to
+// the outlet API.
+type Emitter func(*Bucket) []*LibratoMetric
+
+// The standard emitter. All log data with `measure.foo` will
+// be mapped to the MeasureEmitter.
+func MeasureEmitter(b *Bucket) []*LibratoMetric {
+	metrics := make([]*LibratoMetric, 9)
+	metrics[0] = b.Metric("min", b.Min())
+	metrics[1] = b.Metric("median", b.Median())
+	metrics[2] = b.Metric("p95", b.P95())
+	metrics[3] = b.Metric("p99", b.P99())
+	metrics[4] = b.Metric("max", b.Max())
+	metrics[5] = b.Metric("mean", b.Mean())
+	metrics[6] = b.Metric("sum", b.Sum())
+	metrics[7] = b.Metric("count", float64(b.Count()))
+	metrics[8] = b.Metric("last", b.Last())
+	return metrics
+}

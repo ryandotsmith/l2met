@@ -9,12 +9,10 @@ import (
 )
 
 type Bucket struct {
-	// A bucket can be locked to ensure safe memory access.
 	sync.Mutex
-	// The identity of a bucket is used in registers and as keys in redis.
 	Id *Id
-	// A slice of all the measurements for a bucket.
-	Vals []float64 `json:"vals,omitempty"`
+	Vals []float64
+	Emtr Emitter
 }
 
 // Adding bucket a to bucket b copies the vals of bucket b and
@@ -28,21 +26,13 @@ func (b *Bucket) Add(otherM *Bucket) {
 	}
 }
 
+// Relies on the Emitter to determine which type of
+// metrics should be returned.
 func (b *Bucket) Metrics() []*LibratoMetric {
-	metrics := make([]*LibratoMetric, 9)
-	metrics[0] = b.Metric("min")
-	metrics[1] = b.Metric("median")
-	metrics[2] = b.Metric("p95")
-	metrics[3] = b.Metric("p99")
-	metrics[4] = b.Metric("max")
-	metrics[6] = b.Metric("sum")
-	metrics[7] = b.Metric("count")
-	metrics[5] = b.Metric("mean")
-	metrics[8] = b.Metric("last")
-	return metrics
+	return b.Emtr(b)
 }
 
-func (b *Bucket) Metric(name string) *LibratoMetric {
+func (b *Bucket) Metric(name string, val float64) *LibratoMetric {
 	return &LibratoMetric{
 		Attr: &libratoAttrs{
 			Min:   0,
@@ -53,38 +43,13 @@ func (b *Bucket) Metric(name string) *LibratoMetric {
 		Time:   b.Id.Time.Unix(),
 		User:   b.Id.User,
 		Pass:   b.Id.Pass,
-		Val:    b.queryVal(name),
+		Val:    val,
 	}
 }
 
 func (b *Bucket) String() string {
 	return fmt.Sprintf("name=%s source=%s vals=%v",
 		b.Id.Name, b.Id.Source, b.Vals)
-}
-
-func (b *Bucket) queryVal(name string) float64 {
-	switch name {
-	case "min":
-		return b.Min()
-	case "median":
-		return b.Median()
-	case "p95":
-		return b.P95()
-	case "p99":
-		return b.P99()
-	case "max":
-		return b.Max()
-	case "sum":
-		return b.Sum()
-	case "count":
-		return float64(b.Count())
-	case "mean":
-		return b.Mean()
-	case "last":
-		return b.Last()
-	default:
-		panic("Value not defined.")
-	}
 }
 
 func (b *Bucket) Count() int {

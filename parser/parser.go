@@ -61,15 +61,12 @@ func (p *parser) handleSamples(t *tuple) error {
 	}
 	id := new(bucket.Id)
 	p.buildId(id, t)
+	id.Type = "sample"
 	val, err := t.Float64()
 	if err != nil {
 		return err
 	}
-	p.out <- &bucket.Bucket{
-		Id: id,
-		Vals: []float64{val},
-		Emtr: bucket.SampleEmitter,
-	}
+	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
 }
 
@@ -79,15 +76,12 @@ func (p *parser) handleCounters(t *tuple) error {
 	}
 	id := new(bucket.Id)
 	p.buildId(id, t)
+	id.Type = "counter"
 	val, err := t.Float64()
 	if err != nil {
 		return err
 	}
-	p.out <- &bucket.Bucket{
-		Id: id,
-		Vals: []float64{val},
-		Emtr: bucket.CountEmitter,
-	}
+	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
 }
 
@@ -99,15 +93,12 @@ func (p *parser) handlMeasurements(t *tuple) error {
 	}
 	id := new(bucket.Id)
 	p.buildId(id, t)
+	id.Type = "measurement"
 	val, err := t.Float64()
 	if err != nil {
 		return err
 	}
-	p.out <- &bucket.Bucket{
-		Id: id,
-		Vals: []float64{val},
-		Emtr: bucket.MeasureEmitter,
-	}
+	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
 }
 
@@ -117,6 +108,7 @@ func (p *parser) handleHkRouter(t *tuple) error {
 	}
 	id := new(bucket.Id)
 	p.buildId(id, t)
+	id.Type = "measurement"
 	switch t.Name() {
 	case "bytes":
 		id.Name = p.Prefix("router.bytes")
@@ -131,11 +123,7 @@ func (p *parser) handleHkRouter(t *tuple) error {
 	if err != nil {
 		return err
 	}
-	p.out <- &bucket.Bucket{
-		Id: id,
-		Vals: []float64{val},
-		Emtr: bucket.MeasureEmitter,
-	}
+	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
 }
 

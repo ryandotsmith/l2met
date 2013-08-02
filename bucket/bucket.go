@@ -32,7 +32,7 @@ type LibratoMetric struct {
 
 type Bucket struct {
 	sync.Mutex
-	Id *Id
+	Id   *Id
 	Vals []float64
 }
 

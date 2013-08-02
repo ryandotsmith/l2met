@@ -17,7 +17,7 @@ type options map[string][]string
 var (
 	routerPrefix  = "router"
 	measurePrefix = "measure#"
-	samplePrefix = "sample#"
+	samplePrefix  = "sample#"
 	counterPrefix = "count#"
 )
 
@@ -84,8 +84,6 @@ func (p *parser) handleCounters(t *tuple) error {
 	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
 }
-
-
 
 func (p *parser) handlMeasurements(t *tuple) error {
 	if !strings.HasPrefix(t.Name(), measurePrefix) {

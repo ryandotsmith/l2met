@@ -7,7 +7,7 @@ import (
 )
 
 var idTest = []struct {
-	id *Id
+	id   *Id
 	name string
 }{
 	{

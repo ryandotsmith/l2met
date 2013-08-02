@@ -34,14 +34,6 @@ This command will create Heroku app named *my-l2met* and return a drain URL with
 $ heroku drains:add https://long-token@my-l2met.herokuapp.com/logs -a myapp
 ```
 
-You can manually send data to *my-l2met* by the following curl command:
-
-```bash
-$ curl "https://long-token@my-l2met.herokuapp.com/logs" --data "94 <190>1 2013-03-27T20:02:24+00:00 hostname token shuttle - - measure.hello=99 measure.world=100"
-```
-
-Verify the command worked by viewing the [newly created metrics](https://metrics.librato.com/metrics?search=hello).
-
 ## Hacking on l2met
 Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
 

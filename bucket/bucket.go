@@ -8,8 +8,6 @@ import (
 	"sync"
 )
 
-const DefaultUnit = "u"
-
 type Bucket struct {
 	// A bucket can be locked to ensure safe memory access.
 	sync.Mutex

@@ -56,7 +56,7 @@ type LibratoOutlet struct {
 	// routine to make sure that the collections of librato metrics
 	// in the outbox are homogeneous with respect to their token.
 	// Ensures that we route the metrics to the correct librato account.
-	Outbox chan []*bucket.LibratoMetric
+	outbox chan []*bucket.LibratoMetric
 	// How many outlet routines should be running.
 	numOutlets int
 	// We use the Reader to read buckets from the store into our Inbox.
@@ -70,7 +70,7 @@ func NewLibratoOutlet(sz, conc, retries int, r *reader.Reader) *LibratoOutlet {
 	l := new(LibratoOutlet)
 	l.inbox = make(chan *bucket.Bucket, sz)
 	l.conversions = make(chan *bucket.LibratoMetric, sz)
-	l.Outbox = make(chan []*bucket.LibratoMetric, sz)
+	l.outbox = make(chan []*bucket.LibratoMetric, sz)
 	l.numOutlets = conc
 	l.numRetries = retries
 	l.rdr = r
@@ -94,7 +94,7 @@ func (l *LibratoOutlet) Report() {
 	for _ = range time.Tick(time.Second * 2) {
 		utils.MeasureI("librato-outlet.inbox", len(l.inbox))
 		utils.MeasureI("librato-outlet.conversions", len(l.conversions))
-		utils.MeasureI("librato-outlet.outbox", len(l.Outbox))
+		utils.MeasureI("librato-outlet.outbox", len(l.outbox))
 	}
 }
 
@@ -116,7 +116,7 @@ func (l *LibratoOutlet) groupByUser() {
 		case <-ticker:
 			for k, v := range m {
 				if len(v) > 0 {
-					l.Outbox <- v
+					l.outbox <- v
 				}
 				delete(m, k)
 			}
@@ -130,7 +130,7 @@ func (l *LibratoOutlet) groupByUser() {
 				m[usr] = append(m[usr], payload)
 			}
 			if len(m[usr]) == cap(m[usr]) {
-				l.Outbox <- m[usr]
+				l.outbox <- m[usr]
 				delete(m, usr)
 			}
 		}
@@ -138,7 +138,7 @@ func (l *LibratoOutlet) groupByUser() {
 }
 
 func (l *LibratoOutlet) outlet() {
-	for payloads := range l.Outbox {
+	for payloads := range l.outbox {
 		if len(payloads) < 1 {
 			fmt.Printf("at=%q\n", "empty-metrics-error")
 			continue

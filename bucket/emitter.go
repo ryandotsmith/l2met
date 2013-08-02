@@ -43,3 +43,15 @@ func MeasureEmitter(b *Bucket) []*LibratoMetric {
 	metrics[8] = b.Metric("last", b.Last())
 	return metrics
 }
+
+func CountEmitter(b *Bucket) []*LibratoMetric {
+	metrics := make([]*LibratoMetric, 1)
+	metrics[0] = b.Metric("min", b.Sum())
+	return metrics
+}
+
+func SampleEmitter(b *Bucket) []*LibratoMetric {
+	metrics := make([]*LibratoMetric, 1)
+	metrics[0] = b.Metric("last", b.Last())
+	return metrics
+}

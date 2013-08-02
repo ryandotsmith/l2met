@@ -2,7 +2,9 @@
 
 Turn these:
 ```ruby
-$stdout.puts("measure.db.latency=4ms")
+$stdout.puts("measure#db.latency=4ms")
+$stdout.puts("count#db.vaccum=1")
+$stdout.puts("sample#db.size=100GB")
 ```
 
 Into this:

@@ -20,7 +20,8 @@ type D struct {
 	BufferSize     int
 	Concurrency    int
 	Port           int
-	NumOutletRetry int
+	OutletRetries  int
+	OutletTtl      time.Duration
 	MaxPartitions  uint64
 	FlushtInterval time.Duration
 	UsingReciever  bool
@@ -46,8 +47,11 @@ func New() *D {
 	flag.IntVar(&d.Port, "port", 8080,
 		"HTTP server's bind port.")
 
-	flag.IntVar(&d.NumOutletRetry, "outlet-retry", 2,
+	flag.IntVar(&d.OutletRetries, "outlet-retry", 2,
 		"Number of attempts to outlet metrics to Librato.")
+
+	flag.DurationVar(&d.OutletTtl, "outlet-ttl", time.Second*2,
+		"Timeout set on Librato HTTP requests.")
 
 	flag.Uint64Var(&d.MaxPartitions, "partitions", uint64(1),
 		"Number of partitions to use for outlets.")

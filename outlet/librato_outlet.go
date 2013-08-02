@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/reader"
@@ -21,58 +22,43 @@ import (
 
 var libratoUrl = "https://metrics-api.librato.com/v1/metrics"
 
-var httpClient *http.Client
-
-func init() {
-	tr := &http.Transport{
-		DisableKeepAlives: true,
-		Dial: func(n, a string) (net.Conn, error) {
-			c, err := net.DialTimeout(n, a, time.Second*2)
-			if err != nil {
-				return c, err
-			}
-			return c, c.SetDeadline(time.Now().Add(time.Second * 2))
-		},
-	}
-	httpClient = &http.Client{Transport: tr}
-}
-
 type libratoRequest struct {
 	Gauges []*bucket.LibratoMetric `json:"gauges"`
 }
 
 type LibratoOutlet struct {
-	// The inbox will be passed to the reader so
-	// it (the reader) can deliver buckets to the outlet.
-	// Buckets delivered in the outlet's inbox are complete.
-	inbox chan *bucket.Bucket
-
-	// The converter will take items from the inbox,
-	// fill in the bucket with the vals, then convert the
-	// bucket into a librato metric.
+	inbox       chan *bucket.Bucket
 	conversions chan *bucket.LibratoMetric
-	// The converter will place the librato metrics into
-	// the outbox for HTTP submission. We rely on the batch
-	// routine to make sure that the collections of librato metrics
-	// in the outbox are homogeneous with respect to their token.
-	// Ensures that we route the metrics to the correct librato account.
-	outbox chan []*bucket.LibratoMetric
-	// How many outlet routines should be running.
-	numOutlets int
-	// We use the Reader to read buckets from the store into our Inbox.
-	rdr *reader.Reader
-	// Number of times to retry HTTP requests to librato's api.
-	numRetries int
-	Mchan      *metchan.Channel
+	outbox      chan []*bucket.LibratoMetric
+	numOutlets  int
+	rdr         *reader.Reader
+	conn        *http.Client
+	numRetries  int
+	Mchan       *metchan.Channel
 }
 
-func NewLibratoOutlet(sz, conc, retries int, r *reader.Reader) *LibratoOutlet {
+func buildClient(ttl time.Duration) *http.Client {
+	tr := &http.Transport{
+		DisableKeepAlives: true,
+		Dial: func(n, a string) (net.Conn, error) {
+			c, err := net.DialTimeout(n, a, ttl)
+			if err != nil {
+				return c, err
+			}
+			return c, c.SetDeadline(time.Now().Add(ttl))
+		},
+	}
+	return &http.Client{Transport: tr}
+}
+
+func NewLibratoOutlet(cfg *conf.D, r *reader.Reader) *LibratoOutlet {
 	l := new(LibratoOutlet)
-	l.inbox = make(chan *bucket.Bucket, sz)
-	l.conversions = make(chan *bucket.LibratoMetric, sz)
-	l.outbox = make(chan []*bucket.LibratoMetric, sz)
-	l.numOutlets = conc
-	l.numRetries = retries
+	l.conn = buildClient(cfg.OutletTtl)
+	l.inbox = make(chan *bucket.Bucket, cfg.BufferSize)
+	l.conversions = make(chan *bucket.LibratoMetric, cfg.BufferSize)
+	l.outbox = make(chan []*bucket.LibratoMetric, cfg.BufferSize)
+	l.numOutlets = cfg.Concurrency
+	l.numRetries = cfg.OutletRetries
 	l.rdr = r
 	return l
 }
@@ -185,7 +171,7 @@ func (l *LibratoOutlet) post(u, p string, body []byte) error {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "l2met/0")
 	req.SetBasicAuth(u, p)
-	resp, err := httpClient.Do(req)
+	resp, err := l.conn.Do(req)
 	if err != nil {
 		return err
 	}

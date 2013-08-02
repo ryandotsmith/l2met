@@ -154,14 +154,13 @@ func (l *LibratoOutlet) outlet() {
 			fmt.Printf("at=json error=%s user=%s\n", err, user)
 			continue
 		}
-		body := bytes.NewBuffer(j)
-		if err := l.postWithRetry(user, pass, body); err != nil {
+		if err := l.postWithRetry(user, pass, j); err != nil {
 			fmt.Printf("measure.outlet.drop user=%s\n", user)
 		}
 	}
 }
 
-func (l *LibratoOutlet) postWithRetry(u, p string, body *bytes.Buffer) error {
+func (l *LibratoOutlet) postWithRetry(u, p string, body []byte) error {
 	for i := 0; i <= l.numRetries; i++ {
 		if err := l.post(u, p, body); err != nil {
 			fmt.Printf("measure.librato.error user=%s msg=%s attempt=%d\n", u, err, i)
@@ -176,9 +175,10 @@ func (l *LibratoOutlet) postWithRetry(u, p string, body *bytes.Buffer) error {
 	return errors.New("Unable to post.")
 }
 
-func (l *LibratoOutlet) post(u, p string, body *bytes.Buffer) error {
+func (l *LibratoOutlet) post(u, p string, body []byte) error {
 	defer l.Mchan.Measure("outlet.post", time.Now())
-	req, err := http.NewRequest("POST", libratoUrl, body)
+	b := bytes.NewBuffer(body)
+	req, err := http.NewRequest("POST", libratoUrl, b)
 	if err != nil {
 		return err
 	}

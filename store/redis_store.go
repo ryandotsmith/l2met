@@ -92,7 +92,8 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 		for _, member := range members {
 			id, err := bucket.DecodeId(member)
 			if err != nil {
-				fmt.Printf("at=%q error=%s\n", "bucket-store-parse-key", err)
+				fmt.Printf("at=%q error=%s\n",
+					"bucket-store-parse-key", err)
 				continue
 			}
 			bucketReady := id.Time.Add(id.Resolution)

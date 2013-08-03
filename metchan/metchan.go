@@ -53,12 +53,16 @@ type Channel struct {
 func New(verbose bool, u *url.URL) *Channel {
 	c := new(Channel)
 
-	// Read the destination for the metrics
-	c.url = u
-	c.enabled = len(u.String()) > 0
-	c.username = u.User.Username()
-	c.password, _ = u.User.Password()
-	c.url.User = nil
+	// If the url is nil, then it wasn't initialized
+	// by the conf pkg. If it is not nil, we will
+	// enable the Metchan.
+	if u != nil {
+		c.url = u
+		c.username = u.User.Username()
+		c.password, _ = u.User.Password()
+		c.url.User = nil
+		c.enabled = true
+	}
 
 	// This will enable writting to a logger.
 	c.verbose = verbose

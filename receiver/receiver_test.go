@@ -41,6 +41,14 @@ func TestReceiver(t *testing.T) {
 			},
 		},
 		{
+			"legacy",
+			opts,
+			fmtLog(currentTime, "app", "measure.a"),
+			[]*bucket.Bucket{
+				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+			},
+		},
+		{
 			"idiomatic",
 			opts,
 			fmtLog(currentTime, "app", "measure#a"),

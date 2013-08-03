@@ -16,6 +16,7 @@ type options map[string][]string
 
 var (
 	routerPrefix  = "router"
+	legacyPrefix  = "measure."
 	measurePrefix = "measure#"
 	samplePrefix  = "sample#"
 	counterPrefix = "count#"
@@ -51,6 +52,7 @@ func (p *parser) parse() {
 			p.handleSamples(t)
 			p.handleHkRouter(t)
 			p.handlMeasurements(t)
+			p.handleLegacyMeasurements(t)
 		}
 	}
 }
@@ -77,6 +79,21 @@ func (p *parser) handleCounters(t *tuple) error {
 	id := new(bucket.Id)
 	p.buildId(id, t)
 	id.Type = "counter"
+	val, err := t.Float64()
+	if err != nil {
+		return err
+	}
+	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
+	return nil
+}
+
+func (p *parser) handleLegacyMeasurements(t *tuple) error {
+	if !strings.HasPrefix(t.Name(), legacyPrefix) {
+		return nil
+	}
+	id := new(bucket.Id)
+	p.buildId(id, t)
+	id.Type = "measurement"
 	val, err := t.Float64()
 	if err != nil {
 		return err
@@ -140,6 +157,9 @@ func (p *parser) Prefix(suffix string) string {
 	//Remove measure. from the name if present.
 	if strings.HasPrefix(suffix, measurePrefix) {
 		suffix = suffix[len(measurePrefix):]
+	}
+	if strings.HasPrefix(suffix, legacyPrefix) {
+		suffix = suffix[len(legacyPrefix):]
 	}
 	if strings.HasPrefix(suffix, counterPrefix) {
 		suffix = suffix[len(counterPrefix):]

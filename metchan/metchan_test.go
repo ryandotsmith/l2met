@@ -41,7 +41,7 @@ func TestMetchan(t *testing.T) {
 		mchan.Measure(ts.name, ts.start)
 		time.Sleep(mchan.FlushInterval * 2)
 		srv.Close()
-		p := new(libratoPayload)
+		p := new(libratoGauge)
 		if err := json.Unmarshal(actual, &p); err != nil {
 			t.Error(err)
 		}

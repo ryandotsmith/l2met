@@ -16,14 +16,14 @@ fi
 
 domain_name="`heroku apps:info -s 2> /dev/null | grep domain_name`" 
 if [ $? -ne 0 ]; then
-  echo "Unable to determine heroku app domain name, make sure you're running this script from your heroku app's repo"
+  echo "Unable to determine heroku app's domain name, make sure you're running this script from your app's repo"
   exit 2
 fi
 
 config="`heroku config -s 2> /dev/null`"
 
 if [ $? -ne 0 ]; then
-  echo "Could not fetch app config, make sure you're running this script from your heroku apps' repo"
+  echo "Could not fetch app config, make sure you're running this script from your app's repo"
   exit 2
 fi
 

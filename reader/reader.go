@@ -49,7 +49,7 @@ func (r *Reader) scan() {
 		for b := range buckets {
 			r.Inbox <- b
 		}
-		r.Mchan.Measure("reader.scan", startScan)
+		r.Mchan.Time("reader.scan", startScan)
 	}
 }
 
@@ -58,6 +58,6 @@ func (r *Reader) outlet() {
 		startGet := time.Now()
 		r.str.Get(b)
 		r.Outbox <- b
-		r.Mchan.Measure("reader.get", startGet)
+		r.Mchan.Time("reader.get", startGet)
 	}
 }

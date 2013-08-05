@@ -153,7 +153,7 @@ func (l *LibratoOutlet) postWithRetry(u, p string, body []byte) error {
 }
 
 func (l *LibratoOutlet) post(u, p string, body []byte) error {
-	defer l.Mchan.Measure("outlet.post", time.Now())
+	defer l.Mchan.Time("outlet.post", time.Now())
 	b := bytes.NewBuffer(body)
 	req, err := http.NewRequest("POST", libratoUrl, b)
 	if err != nil {

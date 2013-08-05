@@ -87,10 +87,14 @@ func (c *Channel) Start() {
 // Provide the time at which you started your measurement.
 // Places the measurement in a buffer to be aggregated and
 // eventually flushed to Librato.
-func (c *Channel) Measure(name string, t time.Time) {
+func (c *Channel) Time(name string, t time.Time) {
 	elapsed := time.Since(t) / time.Millisecond
+	c.Measure(name, float64(elapsed))
+}
+
+func (c *Channel) Measure(name string, v float64) {
 	if c.verbose {
-		fmt.Printf("measure.%s=%d\n", name, int64(elapsed))
+		fmt.Printf("measure.%s=%d\n", name, v)
 	}
 	if !c.enabled {
 		return
@@ -103,7 +107,7 @@ func (c *Channel) Measure(name string, t time.Time) {
 		// Maybe we use the system's hostname?
 		Source: "metchan",
 	}
-	c.add(id, float64(elapsed))
+	c.add(id, v)
 }
 
 func (c *Channel) add(id *bucket.Id, val float64) {

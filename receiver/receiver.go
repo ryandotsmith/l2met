@@ -119,7 +119,7 @@ func (r *Receiver) accept() {
 					bucket.Id.Time, now)
 			}
 		}
-		r.Mchan.Measure("receiver.accept", startParse)
+		r.Mchan.Time("receiver.accept", startParse)
 	}
 }
 
@@ -157,7 +157,7 @@ func (r *Receiver) outlet() {
 		if err := r.Store.Put(b); err != nil {
 			fmt.Printf("error=%s\n", err)
 		}
-		r.Mchan.Measure("reciever.outlet", startPut)
+		r.Mchan.Time("reciever.outlet", startPut)
 	}
 }
 

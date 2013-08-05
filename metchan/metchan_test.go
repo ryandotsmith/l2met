@@ -38,7 +38,7 @@ func TestMetchan(t *testing.T) {
 		mchan := New(false, u)
 		mchan.FlushInterval = time.Millisecond * 500
 		mchan.Start()
-		mchan.Measure(ts.name, ts.start)
+		mchan.Time(ts.name, ts.start)
 		time.Sleep(mchan.FlushInterval * 2)
 		srv.Close()
 		p := new(libratoGauge)

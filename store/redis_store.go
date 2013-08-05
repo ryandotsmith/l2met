@@ -7,6 +7,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/utils"
+	"github.com/ryandotsmith/redisync"
 	"hash/crc64"
 	"strconv"
 	"strings"
@@ -69,13 +70,13 @@ func (s *RedisStore) Health() bool {
 
 func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	retBuckets := make(chan *bucket.Bucket)
-	mut := s.lockPartition()
+	rc := s.redisPool.Get()
+	mut := s.lockPartition(rc)
 	partition := partitionPrefix  + "." + mut.Name
 	go func(out chan *bucket.Bucket) {
-		rc := s.redisPool.Get()
+		defer mut.Unlock(rc)
 		defer rc.Close()
 		defer close(out)
-		defer mut.Unlock()
 		rc.Send("MULTI")
 		rc.Send("SMEMBERS", partition)
 		rc.Send("DEL", partition)
@@ -184,22 +185,17 @@ func (s *RedisStore) bucketPartition(b []byte) string {
 	return fmt.Sprintf("%s.%d", partitionPrefix, check%s.MaxPartitions())
 }
 
-func (s *RedisStore) lockPartition() *redisync.Mutex {
+func (s *RedisStore) lockPartition(c redis.Conn) *redisync.Mutex {
 	for {
 		for p := uint64(0); p < s.MaxPartitions(); p++ {
 			name := fmt.Sprintf("%s.%d", lockPrefix, p)
-			//TODO(ryandotsmith): remove magic number.
-			mut, err := redisync.NewMutex(name, time.Minute)
-			if err != nil {
-				return 0, err
-			}
-			if mut.TryLock() {
-				return p, nil
+			mut := redisync.NewMutex(name, time.Minute)
+			if mut.TryLock(c) {
+				return mut
 			}
 		}
 		time.Sleep(time.Second * 5)
 	}
-	return 0, errors.New("LockPartition impossible broke the loop.")
 }
 
 func (s *RedisStore) flush() {

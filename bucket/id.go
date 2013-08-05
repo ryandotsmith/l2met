@@ -3,7 +3,6 @@ package bucket
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/ryandotsmith/l2met/utils"
 	"time"
 )
 
@@ -36,8 +35,8 @@ func (id *Id) Encode() ([]byte, error) {
 // and the delay is 2, then it took 120s for l2met
 // to process the bucket.
 func (id *Id) Delay(t time.Time) int64 {
-	t0 := utils.RoundTime(id.Time, id.Resolution).Unix()
-	t1 := utils.RoundTime(t, id.Resolution).Unix()
+	t0 := id.Time.Round(id.Resolution).Unix()
+	t1 := t.Round(id.Resolution).Unix()
 	base := id.Resolution / time.Second
 	if base != 0 {
 		return (t1 - t0) / int64(base)

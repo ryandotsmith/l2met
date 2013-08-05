@@ -129,8 +129,10 @@ func (r *Receiver) addRegister(b *bucket.Bucket) {
 	k := *b.Id
 	_, present := r.Register.m[k]
 	if !present {
+		r.Mchan.Measure("receiver.add-bucket", 1)
 		r.Register.m[k] = b
 	} else {
+		r.Mchan.Measure("receiver.merge-bucket", 1)
 		r.Register.m[k].Add(b)
 	}
 	r.numBuckets += 1

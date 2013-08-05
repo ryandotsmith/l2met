@@ -25,7 +25,6 @@ var parseTest = []struct {
 		options{"user": []string{"u"}, "password": []string{"p"}},
 		[]string{"hello"},
 	},
-
 }
 
 func TestBuildBuckets(t *testing.T) {

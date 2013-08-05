@@ -38,6 +38,7 @@ func main() {
 	var st store.Store
 	if len(cfg.RedisHost) > 0 {
 		st = store.NewRedisStore(cfg)
+		st.Mchan = mchan
 		fmt.Printf("at=initialized-redis-store\n")
 	} else {
 		st = store.NewMemStore()

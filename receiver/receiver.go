@@ -11,7 +11,6 @@ import (
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/parser"
 	"github.com/ryandotsmith/l2met/store"
-	"github.com/ryandotsmith/l2met/utils"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -169,9 +168,10 @@ func (r *Receiver) Report() {
 	for _ = range time.Tick(time.Second * 2) {
 		nb := atomic.LoadUint64(&r.numBuckets)
 		atomic.AddUint64(&r.numBuckets, -nb)
-		utils.MeasureI("receiver.buckets", int(nb))
-		utils.MeasureI("receiver.inbox", len(r.Inbox))
-		utils.MeasureI("receiver.register", len(r.Register.m))
-		utils.MeasureI("receiver.outbox", len(r.Outbox))
+		pre := "reciever.buffer."
+		r.Mchan.Measure(pre + "buckets", float64(nb))
+		r.Mchan.Measure(pre + "inbox", float64(len(r.Inbox)))
+		r.Mchan.Measure(pre + "register", float64(len(r.Register.m)))
+		r.Mchan.Measure(pre + "outbox", float64(len(r.Outbox)))
 	}
 }

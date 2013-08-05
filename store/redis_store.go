@@ -7,7 +7,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/conf"
-	"github.com/ryandotsmith/l2met/utils"
+	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/redisync"
 	"hash/crc64"
 	"strconv"
@@ -27,6 +27,7 @@ var partitionTable = crc64.MakeTable(crc64.ISO)
 type RedisStore struct {
 	redisPool     *redis.Pool
 	maxPartitions uint64
+	Mchan         *metchan.Channel
 }
 
 func NewRedisStore(cfg *conf.D) *RedisStore {
@@ -73,7 +74,7 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	retBuckets := make(chan *bucket.Bucket)
 	rc := s.redisPool.Get()
 	mut := s.lockPartition(rc)
-	partition := partitionPrefix  + "." + mut.Name
+	partition := partitionPrefix + "." + mut.Name
 	go func(out chan *bucket.Bucket) {
 		defer rc.Close()
 		defer mut.Unlock(rc)
@@ -111,7 +112,7 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 }
 
 func (s *RedisStore) putback(id *bucket.Id) error {
-	defer utils.MeasureT("bucket.putback", time.Now())
+	defer s.Mchan.Time("bucket.putback", time.Now())
 	rc := s.redisPool.Get()
 	defer rc.Close()
 	key, err := id.Encode()
@@ -130,7 +131,7 @@ func (s *RedisStore) putback(id *bucket.Id) error {
 }
 
 func (s *RedisStore) Put(b *bucket.Bucket) error {
-	defer utils.MeasureT("bucket.put", time.Now())
+	defer s.Mchan.Time("bucket.put", time.Now())
 
 	rc := s.redisPool.Get()
 	defer rc.Close()
@@ -157,7 +158,7 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 }
 
 func (s *RedisStore) Get(b *bucket.Bucket) error {
-	defer utils.MeasureT("bucket.get", time.Now())
+	defer s.Mchan.Time("bucket.get", time.Now())
 	rc := s.redisPool.Get()
 	defer rc.Close()
 

@@ -1,16 +1,18 @@
 package store
 
 import (
-	"time"
-	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/metchan"
+	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/redisync"
 	"testing"
+	"time"
 )
 
 func TestRedisGet(t *testing.T) {
 	cfg := &conf.D{MaxPartitions: 1, RedisHost: "localhost:6379"}
 	st := NewRedisStore(cfg)
+	st.Mchan = new(metchan.Channel)
 	st.flush()
 	id := &bucket.Id{Name: "test"}
 	b1 := &bucket.Bucket{
@@ -37,6 +39,7 @@ func TestRedisGet(t *testing.T) {
 func TestRedisLockPartition(t *testing.T) {
 	cfg := &conf.D{MaxPartitions: 1, RedisHost: "localhost:6379"}
 	st := NewRedisStore(cfg)
+	st.Mchan = new(metchan.Channel)
 	st.flush()
 
 	done := make(chan *redisync.Mutex)

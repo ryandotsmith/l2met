@@ -117,7 +117,7 @@ func (s *RedisStore) putback(id *bucket.Id) error {
 	if err != nil {
 		return err
 	}
-	partition := s.bucketPartition([]byte(key))
+	partition := s.bucketPartition(key)
 	rc.Send("MULTI")
 	rc.Send("SADD", partition, key)
 	rc.Send("EXPIRE", partition, 300)
@@ -142,8 +142,7 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 		return err
 	}
 
-	//TODO(ryandotsmith): Ensure consistent keys are being written.
-	partition := s.bucketPartition([]byte(key))
+	partition := s.bucketPartition(key)
 	rc.Send("MULTI")
 	rc.Send("RPUSH", key, value)
 	rc.Send("EXPIRE", key, 300)
@@ -182,7 +181,8 @@ func (s *RedisStore) Get(b *bucket.Bucket) error {
 
 func (s *RedisStore) bucketPartition(b []byte) string {
 	check := crc64.Checksum(b, partitionTable)
-	return fmt.Sprintf("%s.%d", partitionPrefix, check%s.MaxPartitions())
+	name := partitionPrefix + "." + lockPrefix
+	return fmt.Sprintf("%s.%d", name, check%s.MaxPartitions())
 }
 
 func (s *RedisStore) lockPartition(c redis.Conn) *redisync.Mutex {

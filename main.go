@@ -51,9 +51,6 @@ func main() {
 		outlet := outlet.NewLibratoOutlet(cfg, rdr)
 		outlet.Mchan = mchan
 		outlet.Start()
-		if cfg.Verbose {
-			go outlet.Report()
-		}
 	}
 
 	if cfg.UsingReciever {

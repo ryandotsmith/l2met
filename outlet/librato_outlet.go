@@ -12,7 +12,6 @@ import (
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/reader"
-	"github.com/ryandotsmith/l2met/utils"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -73,14 +72,6 @@ func (l *LibratoOutlet) Start() {
 	go l.groupByUser()
 	for i := 0; i < l.numOutlets; i++ {
 		go l.outlet()
-	}
-}
-
-func (l *LibratoOutlet) Report() {
-	for _ = range time.Tick(time.Second * 2) {
-		utils.MeasureI("librato-outlet.inbox", len(l.inbox))
-		utils.MeasureI("librato-outlet.conversions", len(l.conversions))
-		utils.MeasureI("librato-outlet.outbox", len(l.outbox))
 	}
 }
 

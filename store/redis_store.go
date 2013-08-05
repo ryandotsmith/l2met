@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/utils"
 	"github.com/ryandotsmith/redisync"
 	"hash/crc64"
@@ -28,10 +29,10 @@ type RedisStore struct {
 	maxPartitions uint64
 }
 
-func NewRedisStore(server, pass string, maxPartitions uint64) *RedisStore {
+func NewRedisStore(cfg *conf.D) *RedisStore {
 	return &RedisStore{
-		maxPartitions: maxPartitions,
-		redisPool:     initRedisPool(server, pass),
+		maxPartitions: cfg.MaxPartitions,
+		redisPool:     initRedisPool(cfg.RedisHost, cfg.RedisPass),
 	}
 }
 

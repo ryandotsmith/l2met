@@ -33,24 +33,24 @@ type RedisStore struct {
 func NewRedisStore(cfg *conf.D) *RedisStore {
 	return &RedisStore{
 		maxPartitions: cfg.MaxPartitions,
-		redisPool:     initRedisPool(cfg.RedisHost, cfg.RedisPass),
+		redisPool:     initRedisPool(cfg),
 	}
 }
 
-func initRedisPool(server, pass string) *redis.Pool {
+func initRedisPool(cfg *conf.D) *redis.Pool {
 	return &redis.Pool{
-		MaxIdle:     1,
+		MaxIdle:     cfg.Concurrency,
 		IdleTimeout: 30 * time.Second,
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			return err
 		},
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", server)
+			c, err := redis.Dial("tcp", cfg.RedisHost)
 			if err != nil {
 				return nil, err
 			}
-			c.Do("AUTH", pass)
+			c.Do("AUTH", cfg.RedisPass)
 			return c, err
 		},
 	}

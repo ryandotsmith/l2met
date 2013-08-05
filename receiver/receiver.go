@@ -168,9 +168,9 @@ func (r *Receiver) Report() {
 		nb := atomic.LoadUint64(&r.numBuckets)
 		atomic.AddUint64(&r.numBuckets, -nb)
 		pre := "reciever.buffer."
-		r.Mchan.Measure(pre + "buckets", float64(nb))
-		r.Mchan.Measure(pre + "inbox", float64(len(r.Inbox)))
-		r.Mchan.Measure(pre + "register", float64(len(r.Register.m)))
-		r.Mchan.Measure(pre + "outbox", float64(len(r.Outbox)))
+		r.Mchan.Measure(pre+"buckets", float64(nb))
+		r.Mchan.Measure(pre+"inbox", float64(len(r.Inbox)))
+		r.Mchan.Measure(pre+"register", float64(len(r.Register.m)))
+		r.Mchan.Measure(pre+"outbox", float64(len(r.Outbox)))
 	}
 }

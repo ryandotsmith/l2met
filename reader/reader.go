@@ -5,6 +5,7 @@ package reader
 
 import (
 	"fmt"
+	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/store"
@@ -21,11 +22,11 @@ type Reader struct {
 }
 
 // Sets the scan interval to 1s.
-func New(sz, c int, st store.Store) *Reader {
+func New(cfg *conf.D, st store.Store) *Reader {
 	rdr := new(Reader)
-	rdr.Inbox = make(chan *bucket.Bucket, sz)
-	rdr.numOutlets = c
-	rdr.scanInterval = time.Second
+	rdr.Inbox = make(chan *bucket.Bucket, cfg.BufferSize)
+	rdr.numOutlets = cfg.Concurrency
+	rdr.scanInterval = cfg.OutletInterval
 	rdr.str = st
 	return rdr
 }

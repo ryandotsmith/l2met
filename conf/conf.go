@@ -24,6 +24,7 @@ type D struct {
 	OutletTtl      time.Duration
 	MaxPartitions  uint64
 	FlushtInterval time.Duration
+	OutletInterval time.Duration
 	UsingReciever  bool
 	UseOutlet      bool
 	Verbose        bool
@@ -58,6 +59,10 @@ func New() *D {
 
 	flag.DurationVar(&d.FlushtInterval, "flush-interval", time.Second,
 		"Time to wait before sending data to store or outlet. "+
+			"Example:60s 30s 1m")
+
+	flag.DurationVar(&d.OutletInterval, "outlet-interval", time.Second*30,
+		"Time to wait before outlets read buckets from the store. "+
 			"Example:60s 30s 1m")
 
 	flag.BoolVar(&d.UseOutlet, "outlet", false,

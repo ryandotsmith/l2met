@@ -47,7 +47,7 @@ func main() {
 	}
 
 	if cfg.UseOutlet {
-		rdr := reader.New(cfg.BufferSize, cfg.Concurrency, st)
+		rdr := reader.New(cfg, st)
 		rdr.Mchan = mchan
 		outlet := outlet.NewLibratoOutlet(cfg, rdr)
 		outlet.Mchan = mchan

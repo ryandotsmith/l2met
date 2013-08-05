@@ -21,8 +21,7 @@ Checkout the wiki for information related to: [usage](https://github.com/ryandot
 The easiest way to get l2met up and running is to deploy to Heroku. This guide assumes you have already created a Heroku & Librato account.
 
 ```bash
-$ curl https://s3-us-west-2.amazonaws.com/l2met/v2.0beta/linux/amd64/l2met.tar.gz | tar xvz
-
+$ curl https://drone.io/github.com/ryandotsmith/l2met/files/l2met.tar.gz | tar xvz
 $ ./setup my-l2met e@foo.com abc123
 ...
 Drain URL: https://long-token@my-l2met.herokuapp.com/logs

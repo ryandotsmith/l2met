@@ -114,8 +114,7 @@ func (r *Receiver) accept() {
 			if bucket.Id.Time.Equal(now) {
 				r.addRegister(bucket)
 			} else {
-				fmt.Printf("at=receiver-drop b=%s n=%s\n",
-					bucket.Id.Time, now)
+				r.Mchan.Measure("receiver.drop", 1)
 			}
 		}
 		r.Mchan.Time("receiver.accept", startParse)

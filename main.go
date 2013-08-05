@@ -37,8 +37,9 @@ func main() {
 	// The store will be used by receivers and outlets.
 	var st store.Store
 	if len(cfg.RedisHost) > 0 {
-		st = store.NewRedisStore(cfg)
-		st.Mchan = mchan
+		redisStore := store.NewRedisStore(cfg)
+		redisStore.Mchan = mchan
+		st = redisStore
 		fmt.Printf("at=initialized-redis-store\n")
 	} else {
 		st = store.NewMemStore()

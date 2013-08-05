@@ -74,8 +74,8 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	mut := s.lockPartition(rc)
 	partition := partitionPrefix  + "." + mut.Name
 	go func(out chan *bucket.Bucket) {
-		defer mut.Unlock(rc)
 		defer rc.Close()
+		defer mut.Unlock(rc)
 		defer close(out)
 		rc.Send("MULTI")
 		rc.Send("SMEMBERS", partition)
@@ -194,7 +194,7 @@ func (s *RedisStore) lockPartition(c redis.Conn) *redisync.Mutex {
 				return mut
 			}
 		}
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second)
 	}
 }
 

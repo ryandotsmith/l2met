@@ -19,7 +19,11 @@ func TestRedisGet(t *testing.T) {
 		Id:   id,
 		Vals: []float64{99.99999, 1, 0.2},
 	}
-	st.Put(b1)
+	if err := st.Put(b1); err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
 	b2 := &bucket.Bucket{Id: id}
 	if err := st.Get(b2); err != nil {
 		t.Error(err)
@@ -33,6 +37,38 @@ func TestRedisGet(t *testing.T) {
 			t.Errorf("b1[%d]= %f and b2[%d] = %f",
 				i, b1.Vals[i], i, b2.Vals[i])
 		}
+	}
+}
+
+func TestRedisScan(t *testing.T) {
+	cfg := &conf.D{MaxPartitions: 1, RedisHost: "localhost:6379"}
+	st := NewRedisStore(cfg)
+	st.Mchan = new(metchan.Channel)
+	st.flush()
+	id := &bucket.Id{
+		Name:       "test",
+		Time:       time.Now().Add(-1*time.Minute),
+		Resolution: time.Minute,
+	}
+	b1 := &bucket.Bucket{
+		Id:   id,
+		Vals: []float64{99.99999, 1, 0.2},
+	}
+	st.Put(b1)
+	bchan, err := st.Scan(time.Now())
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	var buckets []*bucket.Bucket
+	for b := range bchan {
+		buckets = append(buckets, b)
+	}
+	if len(buckets) != 1 {
+		t.Errorf("expected=1 actual=%d\n", len(buckets))
+	}
+	if buckets[0].Id.Name != id.Name {
+		t.Errorf("expected id to be equal.")
 	}
 }
 

@@ -11,7 +11,6 @@ import (
 	"github.com/ryandotsmith/redisync"
 	"hash/crc64"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -143,10 +142,15 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 	if err != nil {
 		return err
 	}
-
+	args := make([]interface{}, len(value) + 1)
+	args[0] = key
+	for i := range value {
+		x := strconv.FormatFloat(value[i], 'f', 10, 64)
+		args[i+1] = []byte(x)
+	}
 	partition := s.bucketPartition(key)
 	rc.Send("MULTI")
-	rc.Send("RPUSH", key, value)
+	rc.Send("RPUSH", args...)
 	rc.Send("EXPIRE", key, 300)
 	rc.Send("SADD", partition, key)
 	rc.Send("EXPIRE", partition, 300)
@@ -173,10 +177,14 @@ func (s *RedisStore) Get(b *bucket.Bucket) error {
 	if len(reply) == 0 {
 		return errors.New("redis_store: Empty bucket.")
 	}
-	// The redis.Strings reply will always wrap our array in an outer
-	// array. Above, we checked that we would always have at least 1 elm.
-	if err := decodeList(reply[0].([]byte), &b.Vals); err != nil {
-		return err
+	b.Vals = make([]float64, len(reply))
+	for i := range reply {
+		numstr := reply[i].([]byte)
+		numf, err := strconv.ParseFloat(string(numstr), 64)
+		if err == nil {
+			b.Vals[i] = numf
+		}
+
 	}
 	return nil
 }
@@ -204,17 +212,4 @@ func (s *RedisStore) flush() {
 	rc := s.redisPool.Get()
 	defer rc.Close()
 	rc.Do("FLUSHALL")
-}
-
-func decodeList(src []byte, dest *[]float64) error {
-	// Assume the array starts with '[' and ends with ']'
-	trimed := string(src[1:(len(src) - 1)])
-	// Assume the numbers are seperated by spaces.
-	for _, s := range strings.Split(trimed, " ") {
-		f, err := strconv.ParseFloat(s, 64)
-		if err == nil {
-			*dest = append(*dest, f)
-		}
-	}
-	return nil
 }

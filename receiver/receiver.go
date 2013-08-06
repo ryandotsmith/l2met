@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/parser"
 	"github.com/ryandotsmith/l2met/store"
@@ -55,18 +56,22 @@ type Receiver struct {
 	Store store.Store
 	//Count the number of times we accept a bucket.
 	numBuckets uint64
+	// The number of time units allowed to pass before dropping a
+	// log line.
+	deadline int64
 	// Publish receiver metrics on this channel.
 	Mchan *metchan.Channel
 }
 
-func NewReceiver(sz, c int, i time.Duration, s store.Store) *Receiver {
+func NewReceiver(cfg *conf.D, s store.Store) *Receiver {
 	r := new(Receiver)
-	r.Inbox = make(chan *LogRequest, sz)
-	r.Outbox = make(chan *bucket.Bucket, sz)
+	r.Inbox = make(chan *LogRequest, cfg.BufferSize)
+	r.Outbox = make(chan *bucket.Bucket, cfg.BufferSize)
 	r.Register = &register{m: make(map[bucket.Id]*bucket.Bucket)}
+	r.FlushInterval = cfg.FlushInterval
+	r.NumOutlets = cfg.Concurrency
+	r.deadline = cfg.ReceiverDeadline
 	r.numBuckets = uint64(0)
-	r.FlushInterval = i
-	r.NumOutlets = c
 	r.Store = s
 	return r
 }
@@ -110,7 +115,7 @@ func (r *Receiver) accept() {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		startParse := time.Now()
 		for bucket := range parser.BuildBuckets(rdr, lreq.Opts) {
-			if bucket.Id.Delay(time.Now()) < 2 {
+			if bucket.Id.Delay(time.Now()) <= r.deadline {
 				r.addRegister(bucket)
 			} else {
 				r.Mchan.Measure("receiver.drop", 1)

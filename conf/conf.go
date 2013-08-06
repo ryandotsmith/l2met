@@ -20,11 +20,11 @@ type D struct {
 	BufferSize       int
 	Concurrency      int
 	Port             int
-	ReceiverDeadline int
+	ReceiverDeadline int64
 	OutletRetries    int
 	OutletTtl        time.Duration
 	MaxPartitions    uint64
-	FlushtInterval   time.Duration
+	FlushInterval    time.Duration
 	OutletInterval   time.Duration
 	UsingReciever    bool
 	UseOutlet        bool
@@ -52,13 +52,16 @@ func New() *D {
 	flag.IntVar(&d.OutletRetries, "outlet-retry", 2,
 		"Number of attempts to outlet metrics to Librato.")
 
+	flag.Int64Var(&d.ReceiverDeadline, "recv-deadline", 2,
+		"Number of time units to pass before dropping incoming logs.")
+
 	flag.DurationVar(&d.OutletTtl, "outlet-ttl", time.Second*2,
 		"Timeout set on Librato HTTP requests.")
 
 	flag.Uint64Var(&d.MaxPartitions, "partitions", uint64(1),
 		"Number of partitions to use for outlets.")
 
-	flag.DurationVar(&d.FlushtInterval, "flush-interval", time.Second,
+	flag.DurationVar(&d.FlushInterval, "flush-interval", time.Second,
 		"Time to wait before sending data to store or outlet. "+
 			"Example:60s 30s 1m")
 

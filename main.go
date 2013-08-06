@@ -55,8 +55,7 @@ func main() {
 	}
 
 	if cfg.UsingReciever {
-		recv := receiver.NewReceiver(cfg.BufferSize,
-			cfg.Concurrency, cfg.FlushtInterval, st)
+		recv := receiver.NewReceiver(cfg, st)
 		recv.Mchan = mchan
 		recv.Start()
 		if cfg.Verbose {

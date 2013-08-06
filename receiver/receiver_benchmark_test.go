@@ -2,6 +2,7 @@ package receiver
 
 import (
 	"fmt"
+	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/store"
 	"net/url"
@@ -12,7 +13,12 @@ import (
 func BenchmarkReceive(b *testing.B) {
 	b.StopTimer()
 	st := store.NewMemStore()
-	recv := NewReceiver(1, 1, time.Second, st)
+	cfg := &conf.D{
+		Concurrency:   1,
+		BufferSize:    1,
+		FlushInterval: time.Second,
+	}
+	recv := NewReceiver(cfg, st)
 	u, _ := url.Parse("https://u:p@test.com/")
 	recv.Mchan = metchan.New(false, u)
 	recv.Start()

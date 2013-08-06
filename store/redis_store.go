@@ -142,7 +142,7 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 	if err != nil {
 		return err
 	}
-	args := make([]interface{}, len(value) + 1)
+	args := make([]interface{}, len(value)+1)
 	args[0] = key
 	for i := range value {
 		x := strconv.FormatFloat(value[i], 'f', 10, 64)

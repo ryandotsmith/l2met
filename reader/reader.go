@@ -5,8 +5,8 @@ package reader
 
 import (
 	"fmt"
-	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/store"
 	"time"

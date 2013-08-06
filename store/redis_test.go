@@ -47,7 +47,7 @@ func TestRedisScan(t *testing.T) {
 	st.flush()
 	id := &bucket.Id{
 		Name:       "test",
-		Time:       time.Now().Add(-1*time.Minute),
+		Time:       time.Now().Add(-1 * time.Minute),
 		Resolution: time.Minute,
 	}
 	b1 := &bucket.Bucket{

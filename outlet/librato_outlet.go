@@ -132,7 +132,7 @@ func (l *LibratoOutlet) outlet() {
 			continue
 		}
 		if err := l.postWithRetry(user, pass, j); err != nil {
-			fmt.Printf("measure.outlet.drop user=%s\n", user)
+			l.Mchan.Measure("outlet.drop", 1)
 		}
 	}
 }

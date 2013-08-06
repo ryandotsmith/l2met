@@ -110,8 +110,7 @@ func (r *Receiver) accept() {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		startParse := time.Now()
 		for bucket := range parser.BuildBuckets(rdr, lreq.Opts) {
-			now := time.Now().Truncate(bucket.Id.Resolution)
-			if bucket.Id.Time.Equal(now) {
+			if bucket.Id.Delay(time.Now()) <= 2 {
 				r.addRegister(bucket)
 			} else {
 				r.Mchan.Measure("receiver.drop", 1)

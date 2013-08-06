@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 )
@@ -41,6 +42,7 @@ type Channel struct {
 	buffer        map[string]*bucket.Bucket
 	outbox        chan *libratoMetric
 	url           *url.URL
+	source        string
 	FlushInterval time.Duration
 }
 
@@ -74,6 +76,10 @@ func New(verbose bool, u *url.URL) *Channel {
 	// Default flush interval.
 	c.FlushInterval = time.Minute
 
+	host, err := os.Hostname()
+	if err == nil {
+		c.source = host
+	}
 	return c
 }
 
@@ -103,9 +109,7 @@ func (c *Channel) Measure(name string, v float64) {
 		Resolution: c.FlushInterval,
 		Name:       name,
 		Units:      "ms",
-		// TODO(ryandotsmith):
-		// Maybe we use the system's hostname?
-		Source: "metchan",
+		Source:     c.source,
 	}
 	c.add(id, v)
 }

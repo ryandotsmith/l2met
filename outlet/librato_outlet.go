@@ -80,8 +80,8 @@ func (l *LibratoOutlet) convert() {
 		for _, m := range bucket.Metrics() {
 			l.conversions <- m
 		}
-		fmt.Printf("measure.bucket.conversion.delay=%d\n",
-			bucket.Id.Delay(time.Now()))
+		delay := bucket.Id.Delay(time.Now())
+		l.Mchan.Measure("outlet.delay", float64(delay))
 	}
 }
 

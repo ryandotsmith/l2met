@@ -1,7 +1,8 @@
-package receiver
+package main
 
 import (
 	"fmt"
+	"l2met/receiver"
 	"l2met/bucket"
 	"l2met/conf"
 	"l2met/metchan"
@@ -167,7 +168,7 @@ func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 		BufferSize:    100,
 		FlushInterval: time.Millisecond * 5,
 	}
-	recv := NewReceiver(cfg, st)
+	recv := receiver.NewReceiver(cfg, st)
 	recv.Mchan = new(metchan.Channel)
 	recv.Start()
 	defer recv.Stop()

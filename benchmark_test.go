@@ -1,7 +1,8 @@
-package receiver
+package main
 
 import (
 	"fmt"
+	"l2met/receiver"
 	"l2met/conf"
 	"l2met/metchan"
 	"l2met/store"
@@ -18,7 +19,7 @@ func BenchmarkReceive(b *testing.B) {
 		BufferSize:    1,
 		FlushInterval: time.Second,
 	}
-	recv := NewReceiver(cfg, st)
+	recv := receiver.NewReceiver(cfg, st)
 	u, _ := url.Parse("https://u:p@test.com/")
 	recv.Mchan = metchan.New(false, u)
 	recv.Start()

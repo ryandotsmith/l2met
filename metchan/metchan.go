@@ -100,7 +100,7 @@ func (c *Channel) Time(name string, t time.Time) {
 
 func (c *Channel) Measure(name string, v float64) {
 	if c.verbose {
-		fmt.Printf("measure.%s=%f\n", name, v)
+		fmt.Printf("source=%s measure#%s=%f\n", c.source, name, v)
 	}
 	if !c.enabled {
 		return

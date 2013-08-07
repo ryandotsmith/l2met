@@ -35,6 +35,7 @@ type libratoGauge struct {
 type Channel struct {
 	// The time by which metchan will aggregate internal metrics.
 	FlushInterval time.Duration
+	// The Channel is thread-safe.
 	sync.Mutex
 	username      string
 	password      string

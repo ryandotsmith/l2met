@@ -149,8 +149,19 @@ func (p *parser) buildId(id *bucket.Id, t *tuple) {
 	id.Pass = p.Pass()
 	id.Name = p.Prefix(t.Name())
 	id.Units = t.Units()
-	id.Source = p.ld.Source()
+	id.Source = p.SourcePrefix(p.ld.Source())
 	return
+}
+
+func (p *parser) SourcePrefix(suffix string) string {
+	pre, present := p.opts["source-prefix"]
+	if !present {
+		return suffix
+	}
+	if len(suffix) > 0 {
+		return pre[0] + "." + suffix
+	}
+	return pre[0]
 }
 
 func (p *parser) Prefix(suffix string) string {

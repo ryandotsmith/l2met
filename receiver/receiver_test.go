@@ -106,6 +106,14 @@ func TestReceiver(t *testing.T) {
 				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
 			},
 		},
+		{
+			"source prefix",
+			testOps{"user": []string{"u"}, "password": []string{"p"}, "source-prefix": []string{"srcpre"}},
+			fmtLog(currentTime, "app", "measure#hello"),
+			[]*bucket.Bucket{
+				testBucket("hello", "srcpre", "u", "p", currentTime, time.Minute, []float64{1}),
+			},
+		},
 	}
 
 	for i := range cases {

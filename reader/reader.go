@@ -5,10 +5,10 @@ package reader
 
 import (
 	"fmt"
-	"github.com/ryandotsmith/l2met/bucket"
-	"github.com/ryandotsmith/l2met/conf"
-	"github.com/ryandotsmith/l2met/metchan"
-	"github.com/ryandotsmith/l2met/store"
+	"l2met/bucket"
+	"l2met/conf"
+	"l2met/metchan"
+	"l2met/store"
 	"time"
 )
 

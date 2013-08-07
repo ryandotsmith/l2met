@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ryandotsmith/l2met/bucket"
+	"l2met/bucket"
 	"io/ioutil"
 	"net/http"
 	"net/url"

@@ -6,7 +6,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/bmizerany/lpx"
-	"github.com/ryandotsmith/l2met/bucket"
+	"l2met/bucket"
 	"strconv"
 	"strings"
 	"time"

@@ -2,9 +2,9 @@ package receiver
 
 import (
 	"fmt"
-	"github.com/ryandotsmith/l2met/conf"
-	"github.com/ryandotsmith/l2met/metchan"
-	"github.com/ryandotsmith/l2met/store"
+	"l2met/conf"
+	"l2met/metchan"
+	"l2met/store"
 	"net/url"
 	"testing"
 	"time"

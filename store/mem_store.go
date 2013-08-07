@@ -2,7 +2,7 @@ package store
 
 import (
 	"errors"
-	"github.com/ryandotsmith/l2met/bucket"
+	"l2met/bucket"
 	"sync"
 	"time"
 )

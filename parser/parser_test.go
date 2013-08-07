@@ -3,7 +3,7 @@ package parser
 import (
 	"bufio"
 	"bytes"
-	"github.com/ryandotsmith/l2met/bucket"
+	"l2met/bucket"
 	"testing"
 )
 

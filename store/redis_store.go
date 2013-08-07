@@ -75,6 +75,7 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	mut := s.lockPartition(rc)
 	partition := partitionPrefix + "." + mut.Name
 	go func(out chan *bucket.Bucket) {
+		defer s.Mchan.Time("store.scan", time.Now())
 		defer rc.Close()
 		defer mut.Unlock(rc)
 		defer close(out)
@@ -111,7 +112,7 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 }
 
 func (s *RedisStore) putback(id *bucket.Id) error {
-	defer s.Mchan.Time("bucket.putback", time.Now())
+	defer s.Mchan.Time("store.putback", time.Now())
 	rc := s.redisPool.Get()
 	defer rc.Close()
 	key, err := id.Encode()
@@ -130,7 +131,7 @@ func (s *RedisStore) putback(id *bucket.Id) error {
 }
 
 func (s *RedisStore) Put(b *bucket.Bucket) error {
-	defer s.Mchan.Time("bucket.put", time.Now())
+	defer s.Mchan.Time("store.put", time.Now())
 
 	rc := s.redisPool.Get()
 	defer rc.Close()
@@ -162,7 +163,7 @@ func (s *RedisStore) Put(b *bucket.Bucket) error {
 }
 
 func (s *RedisStore) Get(b *bucket.Bucket) error {
-	defer s.Mchan.Time("bucket.get", time.Now())
+	defer s.Mchan.Time("store.get", time.Now())
 	rc := s.redisPool.Get()
 	defer rc.Close()
 
@@ -201,8 +202,10 @@ func (s *RedisStore) lockPartition(c redis.Conn) *redisync.Mutex {
 			name := fmt.Sprintf("%s.%d", lockPrefix, p)
 			mut := redisync.NewMutex(name, time.Minute)
 			if mut.TryLock(c) {
+				s.Mchan.Measure("store.lock-success", 1)
 				return mut
 			}
+			s.Mchan.Measure("store.lock-fail", 1)
 		}
 		time.Sleep(time.Second)
 	}

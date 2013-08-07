@@ -1,0 +1,71 @@
+---
+l2met:
+  defaults:
+    summarize_function: sum
+    type: gauge
+    aggregate: true
+    source: '*'
+
+  receiver.throughput:
+    defaults:
+      display_stacked: true
+    receiver.add-bucket:
+      group_function: sum
+      summary_function: count
+    http.accept:
+      group_function: sum
+      summary_function: count
+
+  receiver.latency:
+    receiver.accept:
+      group_function: average
+      summary_function: average
+    http.accept:
+      group_function: average
+      summary_function: average
+
+  store.locks:
+    defaults:
+      group_function: sum
+      summary_function: count
+    store.lock-success:
+    store.lock-fail:
+
+  store.throughput:
+    defaults:
+      display_stacked: true
+      group_function: sum
+      summary_function: count
+    store.get:
+    store.put:
+
+  store.latency:
+    defaults:
+      group_function: average
+      summary_function: average
+    store.get:
+    store.put:
+
+  outlet.throughput:
+    defaults:
+      display_stacked: true
+      group_function: sum
+      summary_function: count
+    outlet.post:
+
+  outlet.latency:
+    defaults:
+      display_stacked: true
+      group_function: average
+      summary_function: average
+    outlet.post:
+
+  drops:
+    defaults:
+      group_function: sum
+      summary_function: count
+      display_stacked: true
+    receiver.drop:
+      color: '#FF4500'
+    outlet.drop:
+      color: '#FF0000'

@@ -32,8 +32,9 @@ type libratoGauge struct {
 	Gauges []*libratoMetric `json:"gauges"`
 }
 
-// The channel for which internal metrics are organized.
 type Channel struct {
+	// The time by which metchan will aggregate internal metrics.
+	FlushInterval time.Duration
 	sync.Mutex
 	username      string
 	password      string
@@ -43,7 +44,6 @@ type Channel struct {
 	outbox        chan *libratoMetric
 	url           *url.URL
 	source        string
-	FlushInterval time.Duration
 }
 
 // Returns an initialized Metchan Channel.

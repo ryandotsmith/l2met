@@ -37,7 +37,9 @@ $ heroku drains:add https://long-token@my-l2met.herokuapp.com/logs -a myapp
 Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
 
 ### Documentation
-[GoDoc](http://godoc.org/github.com/ryandotsmith/l2met)
+
+* [GoDoc](http://godoc.org/github.com/ryandotsmith/l2met)
+* [Wiki](https://github.com/ryandotsmith/l2met/wiki)
 
 ### Running Tests
 [![Build Status](https://drone.io/github.com/ryandotsmith/l2met/status.png)](https://drone.io/github.com/ryandotsmith/l2met/latest)

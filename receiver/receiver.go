@@ -61,6 +61,8 @@ type Receiver struct {
 	deadline int64
 	// Publish receiver metrics on this channel.
 	Mchan *metchan.Channel
+	outletters sync.WaitGroup
+	acceptors sync.WaitGroup
 }
 
 func NewReceiver(cfg *conf.D, s store.Store) *Receiver {
@@ -102,15 +104,22 @@ func (r *Receiver) Start() {
 	go r.transfer()
 }
 
-func (r *Receiver) Stop() {
-	r.TransferTicker.Stop()
-	// We sleep to give our transfer routine time to finish.
-	time.Sleep(r.FlushInterval)
+func (r *Receiver) Wait() {
 	close(r.Inbox)
+	r.acceptors.Wait()
+	for {
+		time.Sleep(time.Millisecond)
+		if len(r.Register.m) == 0 {
+			break
+		}
+	}
 	close(r.Outbox)
+	r.outletters.Wait()
 }
 
 func (r *Receiver) accept() {
+	r.acceptors.Add(1)
+	defer r.acceptors.Done()
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		startParse := time.Now()
@@ -118,6 +127,7 @@ func (r *Receiver) accept() {
 			if bucket.Id.Delay(time.Now()) <= r.deadline {
 				r.addRegister(bucket)
 			} else {
+				fmt.Printf("delay=%d deadline=%d\n", bucket.Id.Delay(time.Now()), r.deadline)
 				r.Mchan.Measure("receiver.drop", 1)
 			}
 		}
@@ -156,6 +166,8 @@ func (r *Receiver) transfer() {
 }
 
 func (r *Receiver) outlet() {
+	r.outletters.Add(1)
+	defer r.outletters.Done()
 	for b := range r.Outbox {
 		startPut := time.Now()
 		if err := r.Store.Put(b); err != nil {

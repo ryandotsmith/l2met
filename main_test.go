@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"l2met/receiver"
 	"l2met/bucket"
 	"l2met/conf"
 	"l2met/metchan"
+	"l2met/receiver"
 	"l2met/store"
 	"testing"
 	"time"
@@ -13,119 +13,124 @@ import (
 
 type testOps map[string][]string
 
-func TestReceiver(t *testing.T) {
-	currentTime := time.Now()
-	opts := testOps{"resolution": []string{"60"}, "user": []string{"u"}, "password": []string{"p"}}
-	cases := []struct {
-		Name    string
-		Opts    testOps
-		LogLine []byte
-		Buckets []*bucket.Bucket
-	}{
-		{
-			"router",
-			opts,
-			fmtLog(currentTime, "router", "host=l2met.net connect=1ms service=4ms bytes=10"),
-			[]*bucket.Bucket{
-				testBucket("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{1}),
-				testBucket("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
-				testBucket("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{10}),
-			},
-		},
-		{
-			"router large values",
-			opts,
-			fmtLog(currentTime, "router", "host=l2met.net connect=12345678912ms service=4ms bytes=12345678912"),
-			[]*bucket.Bucket{
-				testBucket("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
-				testBucket("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
-				testBucket("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
-			},
-		},
-		{
-			"legacy",
-			opts,
-			fmtLog(currentTime, "app", "measure.a"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
-			},
-		},
-		{
-			"idiomatic",
-			opts,
-			fmtLog(currentTime, "app", "measure#a"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
-			},
-		},
-		{
-			"change in resolution",
-			opts,
-			fmtLog(currentTime, "app", "measure#a"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Second, []float64{1}),
-			},
-		},
-		{
-			"with value",
-			opts,
-			fmtLog(currentTime, "app", "measure#a=1"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
-			},
-		},
-		{
-			"with float value",
-			opts,
-			fmtLog(currentTime, "app", "measure#a=0.001"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{0.001}),
-			},
-		},
-		{
-			"multiple values",
-			opts,
-			fmtLog(currentTime, "app", "measure#a=1 measure#b=2"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
-				testBucket("b", "", "u", "p", currentTime, time.Minute, []float64{2}),
-			},
-		},
-		{
-			"counters",
-			opts,
-			fmtLog(currentTime, "app", "count#a=1"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
-			},
-		},
-		{
-			"samples",
-			opts,
-			fmtLog(currentTime, "app", "sample#a=1"),
-			[]*bucket.Bucket{
-				testBucket("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
-			},
-		},
-		{
-			"source prefix",
-			testOps{"user": []string{"u"}, "password": []string{"p"}, "source-prefix": []string{"srcpre"}},
-			fmtLog(currentTime, "app", "measure#hello"),
-			[]*bucket.Bucket{
-				testBucket("hello", "srcpre", "u", "p", currentTime, time.Minute, []float64{1}),
-			},
-		},
-	}
+var currentTime = time.Now()
+var opts = testOps{
+	"resolution": []string{"60"},
+	"user":       []string{"u"},
+	"password":   []string{"p"},
+}
 
-	for i := range cases {
-		actual, err := receiveInput(cases[i].Opts, cases[i].LogLine)
+var integrationTest = []struct {
+	desc string
+	opts testOps
+	logLine []byte
+	buckets []*bucket.Bucket
+}{
+	{
+		"router",
+		opts,
+		fmtLog(currentTime, "router", "host=l2met.net connect=1ms service=4ms bytes=10"),
+		[]*bucket.Bucket{
+			build("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{1}),
+			build("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
+			build("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{10}),
+		},
+	},
+	{
+		"router large values",
+		opts,
+		fmtLog(currentTime, "router", "host=l2met.net connect=12345678912ms service=4ms bytes=12345678912"),
+		[]*bucket.Bucket{
+			build("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
+			build("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
+			build("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
+		},
+	},
+	{
+		"legacy",
+		opts,
+		fmtLog(currentTime, "app", "measure.a"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+		},
+	},
+	{
+		"idiomatic",
+		opts,
+		fmtLog(currentTime, "app", "measure#a"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+		},
+	},
+	{
+		"change in resolution",
+		opts,
+		fmtLog(currentTime, "app", "measure#a"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Second, []float64{1}),
+		},
+	},
+	{
+		"with value",
+		opts,
+		fmtLog(currentTime, "app", "measure#a=1"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+		},
+	},
+	{
+		"with float value",
+		opts,
+		fmtLog(currentTime, "app", "measure#a=0.001"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Minute, []float64{0.001}),
+		},
+	},
+	{
+		"multiple values",
+		opts,
+		fmtLog(currentTime, "app", "measure#a=1 measure#b=2"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+			build("b", "", "u", "p", currentTime, time.Minute, []float64{2}),
+		},
+	},
+	{
+		"counters",
+		opts,
+		fmtLog(currentTime, "app", "count#a=1"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+		},
+	},
+	{
+		"samples",
+		opts,
+		fmtLog(currentTime, "app", "sample#a=1"),
+		[]*bucket.Bucket{
+			build("a", "", "u", "p", currentTime, time.Minute, []float64{1}),
+		},
+	},
+	{
+		"source prefix",
+		testOps{"user": []string{"u"}, "password": []string{"p"}, "source-prefix": []string{"srcpre"}},
+		fmtLog(currentTime, "app", "measure#hello"),
+		[]*bucket.Bucket{
+			build("hello", "srcpre", "u", "p", currentTime, time.Minute, []float64{1}),
+		},
+	},
+}
+
+func TestReceiver(t *testing.T) {
+	for _, ts := range integrationTest {
+		actual, err := receiveInput(ts.opts, ts.logLine)
 		if err != nil {
 			t.Errorf("error=%s\n", err)
 		}
-		expected := cases[i].Buckets
+		expected := ts.buckets
 		if len(actual) != len(expected) {
 			t.Fatalf("case=%s actual-len=%d expected-len=%d\n",
-				cases[i].Name, len(actual), len(expected))
+				ts.desc, len(actual), len(expected))
 		}
 		for j := range actual {
 			if !bucketsEqual(actual[j], expected[j]) {
@@ -136,7 +141,7 @@ func TestReceiver(t *testing.T) {
 	}
 }
 
-func testBucket(name, source, user, pass string, t time.Time, res time.Duration, vals []float64) *bucket.Bucket {
+func build(name, source, user, pass string, t time.Time, res time.Duration, vals []float64) *bucket.Bucket {
 	id := new(bucket.Id)
 	id.Name = name
 	id.Source = source
@@ -165,23 +170,22 @@ func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	st := store.NewMemStore()
 	cfg := &conf.D{
 		Concurrency:   1,
-		BufferSize:    100,
+		BufferSize:    10,
 		FlushInterval: time.Millisecond * 5,
+		ReceiverDeadline: 2,
 	}
 	recv := receiver.NewReceiver(cfg, st)
 	recv.Mchan = new(metchan.Channel)
 	recv.Start()
-	defer recv.Stop()
-
 	recv.Receive(msg, opts)
-	time.Sleep(10 * recv.FlushInterval)
+	recv.Wait()
 
 	future := time.Now().Add(time.Minute)
 	ch, err := st.Scan(future)
 	if err != nil {
 		return nil, err
 	}
-	buckets := make([]*bucket.Bucket, 0)
+	var buckets []*bucket.Bucket
 	for b := range ch {
 		buckets = append(buckets, b)
 	}

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"l2met/receiver"
 	"l2met/conf"
 	"l2met/metchan"
+	"l2met/receiver"
 	"l2met/store"
 	"net/url"
 	"testing"
@@ -23,7 +23,6 @@ func BenchmarkReceive(b *testing.B) {
 	u, _ := url.Parse("https://u:p@test.com/")
 	recv.Mchan = metchan.New(false, u)
 	recv.Start()
-	defer recv.Stop()
 
 	opts := make(map[string][]string)
 	opts["user"] = []string{"u"}
@@ -39,4 +38,5 @@ func BenchmarkReceive(b *testing.B) {
 		b.StopTimer()
 		b.SetBytes(int64(len(msg)))
 	}
+	recv.Wait()
 }

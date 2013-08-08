@@ -34,7 +34,12 @@ $ heroku drains:add https://long-token@my-l2met.herokuapp.com/logs -a myapp
 ```
 
 ## Hacking on l2met
-Before working on a new feature, send your proposal to the [mailing list](https://groups.google.com/d/forum/l2met) for tips & feedback. Be sure to work on a feature branch and submit a PR when ready.
+L2met is an open source, community project. Patches are welcome. Open an issue prior to submitting a patch to ensure that your patch will be acceptd. You will also receive tips & tricks on how to best implement your patch.
+
+### Communcation
+
+* [Mailing list](https://groups.google.com/d/forum/l2met)
+* IRC - #l2met on freenode
 
 ### Documentation
 

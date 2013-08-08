@@ -34,14 +34,12 @@ func (ld *logData) Reset() {
 	ld.Tuples = ld.Tuples[:0]
 }
 
+// If a source=val pair is found in the collection of k=v pairs
+// extracted from the log line, this function will return the value
+// of the source key.
 func (ld *logData) Source() string {
 	for _, tuple := range ld.Tuples {
 		if bytes.Equal(tuple.Key, []byte("source")) {
-			return tuple.String()
-		}
-		//The Heroku router fills in the host key, if the host
-		//is present, we will use this as the source.
-		if bytes.Equal(tuple.Key, []byte("host")) {
 			return tuple.String()
 		}
 	}

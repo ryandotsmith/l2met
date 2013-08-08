@@ -31,9 +31,9 @@ var integrationTest = []struct {
 		opts,
 		fmtLog(currentTime, "router", "host=l2met.net connect=1ms service=4ms bytes=10"),
 		[]*bucket.Bucket{
-			build("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{1}),
-			build("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
-			build("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{10}),
+			build("router.connect", "", "u", "p", currentTime, time.Minute, []float64{1}),
+			build("router.service", "", "u", "p", currentTime, time.Minute, []float64{4}),
+			build("router.bytes", "", "u", "p", currentTime, time.Minute, []float64{10}),
 		},
 	},
 	{
@@ -41,9 +41,9 @@ var integrationTest = []struct {
 		opts,
 		fmtLog(currentTime, "router", "host=l2met.net connect=12345678912ms service=4ms bytes=12345678912"),
 		[]*bucket.Bucket{
-			build("router.connect", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
-			build("router.service", "l2met.net", "u", "p", currentTime, time.Minute, []float64{4}),
-			build("router.bytes", "l2met.net", "u", "p", currentTime, time.Minute, []float64{12345678912}),
+			build("router.connect", "", "u", "p", currentTime, time.Minute, []float64{12345678912}),
+			build("router.service", "", "u", "p", currentTime, time.Minute, []float64{4}),
+			build("router.bytes", "", "u", "p", currentTime, time.Minute, []float64{12345678912}),
 		},
 	},
 	{

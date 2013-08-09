@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"l2met/bucket"
-	"l2met/conf"
-	"l2met/metchan"
-	"l2met/receiver"
-	"l2met/store"
+	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/conf"
+	"github.com/ryandotsmith/l2met/metchan"
+	"github.com/ryandotsmith/l2met/receiver"
+	"github.com/ryandotsmith/l2met/store"
 	"testing"
 	"time"
 )

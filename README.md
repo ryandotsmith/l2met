@@ -56,8 +56,8 @@ go version go1.1.1 darwin/amd64
 ```
 
 ```bash
-$ git clone git://github.com/ryandotsmith/l2met.git $GOPATH/src/l2met
-$ cd $GOPATH/src/l2met
+$ git clone git://github.com/ryandotsmith/l2met.git $GOPATH/src/github.com/ryandotsmith/l2met
+$ cd $GOPATH/src/github.com/ryandotsmith/l2met
 $ export SECRETS=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
 $ export TZ=UTC
 $ export REDIS_URL=redis://localhost:6379

@@ -4,7 +4,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"github.com/ryandotsmith/l2met/auth"
 	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
@@ -12,6 +11,7 @@ import (
 	"github.com/ryandotsmith/l2met/reader"
 	"github.com/ryandotsmith/l2met/receiver"
 	"github.com/ryandotsmith/l2met/store"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"runtime"

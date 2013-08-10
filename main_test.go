@@ -21,8 +21,8 @@ var opts = testOps{
 }
 
 var integrationTest = []struct {
-	desc string
-	opts testOps
+	desc    string
+	opts    testOps
 	logLine []byte
 	buckets []*bucket.Bucket
 }{
@@ -169,9 +169,9 @@ func fmtLog(t time.Time, procid, msg string) []byte {
 func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	st := store.NewMemStore()
 	cfg := &conf.D{
-		Concurrency:   1,
-		BufferSize:    10,
-		FlushInterval: time.Millisecond * 5,
+		Concurrency:      1,
+		BufferSize:       10,
+		FlushInterval:    time.Millisecond * 5,
 		ReceiverDeadline: 2,
 	}
 	recv := receiver.NewReceiver(cfg, st)

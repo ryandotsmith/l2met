@@ -27,6 +27,19 @@ type libratoMetric struct {
 	Max    float64 `json:"max"`
 	Min    float64 `json:"min"`
 }
+func (l *libratoMetric) String() string {
+	layout := "source=%s "
+	layout += "sample#%s.count=%d "
+	layout += "sample#%s.sum=%f "
+	layout += "sample#%s.max=%f "
+	layout += "sample#%s.min=%f"
+	return fmt.Sprintf(layout,
+		l.Source,
+		l.Name, l.Count,
+		l.Name, l.Sum,
+		l.Name, l.Max,
+		l.Name, l.Min)
+}
 
 type libratoGauge struct {
 	Gauges []*libratoMetric `json:"gauges"`
@@ -160,10 +173,9 @@ func (c *Channel) flush() {
 
 func (c *Channel) outlet() {
 	for met := range c.outbox {
+		fmt.Printf("at=outlet-metric %s\n", met.String())
 		if err := c.post(met); err != nil {
 			fmt.Printf("at=metchan-post error=%s\n", err)
-		} else {
-			fmt.Printf("at=metchan-post status=success\n")
 		}
 	}
 }

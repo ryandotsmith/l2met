@@ -127,7 +127,6 @@ func (r *Receiver) accept() {
 			if bucket.Id.Delay(time.Now()) <= r.deadline {
 				r.addRegister(bucket)
 			} else {
-				fmt.Printf("delay=%d deadline=%d\n", bucket.Id.Delay(time.Now()), r.deadline)
 				r.Mchan.Measure("receiver.drop", 1)
 			}
 		}

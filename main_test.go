@@ -133,9 +133,15 @@ func TestReceiver(t *testing.T) {
 				ts.desc, len(actual), len(expected))
 		}
 		for j := range actual {
-			if !bucketsEqual(actual[j], expected[j]) {
-				t.Errorf("\n actual:\t %s \n expected:\t %s",
-					actual[j].String(), expected[j].String())
+			found := false
+			for i := range expected {
+				if bucketsEqual(actual[j], expected[i]) {
+					found = true
+				}
+			}
+			if !found {
+				t.Fatalf("\n actual:\t %v \n expected:\t %v",
+					actual[j], expected[j])
 			}
 		}
 	}

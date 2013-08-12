@@ -93,6 +93,7 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	rc := s.redisPool.Get()
 	mut, n := s.lockPartition(rc)
 	p := namePartition(schedule, n)
+	fmt.Printf("at=redis-store.scan partition=%s\n", p)
 	go func() {
 		defer s.Mchan.Time("store.scan", time.Now())
 		defer rc.Close()

@@ -6,66 +6,66 @@ l2met:
     aggregate: true
     source: '*'
 
-  receiver.throughput:
+  l2met.receiver.throughput:
     defaults:
       display_stacked: true
-    receiver.add-bucket:
+    l2met.receiver.add-bucket:
       group_function: sum
       summary_function: count
-    http.accept:
+    l2met.http.accept:
       group_function: sum
       summary_function: count
 
-  receiver.latency:
-    receiver.accept:
+  l2met.receiver.latency:
+    l2met.receiver.accept:
       group_function: average
       summary_function: average
-    http.accept:
+    l2met.http.accept:
       group_function: average
       summary_function: average
 
-  store.locks:
+  l2met.store.locks:
     defaults:
       group_function: sum
       summary_function: count
-    store.lock-success:
-    store.lock-fail:
+    l2met.store.lock-success:
+    l2met.store.lock-fail:
 
-  store.throughput:
+  l2met.store.throughput:
     defaults:
       display_stacked: true
       group_function: sum
       summary_function: count
-    store.get:
-    store.put:
+    l2met.store.get:
+    l2met.store.put:
 
-  store.latency:
+  l2met.store.latency:
     defaults:
       group_function: average
       summary_function: average
-    store.get:
-    store.put:
+    l2met.store.get:
+    l2met.store.put:
 
-  outlet.throughput:
+  l2met.outlet.throughput:
     defaults:
       display_stacked: true
       group_function: sum
       summary_function: count
-    outlet.post:
+    l2met.outlet.post:
 
-  outlet.latency:
+  l2met.outlet.latency:
     defaults:
       display_stacked: true
       group_function: average
       summary_function: average
-    outlet.post:
+    l2met.outlet.post:
 
-  drops:
+  l2met.drops:
     defaults:
       group_function: sum
       summary_function: count
       display_stacked: true
-    receiver.drop:
+    l2met.receiver.drop:
       color: '#FF4500'
-    outlet.drop:
+    l2met.outlet.drop:
       color: '#FF0000'

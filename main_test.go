@@ -113,7 +113,7 @@ var integrationTest = []struct {
 	},
 	{
 		"source prefix",
-		testOps{"auth": []string{"abc123"}, "source-prefix": []string{"srcpre"}},
+		testOps{"resolution": []string{"60"}, "auth": []string{"abc123"}, "source-prefix": []string{"srcpre"}},
 		fmtLog(currentTime, "app", "measure#hello"),
 		[]*bucket.Bucket{
 			build("hello", "srcpre", "u", currentTime, time.Minute, []float64{1}),

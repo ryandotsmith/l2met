@@ -60,9 +60,9 @@ type Receiver struct {
 	// log line.
 	deadline int64
 	// Publish receiver metrics on this channel.
-	Mchan *metchan.Channel
+	Mchan      *metchan.Channel
 	outletters sync.WaitGroup
-	acceptors sync.WaitGroup
+	acceptors  sync.WaitGroup
 }
 
 func NewReceiver(cfg *conf.D, s store.Store) *Receiver {

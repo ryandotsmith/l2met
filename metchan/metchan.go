@@ -27,6 +27,7 @@ type libratoMetric struct {
 	Max    float64 `json:"max"`
 	Min    float64 `json:"min"`
 }
+
 func (l *libratoMetric) String() string {
 	layout := "source=%s "
 	layout += "sample#%s.count=%d "
@@ -50,14 +51,14 @@ type Channel struct {
 	FlushInterval time.Duration
 	// The Channel is thread-safe.
 	sync.Mutex
-	username      string
-	password      string
-	verbose       bool
-	enabled       bool
-	buffer        map[string]*bucket.Bucket
-	outbox        chan *libratoMetric
-	url           *url.URL
-	source        string
+	username string
+	password string
+	verbose  bool
+	enabled  bool
+	buffer   map[string]*bucket.Bucket
+	outbox   chan *libratoMetric
+	url      *url.URL
+	source   string
 }
 
 // Returns an initialized Metchan Channel.

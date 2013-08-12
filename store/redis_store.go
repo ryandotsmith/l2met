@@ -23,19 +23,6 @@ func init() {
 
 var partitionTable = crc64.MakeTable(crc64.ISO)
 
-type RedisStore struct {
-	redisPool     *redis.Pool
-	maxPartitions uint64
-	Mchan         *metchan.Channel
-}
-
-func NewRedisStore(cfg *conf.D) *RedisStore {
-	return &RedisStore{
-		maxPartitions: cfg.MaxPartitions,
-		redisPool:     initRedisPool(cfg),
-	}
-}
-
 func initRedisPool(cfg *conf.D) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     cfg.Concurrency,
@@ -52,6 +39,19 @@ func initRedisPool(cfg *conf.D) *redis.Pool {
 			c.Do("AUTH", cfg.RedisPass)
 			return c, err
 		},
+	}
+}
+
+type RedisStore struct {
+	redisPool     *redis.Pool
+	maxPartitions uint64
+	Mchan         *metchan.Channel
+}
+
+func NewRedisStore(cfg *conf.D) *RedisStore {
+	return &RedisStore{
+		maxPartitions: cfg.MaxPartitions,
+		redisPool:     initRedisPool(cfg),
 	}
 }
 

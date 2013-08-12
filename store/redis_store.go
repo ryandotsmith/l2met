@@ -70,11 +70,11 @@ func (s *RedisStore) Health() bool {
 }
 
 func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
-	retBuckets := make(chan *bucket.Bucket)
+	out := make(chan *bucket.Bucket)
 	rc := s.redisPool.Get()
 	mut := s.lockPartition(rc)
 	partition := partitionPrefix + "." + mut.Name
-	go func(out chan *bucket.Bucket) {
+	go func() {
 		defer s.Mchan.Time("store.scan", time.Now())
 		defer rc.Close()
 		defer mut.Unlock(rc)
@@ -107,8 +107,8 @@ func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 				}
 			}
 		}
-	}(retBuckets)
-	return retBuckets, nil
+	}()
+	return out, nil
 }
 
 func (s *RedisStore) putback(id *bucket.Id) error {

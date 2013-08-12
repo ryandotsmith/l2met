@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/conf"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -59,6 +60,7 @@ type Channel struct {
 	outbox   chan *libratoMetric
 	url      *url.URL
 	source   string
+	appName  string
 }
 
 // Returns an initialized Metchan Channel.
@@ -67,22 +69,22 @@ type Channel struct {
 // If a blank URL is given, no metric posting attempt will be made.
 // If verbose is set to true, the metric will be printed to STDOUT
 // regardless of whether the metric is sent to Librato.
-func New(verbose bool, u *url.URL) *Channel {
+func New(cfg *conf.D) *Channel {
 	c := new(Channel)
 
 	// If the url is nil, then it wasn't initialized
 	// by the conf pkg. If it is not nil, we will
 	// enable the Metchan.
-	if u != nil {
-		c.url = u
-		c.username = u.User.Username()
-		c.password, _ = u.User.Password()
+	if cfg.MetchanUrl != nil {
+		c.url = cfg.MetchanUrl
+		c.username = cfg.MetchanUrl.User.Username()
+		c.password, _ = cfg.MetchanUrl.User.Password()
 		c.url.User = nil
 		c.enabled = true
 	}
 
 	// This will enable writting to a logger.
-	c.verbose = verbose
+	c.verbose = cfg.Verbose
 
 	// Internal Datastructures.
 	c.buffer = make(map[string]*bucket.Bucket)
@@ -95,6 +97,7 @@ func New(verbose bool, u *url.URL) *Channel {
 	if err == nil {
 		c.source = host
 	}
+	c.appName = cfg.AppName
 	return c
 }
 
@@ -122,7 +125,7 @@ func (c *Channel) Measure(name string, v float64) {
 	}
 	id := &bucket.Id{
 		Resolution: c.FlushInterval,
-		Name:       name,
+		Name:       c.appName + "." + name,
 		Units:      "ms",
 		Source:     c.source,
 	}

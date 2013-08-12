@@ -31,7 +31,7 @@ func main() {
 
 	// Can be passed to other modules
 	// as an internal metrics channel.
-	mchan := metchan.New(cfg.Verbose, cfg.MetchanUrl)
+	mchan := metchan.New(cfg)
 	mchan.Start()
 
 	// The store will be used by receivers and outlets.

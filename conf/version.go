@@ -1,2 +1,2 @@
 package conf
-const Version = "v2.0beta-c0894c4"
+const Version = "v2.0beta-3300171"

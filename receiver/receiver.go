@@ -232,8 +232,8 @@ func (r *Receiver) Report() {
 		nr := atomic.LoadUint64(&r.numReqs)
 		atomic.AddUint64(&r.numBuckets, -nb)
 		atomic.AddUint64(&r.numReqs, -nr)
-		fmt.Printf("reciever.http.num-reqs=%d\n", float64(nr))
-		fmt.Printf("reciever.http.num-buckets=%d\n", float64(nb))
+		fmt.Printf("reciever.http.num-reqs=%d\n", nr)
+		fmt.Printf("reciever.http.num-buckets=%d\n", nb)
 		pre := "reciever.buffer."
 		r.Mchan.Measure(pre+"inbox", float64(len(r.Inbox)))
 		r.Mchan.Measure(pre+"register", float64(len(r.Register.m)))

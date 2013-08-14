@@ -58,7 +58,7 @@ type Receiver struct {
 	// Bucket storage.
 	Store store.Store
 	//Count the number of times we accept a bucket.
-	numBuckets uint64
+	numBuckets, numReqs uint64
 	// The number of time units allowed to pass before dropping a
 	// log line.
 	deadline int64
@@ -77,6 +77,7 @@ func NewReceiver(cfg *conf.D, s store.Store) *Receiver {
 	r.NumOutlets = cfg.Concurrency
 	r.deadline = cfg.ReceiverDeadline
 	r.numBuckets = uint64(0)
+	r.numReqs = uint64(0)
 	r.Store = s
 	return r
 }
@@ -105,6 +106,7 @@ func (r *Receiver) Start() {
 	// The transfer is not a concurrent process.
 	// It removes buckets from the register to the outbox.
 	go r.transfer()
+	go r.Report()
 }
 
 func (r *Receiver) Wait() {
@@ -140,6 +142,7 @@ func (r *Receiver) accept() {
 func (r *Receiver) addRegister(b *bucket.Bucket) {
 	r.Register.Lock()
 	defer r.Register.Unlock()
+	r.numBuckets++
 	k := *b.Id
 	_, present := r.Register.m[k]
 	if !present {
@@ -149,7 +152,6 @@ func (r *Receiver) addRegister(b *bucket.Bucket) {
 		r.Mchan.Measure("receiver.merge-bucket", 1)
 		r.Register.m[k].Add(b)
 	}
-	r.numBuckets += 1
 }
 
 func (r *Receiver) transfer() {
@@ -180,8 +182,10 @@ func (r *Receiver) outlet() {
 }
 
 func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.numReqs++
 	defer r.Mchan.Time("http.accept", time.Now())
 	if req.Method != "POST" {
+		fmt.Printf("error=%q\n", "Non post method received.")
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
@@ -192,16 +196,19 @@ func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// the auth to use it against the Librato API.
 	authLine, ok := req.Header["Authorization"]
 	if !ok && len(authLine) > 0 {
+		fmt.Printf("error=%q\n", "Missing authorization header.")
 		http.Error(w, "Missing Auth.", 400)
 		return
 	}
 	parseRes, err := auth.Parse(authLine[0])
 	if err != nil {
+		fmt.Printf("error=%s\n", err)
 		http.Error(w, "Fail: Parse auth.", 400)
 		return
 	}
 	_, _, err = auth.Decrypt(parseRes)
 	if err != nil {
+		fmt.Printf("error=%s\n", err)
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
@@ -210,6 +217,7 @@ func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	b, err := ioutil.ReadAll(req.Body)
 	req.Body.Close()
 	if err != nil {
+		fmt.Printf("error=%q\n", "Unable to read request body.")
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
@@ -219,11 +227,14 @@ func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // Keep an eye on the lenghts of our bufferes.
 // If they are maxed out, something is going wrong.
 func (r *Receiver) Report() {
-	for _ = range time.Tick(time.Second * 2) {
+	for _ = range time.Tick(time.Second) {
 		nb := atomic.LoadUint64(&r.numBuckets)
+		nr := atomic.LoadUint64(&r.numReqs)
 		atomic.AddUint64(&r.numBuckets, -nb)
+		atomic.AddUint64(&r.numReqs, -nr)
+		fmt.Printf("reciever.http.num-reqs", float64(nr))
+		fmt.Printf("reciever.http.num-buckets", float64(nb))
 		pre := "reciever.buffer."
-		r.Mchan.Measure(pre+"buckets", float64(nb))
 		r.Mchan.Measure(pre+"inbox", float64(len(r.Inbox)))
 		r.Mchan.Measure(pre+"register", float64(len(r.Register.m)))
 		r.Mchan.Measure(pre+"outbox", float64(len(r.Outbox)))

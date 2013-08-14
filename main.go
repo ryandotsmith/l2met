@@ -56,9 +56,6 @@ func main() {
 		recv := receiver.NewReceiver(cfg, st)
 		recv.Mchan = mchan
 		recv.Start()
-		if cfg.Verbose {
-			go recv.Report()
-		}
 		http.Handle("/logs", recv)
 	}
 

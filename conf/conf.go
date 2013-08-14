@@ -43,7 +43,7 @@ func New() *D {
 	flag.IntVar(&d.BufferSize, "buffer", 1024,
 		"Max number of items for all internal buffers.")
 
-	flag.IntVar(&d.Concurrency, "concurrency", 100,
+	flag.IntVar(&d.Concurrency, "concurrency", 10,
 		"Number of running go routines for outlet or receiver.")
 
 	flag.IntVar(&d.Port, "port", 8080,

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/ryandotsmith/l2met/bucket"
 	"sync"
+	"net/http"
 	"time"
 )
 
@@ -66,4 +67,8 @@ func (m *MemStore) Put(b *bucket.Bucket) error {
 		m.m[*b.Id].Add(b)
 	}
 	return nil
+}
+
+func (m *MemStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	return
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/redisync"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -211,4 +212,12 @@ func (s *RedisStore) Flush() {
 	rc := s.redisPool.Get()
 	defer rc.Close()
 	rc.Do("FLUSHALL")
+}
+
+func (s *RedisStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !s.Health() {
+		msg := "error=redis-ping-fail"
+		fmt.Println(msg)
+		http.Error(w, msg, 500)
+	}
 }

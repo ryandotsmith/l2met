@@ -9,6 +9,9 @@ import (
 	"os"
 	"strings"
 	"time"
+	"io/ioutil"
+	"net/http"
+	"fmt"
 )
 
 var (
@@ -61,4 +64,40 @@ func Decrypt(s string) (string, string, error) {
 	}
 	parts := strings.Split(string(msg), ":")
 	return parts[0], parts[1], nil
+}
+
+func ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method must be POST.", 400)
+		return
+	}
+	l := r.Header.Get("Authorization")
+	user, err := Parse(l)
+	if err != nil {
+		http.Error(w, "Unable to parse headers.", 400)
+		return
+	}
+	matched := false
+	for i := range keys {
+		if user == keys[i].Encode() {
+			matched = true
+			break
+		}
+	}
+	if !matched {
+		http.Error(w, "Authentication failed.", 401)
+		return
+	}
+	b, err := ioutil.ReadAll(r.Body)
+	r.Body.Close()
+	if err != nil {
+		http.Error(w, "Unable to read body.", 400)
+		return
+	}
+	signed, err := EncryptAndSign(b)
+	if err != nil {
+		http.Error(w, "Unable to sign body.", 500)
+		return
+	}
+	fmt.Fprint(w, string(signed))
 }

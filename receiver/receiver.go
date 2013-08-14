@@ -7,15 +7,18 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/ryandotsmith/l2met/auth"
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
+	"io/ioutil"
 	"github.com/ryandotsmith/l2met/parser"
 	"github.com/ryandotsmith/l2met/store"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
+	"net/http"
 )
 
 // We read the body of an http request and then close the request.
@@ -174,6 +177,43 @@ func (r *Receiver) outlet() {
 		}
 		r.Mchan.Time("reciever.outlet", startPut)
 	}
+}
+
+func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer r.Mchan.Time("http.accept", time.Now())
+	if req.Method != "POST" {
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+	// If we can decrypt the authentication
+	// we know it is valid and thus good enought
+	// for our receiver. Later, another routine
+	// can extract the username and password from
+	// the auth to use it against the Librato API.
+	authLine, ok := req.Header["Authorization"]
+	if !ok && len(authLine) > 0 {
+		http.Error(w, "Missing Auth.", 400)
+		return
+	}
+	parseRes, err := auth.Parse(authLine[0])
+	if err != nil {
+		http.Error(w, "Fail: Parse auth.", 400)
+		return
+	}
+	_, _, err = auth.Decrypt(parseRes)
+	if err != nil {
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+	v := req.URL.Query()
+	v.Add("auth", parseRes)
+	b, err := ioutil.ReadAll(req.Body)
+	req.Body.Close()
+	if err != nil {
+		http.Error(w, "Invalid Request", 400)
+		return
+	}
+	r.Receive(b, v)
 }
 
 // Keep an eye on the lenghts of our bufferes.

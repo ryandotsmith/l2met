@@ -4,6 +4,7 @@ package store
 
 import (
 	"github.com/ryandotsmith/l2met/bucket"
+	"net/http"
 	"time"
 )
 
@@ -13,5 +14,5 @@ type Store interface {
 	Get(*bucket.Bucket) error
 	Scan(time.Time) (<-chan *bucket.Bucket, error)
 	Now() time.Time
-	Health() bool
+	ServeHTTP(w http.ResponseWriter, r *http.Request)
 }

@@ -23,11 +23,11 @@ type libratoAttrs struct {
 type LibratoMetric struct {
 	Name   string        `json:"name"`
 	Time   int64         `json:"measure_time"`
-	Val    float64       `json:"value,omitempty"`
-	Count  int           `json:"count,omitempty"`
-	Sum    float64       `json:"sum,omitempty"`
-	Max    float64       `json:"max,omitempty"`
-	Min    float64       `json:"min,omitempty"`
+	Val    *float64       `json:"value,omitempty"`
+	Count  *int           `json:"count,omitempty"`
+	Sum    *float64       `json:"sum,omitempty"`
+	Max    *float64       `json:"max,omitempty"`
+	Min    *float64       `json:"min,omitempty"`
 	Source string        `json:"source,omitempty"`
 	Auth   string        `json:"-"`
 	Attr   *libratoAttrs `json:"attributes,omitempty"`
@@ -89,6 +89,10 @@ func (b *Bucket) EmiteSamples() []*LibratoMetric {
 }
 
 func (b *Bucket) ComplexMetric() *LibratoMetric {
+	min := b.Min()
+	max := b.Max()
+	cnt := b.Count()
+	sum := b.Sum()
 	return &LibratoMetric{
 		Attr: &libratoAttrs{
 			Min:   0,
@@ -98,10 +102,10 @@ func (b *Bucket) ComplexMetric() *LibratoMetric {
 		Source: b.Id.Source,
 		Time:   b.Id.Time.Unix(),
 		Auth:   b.Id.Auth,
-		Min:    b.Min(),
-		Max:    b.Max(),
-		Sum:    b.Sum(),
-		Count:  b.Count(),
+		Min:    &min,
+		Max:    &max,
+		Sum:    &sum,
+		Count:  &cnt,
 	}
 }
 
@@ -115,7 +119,7 @@ func (b *Bucket) Metric(name string, val float64) *LibratoMetric {
 		Source: b.Id.Source,
 		Time:   b.Id.Time.Unix(),
 		Auth:   b.Id.Auth,
-		Val:    val,
+		Val:    &val,
 	}
 }
 

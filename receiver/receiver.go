@@ -11,14 +11,14 @@ import (
 	"github.com/ryandotsmith/l2met/bucket"
 	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
-	"io/ioutil"
 	"github.com/ryandotsmith/l2met/parser"
 	"github.com/ryandotsmith/l2met/store"
+	"io/ioutil"
+	"net/http"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
-	"net/http"
 )
 
 // We read the body of an http request and then close the request.
@@ -206,8 +206,7 @@ func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Fail: Parse auth.", 400)
 		return
 	}
-	_, _, err = auth.Decrypt(parseRes)
-	if err != nil {
+	if _, err = auth.Decrypt(parseRes); err != nil {
 		fmt.Printf("error=%s\n", err)
 		http.Error(w, "Invalid Request", 400)
 		return

@@ -8,7 +8,25 @@ import (
 	"testing"
 )
 
+type authTest struct {
+	input  string
+	output string
+}
+
+var authTests = []authTest{
+	{
+		"user:password",
+		"user:password",
+	},
+}
+
 func TestAuth(t *testing.T) {
+	for _, ts := range authTests {
+		testEncryptDecrypt(t, ts)
+	}
+}
+
+func testEncryptDecrypt(t *testing.T, ts authTest) {
 	if len(keys) == 0 {
 		t.Fatalf("Must set $SECRETS\n")
 	}
@@ -16,15 +34,12 @@ func TestAuth(t *testing.T) {
 	var b bytes.Buffer
 	r, err := http.NewRequest("GET", "http://does-not-matter.com", &b)
 	if err != nil {
-		t.Error(err)
+		t.Fatalf("error=%s\n", err)
 	}
 
-	expectedUser := "ryan@heroku.com"
-	expectedPass := "abc123"
-	tok, err := fernet.EncryptAndSign([]byte(expectedUser+":"+expectedPass),
-		keys[0])
+	tok, err := fernet.EncryptAndSign([]byte(ts.input), keys[0])
 	if err != nil {
-		t.Error(err)
+		t.Fatalf("error=%s\n", err)
 	}
 	r.Header.Set("Authorization",
 		"Basic "+base64.StdEncoding.EncodeToString(tok))
@@ -34,16 +49,12 @@ func TestAuth(t *testing.T) {
 		t.Fatalf("error=%s\n", err)
 	}
 
-	actualUser, actualPass, err := Decrypt(parseRes)
+	actualOutput, err := Decrypt(parseRes)
 	if err != nil {
 		t.Fatalf("error=%s\n", err)
 	}
 
-	if actualUser != expectedUser {
-		t.Fatalf("actual=%q expected=%q\n", actualUser, expectedUser)
-	}
-
-	if actualPass != expectedPass {
-		t.Fatalf("actual=%q expected=%q\n", actualPass, expectedPass)
+	if actualOutput != ts.output {
+		t.Fatalf("actual=%q expected=%q\n", actualOutput, ts.output)
 	}
 }

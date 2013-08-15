@@ -17,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -123,18 +124,23 @@ func (l *LibratoOutlet) outlet() {
 		//Since a playload contains all metrics for
 		//a unique librato user/pass, we can extract the user/pass
 		//from any one of the payloads.
-		user, pass, err := auth.Decrypt(payloads[0].Auth)
+		decr, err := auth.Decrypt(payloads[0].Auth)
 		if err != nil {
 			fmt.Printf("error=%s\n", err)
+			continue
+		}
+		creds := strings.Split(decr, ":")
+		if len(creds) != 2 {
+			fmt.Printf("error=missing-creds\n")
 			continue
 		}
 		libratoReq := &libratoRequest{payloads}
 		j, err := json.Marshal(libratoReq)
 		if err != nil {
-			fmt.Printf("at=json error=%s user=%s\n", err, user)
+			fmt.Printf("at=json error=%s user=%s\n", err, creds[0])
 			continue
 		}
-		if err := l.postWithRetry(user, pass, j); err != nil {
+		if err := l.postWithRetry(creds[0], creds[1], j); err != nil {
 			l.Mchan.Measure("outlet.drop", 1)
 		}
 	}

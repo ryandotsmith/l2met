@@ -5,13 +5,13 @@ package auth
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"github.com/kr/fernet"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 	"time"
-	"io/ioutil"
-	"net/http"
-	"fmt"
 )
 
 var (
@@ -54,16 +54,15 @@ func Parse(authLine string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(decodedPayload), nil
+	return strings.TrimSuffix(string(decodedPayload), ":"), nil
 }
 
-func Decrypt(s string) (string, string, error) {
+func Decrypt(s string) (string, error) {
 	msg := fernet.VerifyAndDecrypt([]byte(s), ttl, keys)
 	if msg == nil {
-		return "", "", errors.New("Unable to decrypt.")
+		return "", errors.New("Unable to decrypt.")
 	}
-	parts := strings.Split(string(msg), ":")
-	return parts[0], parts[1], nil
+	return string(msg), nil
 }
 
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {

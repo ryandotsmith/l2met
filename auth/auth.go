@@ -19,6 +19,7 @@ var (
 	keys []*fernet.Key
 )
 
+
 func init() {
 	s := os.Getenv("SECRETS")
 	if len(s) > 0 {
@@ -50,7 +51,7 @@ func Parse(authLine string) (string, error) {
 		return "", errors.New("Authorization must be basic.")
 	}
 	payload := parts[1]
-	decodedPayload, err := base64.StdEncoding.DecodeString(payload)
+	decodedPayload, err := base64.URLEncoding.DecodeString(payload)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +81,6 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for i := range keys {
 		if user == keys[i].Encode() {
 			matched = true
-			break
 		}
 	}
 	if !matched {

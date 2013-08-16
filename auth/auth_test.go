@@ -58,3 +58,25 @@ func testEncryptDecrypt(t *testing.T, ts authTest) {
 		t.Fatalf("actual=%q expected=%q\n", actualOutput, ts.output)
 	}
 }
+
+var parseTests = []struct{
+	input string
+	output string
+}{
+	{
+		"Basic QmVjc3RzWVNrSlkzM1VzOTFrZ2w2cVB1Ykhvd1dYY3FhQnhxaHU3TnU2Xz06",
+		"BecstsYSkJY33Us91kgl6qPubHowWXcqaBxqhu7Nu6_=",
+	},
+}
+
+func TestParse(t *testing.T) {
+	for _, ts := range parseTests {
+		res, err := Parse(ts.input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if res != ts.output {
+			t.Fatalf("acutal=%s expected=%s\n", res, ts.output)
+		}
+	}
+}

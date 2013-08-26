@@ -34,7 +34,7 @@ $ heroku drains:add https://long-token@my-l2met.herokuapp.com/logs -a myapp
 ```
 
 ## Hacking on l2met
-L2met is an open source, community project. Patches are welcome. Open an issue prior to submitting a patch to ensure that your patch will be acceptd. You will also receive tips & tricks on how to best implement your patch.
+L2met is an open source, community project. Patches are welcome. Open an issue prior to submitting a patch to ensure that your patch will be accepted. You will also receive tips & tricks on how to best implement your patch.
 
 ### Communcation
 

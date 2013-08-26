@@ -3,8 +3,8 @@ package store
 import (
 	"errors"
 	"github.com/ryandotsmith/l2met/bucket"
-	"sync"
 	"net/http"
+	"sync"
 	"time"
 )
 

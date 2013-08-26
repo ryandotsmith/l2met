@@ -11,9 +11,9 @@ import (
 	"github.com/ryandotsmith/l2met/reader"
 	"github.com/ryandotsmith/l2met/receiver"
 	"github.com/ryandotsmith/l2met/store"
-	"os"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 )
 

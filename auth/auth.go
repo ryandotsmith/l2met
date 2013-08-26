@@ -19,7 +19,6 @@ var (
 	keys []*fernet.Key
 )
 
-
 func init() {
 	s := os.Getenv("SECRETS")
 	if len(s) > 0 {

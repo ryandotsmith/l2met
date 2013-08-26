@@ -9,10 +9,10 @@ import (
 )
 
 type testCase struct {
-	tname string
-	in    string
-	opts  options
-	names []string
+	tname   string
+	in      string
+	opts    options
+	names   []string
 	metrics []string
 }
 

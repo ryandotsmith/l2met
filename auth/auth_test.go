@@ -59,8 +59,8 @@ func testEncryptDecrypt(t *testing.T, ts authTest) {
 	}
 }
 
-var parseTests = []struct{
-	input string
+var parseTests = []struct {
+	input  string
 	output string
 }{
 	{

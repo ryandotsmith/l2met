@@ -183,6 +183,9 @@ func (r *Receiver) outlet() {
 
 func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.numReqs++
+	if r.numReqs % 2 == 0 {
+		time.Sleep(time.Second)
+	}
 	defer r.Mchan.Time("http.accept", time.Now())
 	if req.Method != "POST" {
 		fmt.Printf("error=%q\n", "Non post method received.")

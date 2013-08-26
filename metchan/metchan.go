@@ -55,8 +55,8 @@ type Channel struct {
 	username string
 	password string
 	verbose  bool
-	enabled  bool
-	buffer   map[string]*bucket.Bucket
+	Enabled  bool
+	Buffer   map[string]*bucket.Bucket
 	outbox   chan *libratoMetric
 	url      *url.URL
 	source   string
@@ -80,14 +80,14 @@ func New(cfg *conf.D) *Channel {
 		c.username = cfg.MetchanUrl.User.Username()
 		c.password, _ = cfg.MetchanUrl.User.Password()
 		c.url.User = nil
-		c.enabled = true
+		c.Enabled = true
 	}
 
 	// This will enable writting to a logger.
 	c.verbose = cfg.Verbose
 
 	// Internal Datastructures.
-	c.buffer = make(map[string]*bucket.Bucket)
+	c.Buffer = make(map[string]*bucket.Bucket)
 	c.outbox = make(chan *libratoMetric, 10)
 
 	// Default flush interval.
@@ -102,7 +102,7 @@ func New(cfg *conf.D) *Channel {
 }
 
 func (c *Channel) Start() {
-	if c.enabled {
+	if c.Enabled {
 		go c.scheduleFlush()
 		go c.outlet()
 	}
@@ -120,7 +120,7 @@ func (c *Channel) Measure(name string, v float64) {
 	if c.verbose {
 		fmt.Printf("source=%s measure#%s=%f\n", c.source, name, v)
 	}
-	if !c.enabled {
+	if !c.Enabled {
 		return
 	}
 	id := &bucket.Id{
@@ -135,11 +135,11 @@ func (c *Channel) Measure(name string, v float64) {
 func (c *Channel) add(id *bucket.Id, val float64) {
 	c.Lock()
 	defer c.Unlock()
-	b, ok := c.buffer[id.Name]
+	b, ok := c.Buffer[id.Name]
 	if !ok {
 		b = &bucket.Bucket{Id: id}
 		b.Vals = make([]float64, 1, 10000)
-		c.buffer[id.Name] = b
+		c.Buffer[id.Name] = b
 	}
 	// Instead of creating a new bucket struct with a new Vals slice
 	// We will re-use the old bucket and reset the slice. This
@@ -162,7 +162,7 @@ func (c *Channel) scheduleFlush() {
 func (c *Channel) flush() {
 	c.Lock()
 	defer c.Unlock()
-	for _, b := range c.buffer {
+	for _, b := range c.Buffer {
 		c.outbox <- &libratoMetric{
 			Name:   b.Id.Name,
 			Time:   b.Id.Time.Unix(),

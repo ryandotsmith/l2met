@@ -7,14 +7,20 @@ import (
 	"fmt"
 	"github.com/bmizerany/lpx"
 	"github.com/ryandotsmith/l2met/bucket"
+	"github.com/ryandotsmith/l2met/metchan"
+	"github.com/ryandotsmith/l2met/auth"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
+var bucketDropExpr = regexp.MustCompile(`\:\s(\d+)\smessages`)
+
 type options map[string][]string
 
 var (
+	logplexPrefix = "logplex"
 	routerPrefix  = "router"
 	legacyPrefix  = "measure."
 	measurePrefix = "measure#"
@@ -23,14 +29,16 @@ var (
 )
 
 type parser struct {
-	out  chan *bucket.Bucket
-	lr   *lpx.Reader
-	ld   *logData
-	opts options
+	out   chan *bucket.Bucket
+	lr    *lpx.Reader
+	ld    *logData
+	opts  options
+	mchan *metchan.Channel
 }
 
-func BuildBuckets(body *bufio.Reader, opts options) <-chan *bucket.Bucket {
+func BuildBuckets(body *bufio.Reader, opts options, m *metchan.Channel) <-chan *bucket.Bucket {
 	p := new(parser)
+	p.mchan = m
 	p.opts = opts
 	p.out = make(chan *bucket.Bucket)
 	p.lr = lpx.NewReader(body)
@@ -42,6 +50,9 @@ func BuildBuckets(body *bufio.Reader, opts options) <-chan *bucket.Bucket {
 func (p *parser) parse() {
 	defer close(p.out)
 	for p.lr.Next() {
+		if p.handleHkLogplexErr() {
+			continue
+		}
 		p.ld.Reset()
 		if err := p.ld.Read(p.lr.Bytes()); err != nil {
 			fmt.Printf("error=%s\n", err)
@@ -115,6 +126,26 @@ func (p *parser) handlMeasurements(t *tuple) error {
 	}
 	p.out <- &bucket.Bucket{Id: id, Vals: []float64{val}}
 	return nil
+}
+
+func (p *parser) handleHkLogplexErr() bool {
+	if string(p.lr.Header().Procid) != logplexPrefix {
+		return false
+	}
+	matches := bucketDropExpr.FindStringSubmatch(string(p.lr.Bytes()))
+	if len(matches) < 2 {
+		return false
+	}
+	numDrops, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return false
+	}
+	if decr, err := auth.Decrypt(p.Auth()); err == nil {
+		user := strings.Split(decr, ":")[0]
+		fmt.Printf("error=logplex.l10 drops=%d user=%s\n", numDrops, user)
+	}
+	p.mchan.Measure("logplex.l10", float64(numDrops))
+	return true
 }
 
 func (p *parser) handleHkRouter(t *tuple) error {

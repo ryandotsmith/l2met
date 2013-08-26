@@ -128,7 +128,7 @@ func (r *Receiver) accept() {
 	for lreq := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
 		startParse := time.Now()
-		for bucket := range parser.BuildBuckets(rdr, lreq.Opts) {
+		for bucket := range parser.BuildBuckets(rdr, lreq.Opts, r.Mchan) {
 			if bucket.Id.Delay(r.Store.Now()) <= r.deadline {
 				r.addRegister(bucket)
 			} else {

@@ -21,7 +21,7 @@ const (
 
 func initRedisPool(cfg *conf.D) *redis.Pool {
 	return &redis.Pool{
-		MaxIdle:     cfg.Concurrency,
+		MaxIdle:     cfg.Concurrency * 2,
 		IdleTimeout: 30 * time.Second,
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")

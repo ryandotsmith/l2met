@@ -173,7 +173,7 @@ func (b *Bucket) Median() float64 {
 	return b.Vals[pos]
 }
 
-func (b *Bucket) P95() float64 {
+func (b *Bucket) Perc95() float64 {
 	if b.Count() == 0 {
 		return float64(0)
 	}
@@ -182,7 +182,7 @@ func (b *Bucket) P95() float64 {
 	return b.Vals[pos]
 }
 
-func (b *Bucket) P99() float64 {
+func (b *Bucket) Perc99() float64 {
 	if b.Count() == 0 {
 		return float64(0)
 	}

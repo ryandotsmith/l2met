@@ -5,6 +5,7 @@ package receiver
 
 import (
 	"bufio"
+	"strings"
 	"bytes"
 	"fmt"
 	"github.com/ryandotsmith/l2met/auth"
@@ -207,11 +208,13 @@ func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Fail: Parse auth.", 400)
 		return
 	}
-	if _, err = auth.Decrypt(parseRes); err != nil {
+	var creds string
+	if creds, err = auth.Decrypt(parseRes); err != nil {
 		fmt.Printf("error=%s\n", err)
 		http.Error(w, "Invalid Request", 400)
 		return
 	}
+	defer r.Mchan.CountReq(strings.Split(creds, ":")[0])
 	v := req.URL.Query()
 	v.Add("auth", parseRes)
 	b, err := ioutil.ReadAll(req.Body)
@@ -232,8 +235,8 @@ func (r *Receiver) Report() {
 		nr := atomic.LoadUint64(&r.numReqs)
 		atomic.AddUint64(&r.numBuckets, -nb)
 		atomic.AddUint64(&r.numReqs, -nr)
-		fmt.Printf("reciever.http.num-reqs=%d\n", nr)
 		fmt.Printf("reciever.http.num-buckets=%d\n", nb)
+		fmt.Printf("reciever.http.num-reqs=%d\n", nr)
 		pre := "reciever.buffer."
 		r.Mchan.Measure(pre+"inbox", float64(len(r.Inbox)))
 		r.Mchan.Measure(pre+"register", float64(len(r.Register.m)))

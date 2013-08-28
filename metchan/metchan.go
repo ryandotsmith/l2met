@@ -4,6 +4,7 @@
 package metchan
 
 import (
+	"strings"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -132,14 +133,26 @@ func (c *Channel) Measure(name string, v float64) {
 	c.add(id, v)
 }
 
+func (c *Channel) CountReq(user string) {
+	usr := strings.Replace(user, "@", "_at_", -1)
+	id := &bucket.Id{
+		Resolution: c.FlushInterval,
+		Name:       c.appName + "." + "receiver.requests",
+		Units:      "requests",
+		Source:     usr,
+	}
+	c.add(id, 1.0)
+}
+
 func (c *Channel) add(id *bucket.Id, val float64) {
 	c.Lock()
 	defer c.Unlock()
-	b, ok := c.Buffer[id.Name]
+	key := id.Name + ":" + id.Source
+	b, ok := c.Buffer[key]
 	if !ok {
 		b = &bucket.Bucket{Id: id}
 		b.Vals = make([]float64, 1, 10000)
-		c.Buffer[id.Name] = b
+		c.Buffer[key] = b
 	}
 	// Instead of creating a new bucket struct with a new Vals slice
 	// We will re-use the old bucket and reset the slice. This

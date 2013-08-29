@@ -140,8 +140,8 @@ func TestReceiver(t *testing.T) {
 				}
 			}
 			if !found {
-				t.Fatalf("\n actual:\t %v \n expected:\t %v",
-					actual, expected[j])
+				t.Fatalf("Expected %v to be in:\n %v\n",
+					expected[j], actual)
 			}
 		}
 	}

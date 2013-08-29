@@ -5,7 +5,6 @@ package receiver
 
 import (
 	"bufio"
-	"strings"
 	"bytes"
 	"fmt"
 	"github.com/ryandotsmith/l2met/auth"
@@ -17,6 +16,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -64,7 +64,7 @@ type Receiver struct {
 	// log line.
 	deadline int64
 	// Publish receiver metrics on this channel.
-	Mchan      *metchan.Channel
+	Mchan    *metchan.Channel
 	inFlight sync.WaitGroup
 }
 

@@ -37,6 +37,7 @@ type Channel struct {
 	url      *url.URL
 	source   string
 	appName  string
+	numOutlets int
 }
 
 // Returns an initialized Metchan Channel.
@@ -59,12 +60,14 @@ func New(cfg *conf.D) *Channel {
 		c.Enabled = true
 	}
 
+	c.numOutlets = cfg.Concurrency
+
 	// This will enable writting to a logger.
 	c.verbose = cfg.Verbose
 
 	// Internal Datastructures.
 	c.Buffer = make(map[string]*bucket.Bucket)
-	c.outbox = make(chan *bucket.LibratoMetric, 10)
+	c.outbox = make(chan *bucket.LibratoMetric, cfg.BufferSize)
 
 	// Default flush interval.
 	c.FlushInterval = time.Minute
@@ -80,7 +83,9 @@ func New(cfg *conf.D) *Channel {
 func (c *Channel) Start() {
 	if c.Enabled {
 		go c.scheduleFlush()
-		go c.outlet()
+		for i := 0; i < c.numOutlets; i++ {
+			go c.outlet()
+		}
 	}
 }
 
@@ -156,7 +161,11 @@ func (c *Channel) flush() {
 	defer c.Unlock()
 	for _, b := range c.Buffer {
 		for _, m := range b.Metrics() {
-			c.outbox <- m
+			select {
+			case c.outbox <- m:
+			default:
+				fmt.Printf("error=metchan-drop\n")
+			}
 		}
 	}
 }

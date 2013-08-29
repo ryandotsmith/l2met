@@ -174,7 +174,7 @@ func fmtLog(t time.Time, procid, msg string) []byte {
 
 func receiveInput(opts testOps, msg []byte) ([]*bucket.Bucket, error) {
 	cfg := &conf.D{
-		Concurrency:      1,
+		Concurrency:      10,
 		BufferSize:       10,
 		FlushInterval:    time.Millisecond * 5,
 		ReceiverDeadline: 2,

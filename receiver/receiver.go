@@ -65,8 +65,7 @@ type Receiver struct {
 	deadline int64
 	// Publish receiver metrics on this channel.
 	Mchan      *metchan.Channel
-	outletters sync.WaitGroup
-	acceptors  sync.WaitGroup
+	inFlight sync.WaitGroup
 }
 
 func NewReceiver(cfg *conf.D, s store.Store) *Receiver {
@@ -84,6 +83,7 @@ func NewReceiver(cfg *conf.D, s store.Store) *Receiver {
 }
 
 func (r *Receiver) Receive(b []byte, opts map[string][]string) {
+	r.inFlight.Add(1)
 	r.Inbox <- &LogRequest{b, opts}
 }
 
@@ -106,45 +106,39 @@ func (r *Receiver) Start() {
 	r.TransferTicker = time.NewTicker(r.FlushInterval)
 	// The transfer is not a concurrent process.
 	// It removes buckets from the register to the outbox.
-	go r.transfer()
+	go r.scheduleTransfer()
 	go r.Report()
 }
 
+// This function can be used as
+// and indicator of when it is safe
+// to shutdown the process.
 func (r *Receiver) Wait() {
-	close(r.Inbox)
-	r.acceptors.Wait()
-	for {
-		time.Sleep(time.Millisecond)
-		if len(r.Register.m) == 0 {
-			break
-		}
-	}
-	close(r.Outbox)
-	r.outletters.Wait()
+	r.inFlight.Wait()
 }
 
 func (r *Receiver) accept() {
-	r.acceptors.Add(1)
-	defer r.acceptors.Done()
-	for lreq := range r.Inbox {
-		rdr := bufio.NewReader(bytes.NewReader(lreq.Body))
+	for req := range r.Inbox {
+		rdr := bufio.NewReader(bytes.NewReader(req.Body))
 		storeTime := r.Store.Now()
 		startParse := time.Now()
-		for bucket := range parser.BuildBuckets(rdr, lreq.Opts, r.Mchan) {
-			if bucket.Id.Delay(storeTime) <= r.deadline {
-				r.addRegister(bucket)
+		for b := range parser.BuildBuckets(rdr, req.Opts, r.Mchan) {
+			if b.Id.Delay(storeTime) <= r.deadline {
+				r.inFlight.Add(1)
+				r.addRegister(b)
 			} else {
 				r.Mchan.Measure("receiver.drop", 1)
 			}
 		}
 		r.Mchan.Time("receiver.accept", startParse)
+		r.inFlight.Done()
 	}
 }
 
 func (r *Receiver) addRegister(b *bucket.Bucket) {
 	r.Register.Lock()
 	defer r.Register.Unlock()
-	r.numBuckets++
+	atomic.AddUint64(&r.numBuckets, 1)
 	k := *b.Id
 	_, present := r.Register.m[k]
 	if !present {
@@ -156,35 +150,36 @@ func (r *Receiver) addRegister(b *bucket.Bucket) {
 	}
 }
 
-func (r *Receiver) transfer() {
+func (r *Receiver) scheduleTransfer() {
 	for _ = range r.TransferTicker.C {
-		for k := range r.Register.m {
-			r.Register.Lock()
-			if m, ok := r.Register.m[k]; ok {
-				delete(r.Register.m, k)
-				r.Register.Unlock()
-				r.Outbox <- m
-			} else {
-				r.Register.Unlock()
-			}
+		r.transfer()
+	}
+}
+
+func (r *Receiver) transfer() {
+	r.Register.Lock()
+	defer r.Register.Unlock()
+	for k := range r.Register.m {
+		if m, ok := r.Register.m[k]; ok {
+			delete(r.Register.m, k)
+			r.Outbox <- m
 		}
 	}
 }
 
 func (r *Receiver) outlet() {
-	r.outletters.Add(1)
-	defer r.outletters.Done()
 	for b := range r.Outbox {
 		startPut := time.Now()
 		if err := r.Store.Put(b); err != nil {
 			fmt.Printf("error=%s\n", err)
 		}
 		r.Mchan.Time("reciever.outlet", startPut)
+		r.inFlight.Done()
 	}
 }
 
 func (r *Receiver) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.numReqs++
+	atomic.AddUint64(&r.numReqs, 1)
 	defer r.Mchan.Time("http.accept", time.Now())
 	if req.Method != "POST" {
 		fmt.Printf("error=%q\n", "Non post method received.")
@@ -239,7 +234,6 @@ func (r *Receiver) Report() {
 		fmt.Printf("reciever.http.num-reqs=%d\n", nr)
 		pre := "reciever.buffer."
 		r.Mchan.Measure(pre+"inbox", float64(len(r.Inbox)))
-		r.Mchan.Measure(pre+"register", float64(len(r.Register.m)))
 		r.Mchan.Measure(pre+"outbox", float64(len(r.Outbox)))
 	}
 }

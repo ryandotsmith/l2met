@@ -64,7 +64,7 @@ func (m *MemStore) Put(b *bucket.Bucket) error {
 	if _, present := m.m[*b.Id]; !present {
 		m.m[*b.Id] = b
 	} else {
-		m.m[*b.Id].Add(b)
+		m.m[*b.Id].Merge(b)
 	}
 	return nil
 }

@@ -172,14 +172,13 @@ func (s *RedisStore) Get(b *bucket.Bucket) error {
 	if len(reply) == 0 {
 		return errors.New("redis_store: Empty bucket.")
 	}
-	b.Vals = make([]float64, len(reply))
+	b.Vals = make([]float64, 0, len(reply))
 	for i := range reply {
 		numstr := reply[i].([]byte)
 		numf, err := strconv.ParseFloat(string(numstr), 64)
 		if err == nil {
-			b.Vals[i] = numf
+			b.Append(numf)
 		}
-
 	}
 	return nil
 }

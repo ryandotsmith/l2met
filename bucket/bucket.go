@@ -37,16 +37,34 @@ type Bucket struct {
 	sync.Mutex
 	Id   *Id
 	Vals []float64
+	Sum  float64
 }
 
-// Adding bucket a to bucket b copies the vals of bucket b and
-// appends them to the vals of bucket a. Nothing is done with the
-// Ids of the buckets. You should ensure that buckets have the same Id.
-func (b *Bucket) Add(otherM *Bucket) {
+func (b *Bucket) Reset() {
 	b.Lock()
 	defer b.Unlock()
-	for _, v := range otherM.Vals {
-		b.Vals = append(b.Vals, v)
+	b.Sum = 0
+	b.Vals = b.Vals[:0]
+}
+
+func (b *Bucket) Append(val float64) {
+	b.Lock()
+	defer b.Unlock()
+	b.Sum += val
+	b.Vals = append(b.Vals, val)
+}
+
+func (b *Bucket) Incr(val float64) {
+	b.Lock()
+	defer b.Unlock()
+	b.Sum += val
+}
+
+func (b *Bucket) Merge(other *Bucket) {
+	other.Lock()
+	defer other.Unlock()
+	for _, v := range other.Vals {
+		b.Append(v)
 	}
 }
 
@@ -78,7 +96,7 @@ func (b *Bucket) EmitMeasurements() []*LibratoMetric {
 
 func (b *Bucket) EmitCounters() []*LibratoMetric {
 	metrics := make([]*LibratoMetric, 1)
-	metrics[0] = b.Metric("sum", b.Sum())
+	metrics[0] = b.Metric("sum", b.Sum)
 	return metrics
 }
 
@@ -92,7 +110,7 @@ func (b *Bucket) ComplexMetric() *LibratoMetric {
 	min := b.Min()
 	max := b.Max()
 	cnt := b.Count()
-	sum := b.Sum()
+	sum := b.Sum
 	return &LibratoMetric{
 		Attr: &libratoAttrs{
 			Min:   0,
@@ -132,22 +150,11 @@ func (b *Bucket) Count() int {
 	return len(b.Vals)
 }
 
-func (b *Bucket) Sum() float64 {
-	if b.Count() == 0 {
-		return float64(0)
-	}
-	s := float64(0)
-	for i := range b.Vals {
-		s += b.Vals[i]
-	}
-	return s
-}
-
 func (b *Bucket) Mean() float64 {
 	if b.Count() == 0 {
 		return float64(0)
 	}
-	return b.Sum() / float64(b.Count())
+	return b.Sum / float64(b.Count())
 }
 
 func (b *Bucket) Sort() {

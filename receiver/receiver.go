@@ -146,7 +146,7 @@ func (r *Receiver) addRegister(b *bucket.Bucket) {
 		r.Register.m[k] = b
 	} else {
 		r.Mchan.Measure("receiver.merge-bucket", 1)
-		r.Register.m[k].Add(b)
+		r.Register.m[k].Merge(b)
 	}
 }
 

@@ -141,7 +141,7 @@ func TestReceiver(t *testing.T) {
 			}
 			if !found {
 				t.Fatalf("\n actual:\t %v \n expected:\t %v",
-					actual[j], expected[j])
+					actual, expected[j])
 			}
 		}
 	}
@@ -155,7 +155,11 @@ func build(name, source, auth string, t time.Time, res time.Duration, vals []flo
 	id.Time = t.Truncate(res)
 	id.ReadyAt = t
 	id.Resolution = res
-	return &bucket.Bucket{Id: id, Vals: vals}
+	b := &bucket.Bucket{Id: id}
+	for i := range vals {
+		b.Append(vals[i])
+	}
+	return b
 }
 
 func fmtLog(t time.Time, procid, msg string) []byte {
@@ -213,7 +217,7 @@ func bucketsEqual(actual, expected *bucket.Bucket) bool {
 	if actual.Id.Source != expected.Id.Source {
 		return false
 	}
-	if actual.Sum() != expected.Sum() {
+	if actual.Sum != expected.Sum {
 		return false
 	}
 	return true

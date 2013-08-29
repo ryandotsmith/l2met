@@ -19,33 +19,8 @@ import (
 	"time"
 )
 
-// Convert l2met data into Librato's API format.
-type libratoMetric struct {
-	Name   string  `json:"name"`
-	Time   int64   `json:"measure_time"`
-	Source string  `json:"source"`
-	Count  int     `json:"count"`
-	Sum    float64 `json:"sum"`
-	Max    float64 `json:"max"`
-	Min    float64 `json:"min"`
-}
-
-func (l *libratoMetric) String() string {
-	layout := "source=%s "
-	layout += "sample#%s.count=%d "
-	layout += "sample#%s.sum=%f "
-	layout += "sample#%s.max=%f "
-	layout += "sample#%s.min=%f"
-	return fmt.Sprintf(layout,
-		l.Source,
-		l.Name, l.Count,
-		l.Name, l.Sum,
-		l.Name, l.Max,
-		l.Name, l.Min)
-}
-
 type libratoGauge struct {
-	Gauges []*libratoMetric `json:"gauges"`
+	Gauges []*bucket.LibratoMetric `json:"gauges"`
 }
 
 type Channel struct {
@@ -58,7 +33,7 @@ type Channel struct {
 	verbose  bool
 	Enabled  bool
 	Buffer   map[string]*bucket.Bucket
-	outbox   chan *libratoMetric
+	outbox   chan *bucket.LibratoMetric
 	url      *url.URL
 	source   string
 	appName  string
@@ -89,7 +64,7 @@ func New(cfg *conf.D) *Channel {
 
 	// Internal Datastructures.
 	c.Buffer = make(map[string]*bucket.Bucket)
-	c.outbox = make(chan *libratoMetric, 10)
+	c.outbox = make(chan *bucket.LibratoMetric, 10)
 
 	// Default flush interval.
 	c.FlushInterval = time.Minute
@@ -129,8 +104,10 @@ func (c *Channel) Measure(name string, v float64) {
 		Name:       c.appName + "." + name,
 		Units:      "ms",
 		Source:     c.source,
+		Type:       "measurement",
 	}
-	c.add(id, v)
+	b := c.getBucket(id)
+	b.Append(v)
 }
 
 func (c *Channel) CountReq(user string) {
@@ -140,11 +117,13 @@ func (c *Channel) CountReq(user string) {
 		Name:       c.appName + "." + "receiver.requests",
 		Units:      "requests",
 		Source:     usr,
+		Type:       "counter",
 	}
-	c.add(id, 1.0)
+	b := c.getBucket(id)
+	b.Incr(1)
 }
 
-func (c *Channel) add(id *bucket.Id, val float64) {
+func (c *Channel) getBucket(id *bucket.Id) *bucket.Bucket {
 	c.Lock()
 	defer c.Unlock()
 	key := id.Name + ":" + id.Source
@@ -161,9 +140,9 @@ func (c *Channel) add(id *bucket.Id, val float64) {
 	latest := time.Now().Truncate(c.FlushInterval)
 	if b.Id.Time != latest {
 		b.Id.Time = latest
-		b.Vals = b.Vals[:0]
+		b.Reset()
 	}
-	b.Vals = append(b.Vals, val)
+	return b
 }
 
 func (c *Channel) scheduleFlush() {
@@ -176,29 +155,22 @@ func (c *Channel) flush() {
 	c.Lock()
 	defer c.Unlock()
 	for _, b := range c.Buffer {
-		c.outbox <- &libratoMetric{
-			Name:   b.Id.Name,
-			Time:   b.Id.Time.Unix(),
-			Source: b.Id.Source,
-			Count:  b.Count(),
-			Sum:    b.Sum(),
-			Max:    b.Max(),
-			Min:    b.Min(),
+		for _, m := range b.Metrics() {
+			c.outbox <- m
 		}
 	}
 }
 
 func (c *Channel) outlet() {
 	for met := range c.outbox {
-		fmt.Printf("at=outlet-metric %s\n", met.String())
 		if err := c.post(met); err != nil {
 			fmt.Printf("at=metchan-post error=%s\n", err)
 		}
 	}
 }
 
-func (c *Channel) post(m *libratoMetric) error {
-	p := &libratoGauge{[]*libratoMetric{m}}
+func (c *Channel) post(m *bucket.LibratoMetric) error {
+	p := &libratoGauge{[]*bucket.LibratoMetric{m}}
 	j, err := json.Marshal(p)
 	if err != nil {
 		return err

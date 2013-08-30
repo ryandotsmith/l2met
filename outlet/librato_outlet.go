@@ -40,7 +40,7 @@ type LibratoOutlet struct {
 
 func buildClient(ttl time.Duration) *http.Client {
 	tr := &http.Transport{
-		DisableKeepAlives: true,
+		DisableKeepAlives: false,
 		Dial: func(n, a string) (net.Conn, error) {
 			c, err := net.DialTimeout(n, a, ttl)
 			if err != nil {
@@ -170,6 +170,7 @@ func (l *LibratoOutlet) post(u, p string, body []byte) error {
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "l2met/"+conf.Version)
+	req.Header.Add("Connection", "Keep-Alive")
 	req.SetBasicAuth(u, p)
 	resp, err := l.conn.Do(req)
 	if err != nil {

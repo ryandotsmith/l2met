@@ -77,7 +77,7 @@ func (b *Bucket) Metrics() []*LibratoMetric {
 	case "counter":
 		return b.EmitCounters()
 	case "sample":
-		return b.EmiteSamples()
+		return b.EmitSamples()
 	default:
 		panic("Undefined bucket.Id type.")
 	}
@@ -100,7 +100,7 @@ func (b *Bucket) EmitCounters() []*LibratoMetric {
 	return metrics
 }
 
-func (b *Bucket) EmiteSamples() []*LibratoMetric {
+func (b *Bucket) EmitSamples() []*LibratoMetric {
 	metrics := make([]*LibratoMetric, 1)
 	metrics[0] = b.Metric("last", b.Last())
 	return metrics

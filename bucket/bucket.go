@@ -88,21 +88,21 @@ func (b *Bucket) Metrics() []*LibratoMetric {
 func (b *Bucket) EmitMeasurements() []*LibratoMetric {
 	metrics := make([]*LibratoMetric, 4)
 	metrics[0] = b.ComplexMetric()
-	metrics[1] = b.Metric("median", b.Median())
-	metrics[2] = b.Metric("perc95", b.Perc95())
-	metrics[3] = b.Metric("perc99", b.Perc99())
+	metrics[1] = b.Metric(".median", b.Median())
+	metrics[2] = b.Metric(".perc95", b.Perc95())
+	metrics[3] = b.Metric(".perc99", b.Perc99())
 	return metrics
 }
 
 func (b *Bucket) EmitCounters() []*LibratoMetric {
 	metrics := make([]*LibratoMetric, 1)
-	metrics[0] = b.Metric("sum", b.Sum)
+	metrics[0] = b.Metric("", b.Sum)
 	return metrics
 }
 
 func (b *Bucket) EmitSamples() []*LibratoMetric {
 	metrics := make([]*LibratoMetric, 1)
-	metrics[0] = b.Metric("last", b.Last())
+	metrics[0] = b.Metric("", b.Last())
 	return metrics
 }
 
@@ -127,13 +127,15 @@ func (b *Bucket) ComplexMetric() *LibratoMetric {
 	}
 }
 
-func (b *Bucket) Metric(name string, val float64) *LibratoMetric {
+// If an non-empty suffix is given, the name of the resulting LibratoMetric
+// will contain the suffix.
+func (b *Bucket) Metric(suffix string, val float64) *LibratoMetric {
 	return &LibratoMetric{
 		Attr: &libratoAttrs{
 			Min:   0,
 			Units: b.Id.Units,
 		},
-		Name:   b.Id.Name + "." + name,
+		Name:   b.Id.Name + suffix,
 		Source: b.Id.Source,
 		Time:   b.Id.Time.Unix(),
 		Auth:   b.Id.Auth,

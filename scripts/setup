@@ -74,7 +74,7 @@ else
 	echo "Unable to update config: APP_NAME=$1"
 fi
 
-secret=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64)
+secret=$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64 | tr '+/_' 'a')
 heroku config:set SECRETS=$secret -a $1 >/dev/null
 if [ $? -eq 0 ]; then
 	echo "Config set: SECRETS=$secret"

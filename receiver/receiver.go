@@ -173,7 +173,7 @@ func (r *Receiver) outlet() {
 		if err := r.Store.Put(b); err != nil {
 			fmt.Printf("error=%s\n", err)
 		}
-		r.Mchan.Time("reciever.outlet", startPut)
+		r.Mchan.Time("receiver.outlet", startPut)
 		r.inFlight.Done()
 	}
 }
@@ -230,9 +230,9 @@ func (r *Receiver) Report() {
 		nr := atomic.LoadUint64(&r.numReqs)
 		atomic.AddUint64(&r.numBuckets, -nb)
 		atomic.AddUint64(&r.numReqs, -nr)
-		fmt.Printf("reciever.http.num-buckets=%d\n", nb)
-		fmt.Printf("reciever.http.num-reqs=%d\n", nr)
-		pre := "reciever.buffer."
+		fmt.Printf("receiver.http.num-buckets=%d\n", nb)
+		fmt.Printf("receiver.http.num-reqs=%d\n", nr)
+		pre := "receiver.buffer."
 		r.Mchan.Measure(pre+"inbox", float64(len(r.Inbox)))
 		r.Mchan.Measure(pre+"outbox", float64(len(r.Outbox)))
 	}

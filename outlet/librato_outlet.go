@@ -75,6 +75,7 @@ func (l *LibratoOutlet) Start() {
 	for i := 0; i < l.numOutlets; i++ {
 		go l.outlet()
 	}
+	go l.Report()
 }
 
 func (l *LibratoOutlet) convert() {
@@ -189,4 +190,15 @@ func (l *LibratoOutlet) post(u, p string, body []byte) error {
 		return errors.New(m)
 	}
 	return nil
+}
+
+// Keep an eye on the lenghts of our bufferes.
+// If they are maxed out, something is going wrong.
+func (l *LibratoOutlet) Report() {
+	for _ = range time.Tick(time.Second) {
+		pre := "librato-outlet."
+		l.Mchan.Measure(pre+"inbox", float64(len(l.inbox)))
+		l.Mchan.Measure(pre+"conversion", float64(len(l.conversions)))
+		l.Mchan.Measure(pre+"outbox", float64(len(l.outbox)))
+	}
 }

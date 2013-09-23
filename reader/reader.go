@@ -42,7 +42,7 @@ func (r *Reader) Start(out chan *bucket.Bucket) {
 func (r *Reader) scan() {
 	for _ = range time.Tick(r.scanInterval) {
 		startScan := time.Now()
-		buckets, err := r.str.Scan(r.str.Now().Truncate(time.Second))
+		buckets, err := r.str.Scan(r.str.Now().Truncate(time.Minute))
 		if err != nil {
 			fmt.Printf("at=bucket.scan error=%s\n", err)
 			continue

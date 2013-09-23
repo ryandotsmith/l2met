@@ -15,7 +15,6 @@ import (
 	"github.com/ryandotsmith/l2met/store"
 	"io/ioutil"
 	"net/http"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -93,7 +92,7 @@ func (r *Receiver) Start() {
 	// into buckets. It is mostly CPU bound, so
 	// it makes sense to parallelize this to the extent
 	// of the number of CPUs.
-	for i := 0; i < runtime.NumCPU(); i++ {
+	for i := 0; i < r.NumOutlets; i++ {
 		go r.accept()
 	}
 	// Outletting data to the store involves sending

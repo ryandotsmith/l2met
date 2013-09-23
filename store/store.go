@@ -12,7 +12,7 @@ type Store interface {
 	MaxPartitions() uint64
 	Put(*bucket.Bucket) error
 	Get(*bucket.Bucket) error
-	Scan(time.Time) (<-chan *bucket.Bucket, error)
+	Scan(time.Time, chan<- *bucket.Bucket) error
 	Now() time.Time
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
 }

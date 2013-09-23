@@ -42,13 +42,10 @@ func (r *Reader) Start(out chan *bucket.Bucket) {
 func (r *Reader) scan() {
 	for _ = range time.Tick(r.scanInterval) {
 		startScan := time.Now()
-		buckets, err := r.str.Scan(r.str.Now().Truncate(time.Second))
-		if err != nil {
+		schedule := r.str.Now().Truncate(time.Second)
+		if err := r.str.Scan(schedule, r.Inbox); err != nil {
 			fmt.Printf("at=bucket.scan error=%s\n", err)
 			continue
-		}
-		for b := range buckets {
-			r.Inbox <- b
 		}
 		r.Mchan.Time("reader.scan", startScan)
 	}

@@ -29,17 +29,22 @@ func (m *MemStore) Now() time.Time {
 	return time.Now()
 }
 
-func (m *MemStore) Scan(schedule time.Time, out chan<- *bucket.Bucket) error {
+func (m *MemStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
 	m.Lock()
-	defer m.Unlock()
-	for k, v := range m.m {
-		ready := v.Id.Time.Add(v.Id.Resolution).Add(time.Second)
-		if !ready.After(schedule) {
-			delete(m.m, k)
-			out <- v
+	//TODO(ryandotsmith): Can we eliminate the magical number?
+	buckets := make(chan *bucket.Bucket, 1000)
+	go func(out chan *bucket.Bucket) {
+		defer m.Unlock()
+		defer close(out)
+		for k, v := range m.m {
+			ready := v.Id.Time.Add(v.Id.Resolution).Add(time.Second)
+			if !ready.After(schedule) {
+				delete(m.m, k)
+				out <- v
+			}
 		}
-	}
-	return  nil
+	}(buckets)
+	return buckets, nil
 }
 
 func (m *MemStore) Get(b *bucket.Bucket) error {

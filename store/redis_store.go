@@ -89,32 +89,40 @@ func (s *RedisStore) Now() time.Time {
 	return time.Unix(int64(sec), int64(microSec*1000))
 }
 
-func (s *RedisStore) Scan(schedule time.Time, out chan<- *bucket.Bucket) error {
-	defer s.Mchan.Time("store.scan", time.Now())
+func (s *RedisStore) Scan(schedule time.Time) (<-chan *bucket.Bucket, error) {
+	out := make(chan *bucket.Bucket)
 	rc := s.redisPool.Get()
-	defer rc.Close()
 	mut, n := s.lockPartition(rc)
-	defer mut.Unlock(rc)
 	p := namePartition(schedule, n)
-	rc.Send("MULTI")
-	rc.Send("SMEMBERS", p)
-	rc.Send("DEL", p)
-	reply, err := redis.Values(rc.Do("EXEC"))
-	if err != nil {
-		return err
-	}
-	var delCount int64
-	var members []string
-	redis.Scan(reply, &members, &delCount)
-	for i := range members {
-		id := new(bucket.Id)
-		err := id.Decode(bytes.NewBufferString(members[i]))
+	fmt.Printf("at=redis-store.scan partition=%s\n", p)
+	go func() {
+		defer s.Mchan.Time("store.scan", time.Now())
+		defer rc.Close()
+		defer mut.Unlock(rc)
+		defer close(out)
+		rc.Send("MULTI")
+		rc.Send("SMEMBERS", p)
+		rc.Send("DEL", p)
+		reply, err := redis.Values(rc.Do("EXEC"))
 		if err != nil {
-			return err
+			fmt.Printf("at=%q error=%s\n", "bucket-store-scan", err)
+			return
 		}
-		out <- &bucket.Bucket{Id: id}
-	}
-	return nil
+		var delCount int64
+		var members []string
+		redis.Scan(reply, &members, &delCount)
+		for i := range members {
+			id := new(bucket.Id)
+			err := id.Decode(bytes.NewBufferString(members[i]))
+			if err != nil {
+				fmt.Printf("at=%q error=%s\n",
+					"bucket-store-parse-key", err)
+				continue
+			}
+			out <- &bucket.Bucket{Id: id}
+		}
+	}()
+	return out, nil
 }
 
 func (s *RedisStore) Put(b *bucket.Bucket) error {

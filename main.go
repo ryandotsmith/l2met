@@ -17,17 +17,19 @@ import (
 	"runtime"
 )
 
+// Hold onto the app's global config.
+var cfg *conf.D
+
+func init() {
+	cfg = conf.New()
+	flag.Parse()
+}
+
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
-// Hold onto the app's global config.
-var cfg *conf.D
-
 func main() {
-	cfg = conf.New()
-	flag.Parse()
-
 	if cfg.PrintVersion {
 		fmt.Println(conf.Version)
 		os.Exit(0)

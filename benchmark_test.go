@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/ryandotsmith/l2met/conf"
 	"github.com/ryandotsmith/l2met/metchan"
 	"github.com/ryandotsmith/l2met/receiver"
 	"github.com/ryandotsmith/l2met/store"
@@ -12,14 +11,15 @@ import (
 
 func BenchmarkReceive(b *testing.B) {
 	b.StopTimer()
-	st := store.NewMemStore()
-	cfg := &conf.D{
-		Concurrency:   1,
-		BufferSize:    1,
-		FlushInterval: time.Second,
-	}
+
+	mchan := metchan.New(cfg)
+	mchan.Start()
+
+	st := store.NewRedisStore(cfg)
+	st.Mchan = mchan
+
 	recv := receiver.NewReceiver(cfg, st)
-	recv.Mchan = new(metchan.Channel)
+	recv.Mchan = mchan
 	recv.Start()
 
 	opts := make(map[string][]string)

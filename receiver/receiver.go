@@ -119,7 +119,21 @@ func (r *Receiver) Wait() {
 func (r *Receiver) accept() {
 	for req := range r.Inbox {
 		rdr := bufio.NewReader(bytes.NewReader(req.Body))
-		storeTime := r.Store.Now()
+		//TODO(ryandotsmith): Use a cached store time.
+		// The code to use here should look something like this:
+		// storeTime := r.Store.Now()
+		// However, since we are in a tight loop here,
+		// we cant make this call. Benchmarks show that using a local
+		// redis and making the time call on the redis store will slow
+		// down the receive loop by 10x.
+		// However, we run the risk of accepting data that is past
+		// its deadline due to clock drift on the localhost. Although
+		// we don't run the risk of re-reporting an interval to Librato
+		// because our outlet uses the store time to process buckets.
+		// So even if we write a bucket to redis that is past the
+		// deadline, our outlet scanner should not pick it up because
+		// it uses redis time to find buckets to process.
+		storeTime := time.Now()
 		startParse := time.Now()
 		for b := range parser.BuildBuckets(rdr, req.Opts, r.Mchan) {
 			if b.Id.Delay(storeTime) <= r.deadline {

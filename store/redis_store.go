@@ -23,10 +23,6 @@ func initRedisPool(cfg *conf.D) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     cfg.Concurrency * 3,
 		IdleTimeout: 30 * time.Second,
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", cfg.RedisHost)
 			if err != nil {

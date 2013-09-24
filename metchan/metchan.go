@@ -116,6 +116,9 @@ func (c *Channel) Measure(name string, v float64) {
 }
 
 func (c *Channel) CountReq(user string) {
+	if !c.Enabled {
+		return
+	}
 	usr := strings.Replace(user, "@", "_at_", -1)
 	id := &bucket.Id{
 		Resolution: c.FlushInterval,

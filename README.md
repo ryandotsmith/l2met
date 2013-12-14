@@ -5,6 +5,8 @@ This project is no longer maintained. It will remain here as a historicaly artif
 
 Thanks for all of the contributions. I can take very little credit for the ideas that made l2met what it is today. Such OSS. Thanks to Heroku for providing me a home while I was developing this project. Finally, thanks to Librato for furthering the state of the art in metrics.
 
+– Ryan Smith
+
 # l2met
 
 Turn these:
